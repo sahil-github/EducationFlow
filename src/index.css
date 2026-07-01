@@ -1,0 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+    --font-sans: 'Poppins', 'Manrope', 'Inter', sans-serif;
+}
+
+html,
+body,
+#root {
+    height: 100%;
+    font-family: 'Poppins', 'Manrope', sans-serif;
+}
+
+body {
+    background-image: url('./assets/Background_image.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    color: #fff;
+}
+
+/* Force form elements to inherit the project font-family */
+input,
+textarea,
+button,
+select {
+    font-family: inherit;
+}
