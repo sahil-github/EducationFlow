@@ -14,22 +14,22 @@ export default function Review() {
     // };
 
     return (
-        <Sidebar>
-            <div className="flex justify-center items-center w-full min-h-screen px-4 sm:px-6 py-8 sm:py-10">
-                <div className="w-full max-w-xl flex flex-col gap-6">
-                    
-                    {/* Heading */}
-                    <div className="flex flex-col items-start gap-1">
-                        <h1 className="font-[Poppins] text-lg sm:text-xl font-bold text-white">
-                            Review Profile
-                        </h1>
-                        {/* <p className="font-[Manrope] text-xs text-[#64748B]">
+
+        <div className="flex justify-center items-center w-full min-h-screen px-4 sm:px-6 py-6 sm:py-6">
+            <div className="w-full max-w-xl flex flex-col gap-6">
+
+                {/* Heading */}
+                <div className="flex flex-col items-start gap-1">
+                    <h1 className="font-[Poppins] text-lg sm:text-xl font-bold text-white">
+                        Review Profile
+                    </h1>
+                    {/* <p className="font-[Manrope] text-xs text-[#64748B]">
                             Confirm your selections to finalize your cohort onboarding path.
                         </p> */}
-                    </div>
+                </div>
 
-                    {/* Card container */}
-                    {/* <Card className="w-full">
+                {/* Card container */}
+                {/* <Card className="w-full">
                         <div className="space-y-4">
                             <div className="flex justify-between py-2.5 border-b border-white/5">
                                 <span className="text-slate-400 text-sm font-[Manrope]">Status</span>
@@ -46,8 +46,8 @@ export default function Review() {
                         </div>
                     </Card> */}
 
-                    {/* Navigation / Action row */}
-                    {/* <div className="w-full flex items-center justify-between mt-2 p-1">
+                {/* Navigation / Action row */}
+                {/* <div className="w-full flex items-center justify-between mt-2 p-1">
                         <button
                             type="button"
                             onClick={() => navigate('/skill-assessment')}
@@ -65,8 +65,7 @@ export default function Review() {
                             Confirm & Submit Profile
                         </Button>
                     </div> */}
-                </div>
             </div>
-        </Sidebar>
+        </div>
     );
 }

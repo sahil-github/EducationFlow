@@ -31,9 +31,9 @@ function AppRoutes() {
                         <Route path="/login" element={<Login />} />
                         <Route path="/signup" element={<SignUp />} />
                     </Route>
-
+                    <Route path="/home" element={<Home />} />
                     <Route element={<Mainlayout />}>
-                        <Route path="/home" element={<Home />} />
+
                         <Route path="/personal-info" element={<PersonalInfo />} />
                         <Route path="/learning-goals" element={<LearningGoals />} />
                         <Route path="/interests" element={<Interests />} />

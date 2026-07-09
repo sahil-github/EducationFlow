@@ -17,6 +17,9 @@ import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import StarBorderRoundedIcon from '@mui/icons-material/StarBorderRounded';
 import CommentIcon from '@mui/icons-material/Comment';
 import Logo from '../assets/logo/Logo.png';
+import { useTheme } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import NotificationsIcon from '@mui/icons-material/Notifications';
 
 const drawerWidth = 240;
 
@@ -28,16 +31,18 @@ const navItems = [
     { text: 'Review', icon: <CommentIcon />, route: '/review' },
 ];
 
-export default function Sidebar({ children }) {
+export default function Sidebar({ children, open, close }) {
     const navigate = useNavigate();
     const location = useLocation();
-    const [open, setOpen] = useState(true);
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
 
     return (
         <Box sx={{ display: 'flex', minHeight: '100vh' }}>
             <Drawer
                 variant="persistent"
-                anchor="left"
+                anchor={isMobile ? "right" : "left"}
                 open={open}
                 sx={{
                     width: drawerWidth,
@@ -61,7 +66,8 @@ export default function Sidebar({ children }) {
                     padding: '16px 12px 12px',
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <img src={Logo} alt="Logo" style={{ width: 36, height: 36 }} />
+
+                        {/* <img src={Logo} alt="Logo" style={{ width: 36, height: 36 }} />
                         <span style={{
                             fontFamily: 'Poppins, sans-serif',
                             fontWeight: 700,
@@ -70,15 +76,22 @@ export default function Sidebar({ children }) {
                             letterSpacing: '0.03em',
                         }}>
                             EduFlow
-                        </span>
+                        </span> */}
+
+
+
+                        <IconButton
+                            onClick={() => close(false)}
+                            size="small"
+                            sx={{ color: 'rgba(255,255,255,0.4)', '&:hover': { color: '#fff' } }}
+                        >
+                            <ChevronLeftIcon />
+                        </IconButton>
+
+                        {/* <NotificationsIcon sx={{ fontSize: 25, color: '#C7C4D8' }} />
+                        <PersonIcon sx={{ fontSize: 24, color: 'white' }} /> */}
                     </div>
-                    <IconButton
-                        onClick={() => setOpen(false)}
-                        size="small"
-                        sx={{ color: 'rgba(255,255,255,0.4)', '&:hover': { color: '#fff' } }}
-                    >
-                        <ChevronLeftIcon />
-                    </IconButton>
+
                 </div>
 
                 <Divider sx={{ borderColor: 'rgba(255,255,255,0.06)' }} />
@@ -141,16 +154,7 @@ export default function Sidebar({ children }) {
                     transition: 'margin 0.25s ease',
                 }}
             >
-                {!open && (
-                    <div style={{ padding: '12px 16px' }}>
-                        <IconButton
-                            onClick={() => setOpen(true)}
-                            sx={{ color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#fff' } }}
-                        >
-                            <MenuIcon />
-                        </IconButton>
-                    </div>
-                )}
+
                 {children}
             </Box>
         </Box>

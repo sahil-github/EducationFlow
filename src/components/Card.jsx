@@ -1,4 +1,4 @@
-export default function Card({ children, className = "" }) {
+export default function Card({ children, className = "", onClick }) {
     return (
         <div
             className={`
@@ -7,7 +7,9 @@ export default function Card({ children, className = "" }) {
                 border border-white/10
                 shadow-2xl
                 ${className}
+                
             `}
+            onClick={onClick}
             style={{ backgroundColor: 'rgba(18, 18, 24, 0.80)' }}
         >
             {children}
