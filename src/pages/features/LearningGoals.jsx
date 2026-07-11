@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../../components/Card';
-import Sidebar from '../../components/Sidebar';
 import Button from '../../components/Button';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import { toast } from 'react-toastify';
 
 export default function LearningGoals() {
     const navigate = useNavigate();
@@ -17,38 +17,56 @@ export default function LearningGoals() {
         { id: 'startup', title: 'Building a Startup', desc: 'Gaining critical technical skills to design, deploy, and launch a digital product.' }
     ];
 
+    const handleContinue = () => {
+        if (!selectedGoal) {
+            toast.error("Please select a learning goal before continuing.");
+            return;
+        }
+        const currentUser = JSON.parse(localStorage.getItem("current_user")) || {};
+        const updatedUser = { ...currentUser, learningGoal: selectedGoal };
+        localStorage.setItem("current_user", JSON.stringify(updatedUser));
+
+        const users = JSON.parse(localStorage.getItem("users")) || [];
+        const userIndex = users.findIndex(u => u.email === currentUser.email);
+        if (userIndex !== -1) {
+            users[userIndex] = { ...users[userIndex], learningGoal: selectedGoal };
+            localStorage.setItem("users", JSON.stringify(users));
+        }
+        navigate('/interests');
+    };
+
     return (
         <div className="flex justify-center items-center w-full min-h-screen px-4 sm:px-6 py-6 sm:py-6">
-            <div className="w-full max-w-xl flex flex-col gap-6">
+            <div className="w-full max-w-3xl flex flex-col gap-6">
 
                 {/* Heading */}
-                {/* <div className="flex flex-col items-start gap-1">
-                        <h1 className="font-[Poppins] text-lg sm:text-xl font-bold text-white">
-                            What are your learning goals?
-                        </h1>
-                        <p className="font-[Manrope] text-xs text-[#64748B]">
-                            Select the primary objective that aligns with your cohort enrollment.
-                        </p>
-                    </div> */}
+                <div className="flex flex-col items-start gap-1">
+                    <h1 className="font-[Poppins] text-lg sm:text-xl font-bold text-white">
+                        What are your learning goals?
+                    </h1>
+                    <p className="font-[Manrope] text-xs text-[#64748B]">
+                        Select the primary objective that aligns with your cohort enrollment.
+                    </p>
+                </div>
 
                 {/* Card container */}
-                {/* <Card className="w-full">
-                        <div className="grid grid-cols-1 gap-3.5">
-                            {goals.map((goal) => (
-                                <div
-                                    key={goal.id}
-                                    onClick={() => setSelectedGoal(goal.id)}
-                                    className={`p-4 rounded-xl border transition-all duration-200 cursor-pointer flex flex-col gap-1 ${selectedGoal === goal.id
-                                            ? 'bg-[#6366F1]/10 border-[#6366F1] shadow-lg shadow-[#6366F1]/5'
-                                            : 'bg-black/40 border-white/5 hover:bg-black/60'
-                                        }`}
-                                >
-                                    <h3 className="text-white font-bold text-sm font-[Poppins]">{goal.title}</h3>
-                                    <p className="text-slate-400 text-xs font-[Manrope] leading-relaxed">{goal.desc}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </Card> */}
+                <Card className="p-7">
+                    <div className="grid grid-cols-1 gap-3.5">
+                        {goals.map((goal) => (
+                            <div
+                                key={goal.id}
+                                onClick={() => setSelectedGoal(goal.id)}
+                                className={`p-4 rounded-xl border transition-all duration-200 cursor-pointer flex flex-col gap-1 ${selectedGoal === goal.id
+                                    ? 'bg-[#6366F1]/10 border-[#6366F1] shadow-lg shadow-[#6366F1]/5'
+                                    : 'bg-black/40 border-white/5 hover:bg-black/60'
+                                    }`}
+                            >
+                                <h3 className="text-white font-bold text-sm font-[Poppins]">{goal.title}</h3>
+                                <p className="text-slate-400 text-xs font-[Manrope] leading-relaxed">{goal.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </Card>
 
                 {/* Navigation Buttons */}
                 <div className="w-full flex items-center justify-between mt-2 p-1">
@@ -63,7 +81,7 @@ export default function LearningGoals() {
 
                     <Button
                         variant="primary"
-                        onClick={() => navigate('/interests')}
+                        onClick={handleContinue}
                         className="h-8 px-3 bg-[#6366F1] hover:bg-[#4F46E5] text-white font-bold rounded-2xl tracking-wide transition-all duration-200 shadow-lg shadow-[#6366F1]/20 font-[Poppins] text-xs flex items-center gap-1"
                     >
                         Continue
@@ -72,6 +90,5 @@ export default function LearningGoals() {
                 </div>
             </div>
         </div>
-
     );
 }

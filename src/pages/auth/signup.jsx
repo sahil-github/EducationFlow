@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { useNavigate, Link, NavLink } from 'react-router-dom';
 import { useFormik } from 'formik';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
@@ -14,6 +15,13 @@ import { Users } from "lucide-react";
 function Signup() {
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const currentUser = JSON.parse(localStorage.getItem('current_user'));
+        if (currentUser && currentUser.email) {
+            navigate('/home');
+        }
+    }, [navigate]);
     const formik = useFormik({
         initialValues: {
             name: '',
@@ -47,10 +55,6 @@ function Signup() {
                 errors.confirmpassword = 'Password does not match';
             }
 
-            // if (!values.agree) {
-            //     errors.agree = 'You must agree to the Terms and Privacy Policy';
-            // }
-
             return errors;
         },
         onSubmit: async (values) => {
@@ -60,7 +64,7 @@ function Signup() {
 
                 const userExists = Users.some(u => u.email === values.email);
                 if (userExists) {
-                    alert("User already exists! Please log in.");
+                    toast.error("User already exists! Please log in.");
                     navigate("/login");
                     return;
                 }
@@ -69,7 +73,7 @@ function Signup() {
                 localStorage.setItem("users", JSON.stringify(Users));
 
                 localStorage.setItem("current_user", JSON.stringify(newUser));
-                alert("Registration Successful! Fill all details");
+                toast.success("Registration Successful! Complet Onboarding process");
                 navigate("/personal-info");
 
             } finally {
@@ -82,7 +86,6 @@ function Signup() {
 
     return (
         <div
-            // style={{ backgroundImage: `url(${backgroundImage})` }}
             className="min-h-screen bg-cover bg-center text-white flex flex-col justify-between"
         >
             <nav className="sticky top-0 shadow-md  z-50 bg-[#18181C]">

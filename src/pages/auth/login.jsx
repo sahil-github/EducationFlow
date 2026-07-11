@@ -6,14 +6,22 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import GoogleIcon from "../../assets/icons/googleicon.png";
 import AppleIcon from "../../assets/icons/applelogo.png";
 import LinkedInIcon from "../../assets/icons/LinkedIn.png";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Input from "../../components/Inputs";
 import { useFormik } from "formik";
 import { NavLink, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 function Login() {
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const currentUser = JSON.parse(localStorage.getItem('current_user'));
+        if (currentUser && currentUser.email) {
+            navigate('/home');
+        }
+    }, [navigate]);
     const formik = useFormik({
         initialValues: {
             email: '',
@@ -47,12 +55,11 @@ function Login() {
                 const matchedUser = Users.find(u => u.email === values.email && u.password === values.password);
 
                 if (!matchedUser) {
-                    alert("Please signup first ");
+                    toast.error("Invalid email or password. Please try again or Signup.");
                     return;
                 }
 
-                localStorage.setItem("current_user", JSON.stringify(matchedUser));
-
+                localStorage.setItem("current_user", JSON.stringify(matchedUser)); 
                 navigate("/home");
             } finally {
                 setIsLoading(false);
@@ -84,7 +91,7 @@ function Login() {
                         </div>
 
                         <h1 className="text-white font-bold text-2xl md:text-3xl sm:text-xl font-[Poppins] leading-tight tracking-tight mb-3">
-                            Unleash your<br />visionary potential.
+                            Unleash your <br/>visionary potential.
                         </h1>
 
                         <p className="text-[#94A3B8] font-[Manrope] text-xs md:text-sm  leading-relaxed ">

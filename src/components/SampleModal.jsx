@@ -1,6 +1,5 @@
 import * as React from 'react';
 import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -18,12 +17,7 @@ const bios = [
 
 
 
-export default function SampleModal({ open, onClose }) {
-    const [scroll, setScroll] = React.useState('paper');
-
-    const handleClickOpen = (scrollType) => () => {
-        setScroll(scrollType);
-    };
+export default function SampleModal({ open, onClose, onSelectSample }) {
 
 
     const descriptionElementRef = React.useRef(null);
@@ -41,12 +35,19 @@ export default function SampleModal({ open, onClose }) {
             <Dialog
                 open={open}
                 onClose={onClose}
-                scroll={scroll}
-            // aria-labelledby="scroll-dialog-title"
-            // aria-describedby="scroll-dialog-description"
+                scroll="paper"
+                PaperProps={{
+                    sx: {
+                        backgroundColor: '#1E1E2A',
+                        color: '#fff',
+                        borderRadius: '16px',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        maxWidth: '500px'
+                    }
+                }}
             >
-                <DialogTitle id="scroll-dialog-title">Sample Bios</DialogTitle>
-                <DialogContent dividers={scroll === 'paper'}>
+                <DialogTitle id="scroll-dialog-title" sx={{ fontFamily: 'Poppins', fontWeight: 600 }}>Sample Bios</DialogTitle>
+                <DialogContent dividers>
                     <DialogContentText
                         id="scroll-dialog-description"
                         ref={descriptionElementRef}
@@ -56,9 +57,16 @@ export default function SampleModal({ open, onClose }) {
                             {bios.map((value, index) =>
                             (
                                 <div
+                                    className="py-4 border-b border-white/10 last:border-b-0 cursor-pointer group transition-all duration-200 hover:bg-white/5 px-4 -mx-4 rounded-xl"
                                     key={index}
+                                    onClick={() => {
+                                        onSelectSample(value);
+                                        onClose();
+                                    }}
                                 >
-                                    <p>{value}</p>
+                                    <p
+                                        className="text-[14px] leading-relaxed text-[#C7C4D8] font-normal italic font-manrope group-hover:text-white transition-colors"
+                                    >{value}</p>
                                 </div>
                             ))}
                         </Box>

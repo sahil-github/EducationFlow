@@ -41,8 +41,6 @@ const Input = forwardRef(
                         ${isPassword ? "pr-11" : "pr-4"}
                         py-2
                         rounded-xl
-                        bg-black/50
-                        text-white
                         border
                         ${error ? "border-red-500" : "border-white/10"}
                         focus:outline-none
