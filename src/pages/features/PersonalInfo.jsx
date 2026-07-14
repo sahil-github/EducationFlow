@@ -10,11 +10,18 @@ import SampleModal from '../../components/SampleModal';
 import { toast } from 'react-toastify';
 import LockIcon from '@mui/icons-material/Lock';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import {
+    getCurrentUser,
+    saveCurrentUser,
+    getUsers,
+    saveUsers,
+} from "../../utils/store"
+import SelectField from '../../components/SelectField';
 
 function PersonalInfo() {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
-    const currentUser = JSON.parse(localStorage.getItem('current_user')) || {};
+    const currentUser = getCurrentUser();
     const [formData, setFormData] = useState({
         name: currentUser.name || '',
         location: currentUser.location || '',
@@ -39,15 +46,15 @@ function PersonalInfo() {
         // Exclude email from formData — it is read-only and should not be submitted
         const { email: _ignored, ...editableData } = formData;
 
-        const currentUser = JSON.parse(localStorage.getItem("current_user")) || {};
+        const currentUser = getCurrentUser();
         const updatedUser = { ...currentUser, ...editableData };
-        localStorage.setItem("current_user", JSON.stringify(updatedUser));
+        saveCurrentUser(updatedUser);
 
-        const users = JSON.parse(localStorage.getItem("users")) || [];
+        const users = getUsers();
         const userIndex = users.findIndex(u => u.email === currentUser.email);
         if (userIndex !== -1) {
             users[userIndex] = { ...users[userIndex], ...editableData };
-            localStorage.setItem("users", JSON.stringify(users));
+            saveUsers(users);
         }
 
         // Dispatch event so Navbar immediately updates its name display

@@ -4,26 +4,32 @@ import Card from '../../components/Card';
 import Button from '../../components/Button';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { toast } from 'react-toastify';
+import {
+    getCurrentUser,
+    saveCurrentUser,
+    getUsers,
+    saveUsers,
+} from "../../utils/store";
 
 export default function Review() {
     const navigate = useNavigate();
     const [user, setUser] = useState({});
 
     useEffect(() => {
-        const savedData = JSON.parse(localStorage.getItem("current_user")) || {};
+        const savedData = getCurrentUser();
         setUser(savedData);
     }, []);
 
     const handleSubmit = () => {
-        const currentUser = JSON.parse(localStorage.getItem("current_user")) || {};
+        const currentUser = getCurrentUser();
         const updatedUser = { ...currentUser, onboardingCompleted: true };
-        localStorage.setItem("current_user", JSON.stringify(updatedUser));
+        saveCurrentUser(updatedUser);
 
-        const users = JSON.parse(localStorage.getItem("users")) || [];
+        const users = getCurrentUsers();
         const userIndex = users.findIndex(u => u.email === currentUser.email);
         if (userIndex !== -1) {
             users[userIndex] = { ...users[userIndex], onboardingCompleted: true };
-            localStorage.setItem("users", JSON.stringify(users));
+            saveUsers(users);
         }
 
         toast.success('Onboarding profile submitted successfully! Welcome aboard 🎉');

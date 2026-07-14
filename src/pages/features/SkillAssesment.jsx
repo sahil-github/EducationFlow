@@ -8,7 +8,12 @@ import CodeIcon from '@mui/icons-material/Code';
 import ColorLensIcon from '@mui/icons-material/ColorLens';
 import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
 import Slider from '@mui/material/Slider';
-
+import {
+    getCurrentUser,
+    saveCurrentUser,
+    getUsers,
+    saveUsers,
+} from "../../utils/store";
 
 function SkillAssesment() {
     const navigate = useNavigate();
@@ -31,15 +36,15 @@ function SkillAssesment() {
     };
 
     const handleContinue = () => {
-        const currentUser = JSON.parse(localStorage.getItem("current_user")) || {};
+        const currentUser = getCurrentUser();
         const updatedUser = { ...currentUser, skills: skills };
-        localStorage.setItem("current_user", JSON.stringify(updatedUser));
+        saveCurrentUser(updatedUser);
 
-        const users = JSON.parse(localStorage.getItem("users")) || [];
+        const users = getUsers();
         const userIndex = users.findIndex(u => u.email === currentUser.email);
         if (userIndex !== -1) {
             users[userIndex] = { ...users[userIndex], skills: skills };
-            localStorage.setItem("users", JSON.stringify(users));
+            saveUsers(users);
         }
         navigate('/review');
     };

@@ -1,24 +1,19 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Card from '../../components/Card';
-import Button from '../../components/Button';
+import Card from '../../../components/Card';
+import Button from '../../../components/Button';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import Input from '../../components/Inputs';
-
-import PsychologyIcon from "@mui/icons-material/Psychology";
-import SecurityIcon from "@mui/icons-material/Security";
-import CodeIcon from "@mui/icons-material/Code";
-import CampaignIcon from "@mui/icons-material/Campaign";
-import AnalyticsIcon from "@mui/icons-material/Analytics";
-import BusinessCenterIcon from "@mui/icons-material/BusinessCenter";
-import BrushIcon from "@mui/icons-material/Brush";
-import CameraAltIcon from "@mui/icons-material/CameraAlt";
-import MusicNoteIcon from "@mui/icons-material/MusicNote";
-import ScienceIcon from "@mui/icons-material/Science";
-import FavoriteIcon from "@mui/icons-material/Favorite";
-import BiotechIcon from "@mui/icons-material/Biotech";
+import Input from '../../../components/Inputs';
+import { InterestData } from '../../../constants/constants';
 import { toast } from 'react-toastify';
+import {
+    getCurrentUser,
+    saveCurrentUser,
+    getUsers,
+    saveUsers,
+} from "../../../utils/store"
+
 
 function Interest() {
     const navigate = useNavigate();
@@ -45,116 +40,24 @@ function Interest() {
             name: item.exname
         }));
 
-        const currentUser = JSON.parse(localStorage.getItem("current_user")) || {};
+        const currentUser = getCurrentUser();
         const updatedUser = {
             ...currentUser,
             interests: interestsToSave
         };
-        localStorage.setItem("current_user", JSON.stringify(updatedUser));
-        const users = JSON.parse(localStorage.getItem("users")) || [];
+        saveCurrentUser(updatedUser);
+        const users = getUsers();
         const userIndex = users.findIndex(u => u.email === currentUser.email);
         if (userIndex !== -1) {
             users[userIndex] = { ...users[userIndex], interests: interestsToSave };
-            localStorage.setItem("users", JSON.stringify(users));
+            saveUsers(users);
         }
 
         navigate("/skill-assessment");
     };
 
 
-    const InterestData = [
-        {
-            id: 1,
-            name: "Technology",
-            color: "text-indigo-400",
-            example: [
-                {
-                    id: 101,
-                    exname: "AI & ML",
-                    icon: PsychologyIcon,
-                },
-                {
-                    id: 102,
-                    exname: "Web Development",
-                    icon: CodeIcon,
-                },
-                {
-                    id: 103,
-                    exname: "Cybersecurity",
-                    icon: SecurityIcon,
-                },
-            ],
-        },
 
-        {
-            id: 2,
-            name: "Arts",
-            color: "text-cyan-400",
-            example: [
-                {
-                    id: 201,
-                    exname: "Graphic Design",
-                    icon: BrushIcon,
-                },
-                {
-                    id: 202,
-                    exname: "Photography",
-                    icon: CameraAltIcon,
-                },
-                {
-                    id: 203,
-                    exname: "Music Theory",
-                    icon: MusicNoteIcon,
-                },
-            ],
-        },
-
-        {
-            id: 3,
-            name: "Business",
-            color: "text-pink-400",
-            example: [
-                {
-                    id: 301,
-                    exname: "Marketing",
-                    icon: CampaignIcon,
-                },
-                {
-                    id: 302,
-                    exname: "Data Analytics",
-                    icon: AnalyticsIcon,
-                },
-                {
-                    id: 303,
-                    exname: "Entrepreneurship",
-                    icon: BusinessCenterIcon,
-                },
-            ],
-        },
-
-        {
-            id: 4,
-            name: "Science & Health",
-            color: "text-orange-400",
-            example: [
-                {
-                    id: 401,
-                    exname: "Physics",
-                    icon: ScienceIcon,
-                },
-                {
-                    id: 402,
-                    exname: "Wellness",
-                    icon: FavoriteIcon,
-                },
-                {
-                    id: 403,
-                    exname: "Psychology",
-                    icon: BiotechIcon,
-                },
-            ],
-        },
-    ];
     return (
         <div className="flex justify-center items-center w-full min-h-screen px-2 sm:px-6 py-6 sm:py-6 ">
             <div className="w-full max-w-3xl flex flex-col gap-6 ">

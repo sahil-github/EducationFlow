@@ -2,8 +2,8 @@ import Login from '../pages/auth/login'
 import SignUp from '../pages/auth/signup'
 import Home from '../pages/features/Home'
 import PersonalInfo from '../pages/features/PersonalInfo'
-import LearningGoals from '../pages/features/LearningGoals'
-import Interests from '../pages/features/Interest'
+import LearningGoals from '../pages/features/learning goals/LearningGoals'
+import Interests from '../pages/features/Interest/Interest'
 import SkillAssessment from '../pages/features/SkillAssesment'
 import Review from '../pages/features/Review'
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom'
@@ -43,7 +43,7 @@ const OnboardingGuard = () => {
     }
 
     const path = location.pathname;
-    
+
     if (path === '/learning-goals' && (!currentUser.name || !currentUser.location)) {
         return <Navigate to="/personal-info" replace />;
     }
@@ -74,7 +74,7 @@ function AppRoutes() {
                     <Route element={<RequireAuth />}>
                         <Route element={<Mainlayout />}>
                             <Route path="/home" element={<Home />} />
-                            
+
                             <Route element={<OnboardingGuard />}>
                                 <Route path="/personal-info" element={<PersonalInfo />} />
                                 <Route path="/learning-goals" element={<LearningGoals />} />

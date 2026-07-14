@@ -11,9 +11,10 @@ import {
     saveCurrentUser,
     getUsers,
     saveUsers,
-} from "../../../utils/storage";
-import { FIELDS } from "./constants";
+} from "../../../utils/store"
+
 import SelectField from "../../../components/SelectField";
+import { FIELDS } from "../../../constants/constants";
 
 export default function LearningGoals() {
 
