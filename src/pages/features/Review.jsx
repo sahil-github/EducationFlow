@@ -45,8 +45,8 @@ export default function Review() {
                 </div>
 
                 {/* Card container */}
-                <Card className="w-full">
-                    <div className="space-y-4 text-white">
+                <Card>
+                    <div className="p-6 space-y-4 text-white">
                         <div className="flex justify-between py-2.5 border-b border-white/5">
                             <span className="text-slate-400 text-sm font-[Manrope]">Name</span>
                             <span className="text-white text-sm font-semibold font-[Manrope]">{user.name || 'Not Provided'}</span>
@@ -61,7 +61,11 @@ export default function Review() {
                         </div>
                         <div className="flex justify-between py-2.5 border-b border-white/5">
                             <span className="text-slate-400 text-sm font-[Manrope]">Learning Goal</span>
-                            <span className="text-white text-sm font-semibold font-[Manrope] capitalize">{user.learningGoal || 'Not Provided'}</span>
+                            <span className="text-white text-sm font-semibold font-[Manrope] capitalize">
+                                {Array.isArray(user.learningGoal)
+                                    ? user.learningGoal.map(item => item.value).join(', ')
+                                    : user.learningGoal || 'Not Provided'}
+                            </span>
                         </div>
                         <div className="flex justify-between py-2.5 border-b border-white/5">
                             <span className="text-slate-400 text-sm font-[Manrope]">Interests Selected</span>
@@ -74,14 +78,14 @@ export default function Review() {
 
                 {/* Navigation / Action row */}
                 <div className="w-full flex items-center justify-between mt-2 p-1">
-                    <button
-                        type="button"
-                        onClick={() => navigate('/skill-assessment')}
+                    <Button
+                        variant="ghost"
+                        onClick={() => navigate('/interests')}
                         className="flex items-center gap-1.5 text-[#A1A1AA] hover:text-white transition-colors font-[Manrope] text-sm cursor-pointer"
                     >
                         <ArrowBackIcon fontSize="small" />
-                        <span>Back</span>
-                    </button>
+                        Back
+                    </Button>
 
                     <Button
                         variant="primary"

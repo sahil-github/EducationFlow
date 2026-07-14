@@ -7,29 +7,114 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { toast } from 'react-toastify';
 
 export default function LearningGoals() {
-    const navigate = useNavigate();
-    const [selectedGoal, setSelectedGoal] = useState('upskill');
 
-    const goals = [
-        { id: 'switch', title: 'Switching Careers', desc: 'Transitioning into a completely new field of study or software development role.' },
-        { id: 'upskill', title: 'Upskilling for Current Job', desc: 'Advancing skills for promotion, projects, or staying current with new technologies.' },
-        { id: 'uni', title: 'Academic Supplement', desc: 'Supplementing university coursework, lab studies, and exam preparation.' },
-        { id: 'startup', title: 'Building a Startup', desc: 'Gaining critical technical skills to design, deploy, and launch a digital product.' }
+    const FIELDS = [
+        {
+            id: "profession",
+            label: "Profession",
+            options: ["Student", "Software / IT professional", "Healthcare", "Other"],
+        },
+        {
+            id: "age",
+            label: "Age",
+            options: ["Under 18", "18-24", "25-34", "35-50", "50+"],
+        },
+        {
+            id: "cert",
+            label: "Certification held",
+            options: [
+                "None",
+                "Vendor cert (AWS, Microsoft, etc.)",
+                "Academic degree",
+                "Professional license (PMP, CPA, etc.)",
+            ],
+        },
+        {
+            id: "aicert",
+            label: "AI certification",
+            options: ["None", "In progress", "Completed one", "Completed multiple"],
+        },
+        {
+            id: "experience",
+            label: "Experience level",
+            options: ["Beginner", "Intermediate", "Advanced", "Expert"],
+        },
+        {
+            id: "goal",
+            label: "Primary learning goal",
+            options: [
+                "Career switch",
+                "Skill upgrade",
+                "Certification prep",
+                "Personal interest",
+            ],
+        },
+        {
+            id: "time",
+            label: "Time commitment",
+            options: [
+                "Under 2 hrs/week",
+                "2-5 hrs/week",
+                "5-10 hrs/week",
+                "10+ hrs/week",
+            ],
+        },
+        {
+            id: "format",
+            label: "Preferred format",
+            options: [
+                "Self-paced video",
+                "Live cohort",
+                "Reading / text",
+                "Hands-on projects",
+            ],
+        },
     ];
 
+    const navigate = useNavigate();
+    const [selectedGoal, setSelectedGoal] = useState(() => {
+        const currentUser = JSON.parse(localStorage.getItem("current_user")) || {};
+        return Array.isArray(currentUser.learningGoal) ? currentUser.learningGoal : [];
+    });
+
+    const handleChange = (fieldId, value) => {
+        setSelectedGoal((prev) => {
+            const exists = prev.some((item) => item.id === fieldId);
+            if (exists) {
+                return prev.map((item) =>
+                    item.id === fieldId ? { id: fieldId, value } : item
+                );
+            }
+            return [...prev, { id: fieldId, value }];
+        });
+    };
+
     const handleContinue = () => {
-        if (!selectedGoal) {
-            toast.error("Please select a learning goal before continuing.");
+        // Validate that all fields have been selected
+        const unselectedFields = FIELDS.filter(field => {
+            const selected = selectedGoal.find(item => item.id === field.id);
+            return !selected || !selected.value;
+        });
+
+        if (unselectedFields.length > 0) {
+            toast.error(`Please select a value for: ${unselectedFields.map(f => f.label).join(', ')}`);
             return;
         }
+
         const currentUser = JSON.parse(localStorage.getItem("current_user")) || {};
-        const updatedUser = { ...currentUser, learningGoal: selectedGoal };
+        const updatedUser = { 
+            ...currentUser, 
+            learningGoal: selectedGoal 
+        };
         localStorage.setItem("current_user", JSON.stringify(updatedUser));
 
         const users = JSON.parse(localStorage.getItem("users")) || [];
         const userIndex = users.findIndex(u => u.email === currentUser.email);
         if (userIndex !== -1) {
-            users[userIndex] = { ...users[userIndex], learningGoal: selectedGoal };
+            users[userIndex] = { 
+                ...users[userIndex], 
+                learningGoal: selectedGoal 
+            };
             localStorage.setItem("users", JSON.stringify(users));
         }
         navigate('/interests');
@@ -51,18 +136,26 @@ export default function LearningGoals() {
 
                 {/* Card container */}
                 <Card className="p-7">
-                    <div className="grid grid-cols-1 gap-3.5">
-                        {goals.map((goal) => (
-                            <div
-                                key={goal.id}
-                                onClick={() => setSelectedGoal(goal.id)}
-                                className={`p-4 rounded-xl border transition-all duration-200 cursor-pointer flex flex-col gap-1 ${selectedGoal === goal.id
-                                    ? 'bg-[#6366F1]/10 border-[#6366F1] shadow-lg shadow-[#6366F1]/5'
-                                    : 'bg-black/40 border-white/5 hover:bg-black/60'
-                                    }`}
-                            >
-                                <h3 className="text-white font-bold text-sm font-[Poppins]">{goal.title}</h3>
-                                <p className="text-slate-400 text-xs font-[Manrope] leading-relaxed">{goal.desc}</p>
+                    <div className="flex flex-col gap-5">
+                        {FIELDS.map((field) => (
+                            <div key={field.id} className="flex flex-col gap-1.5">
+                                <label className="text-white text-sm font-medium font-[Manrope]">
+                                    {field.label}
+                                </label>
+                                <select
+                                    value={selectedGoal.find(item => item.id === field.id)?.value || ''}
+                                    onChange={(e) => handleChange(field.id, e.target.value)}
+                                    className="w-[100%]  h-10 px-3 rounded-xl border border-white/10 bg-black/40 text-white focus:outline-none focus:ring-1 focus:ring-indigo-500/50 text-sm transition-all font-[Manrope] cursor-pointer"
+                                >
+                                    <option value="" disabled className="bg-[#16161A] text-gray-500">
+                                        Select your {field.label.toLowerCase()}...
+                                    </option>
+                                    {field.options.map((option) => (
+                                        <option key={option} value={option} className="bg-[#16161A] text-white ">
+                                            {option}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                         ))}
                     </div>
@@ -70,14 +163,14 @@ export default function LearningGoals() {
 
                 {/* Navigation Buttons */}
                 <div className="w-full flex items-center justify-between mt-2 p-1">
-                    <button
-                        type="button"
+                    <Button
+                        variant="ghost"
                         onClick={() => navigate('/personal-info')}
                         className="flex items-center gap-1.5 text-[#A1A1AA] hover:text-white transition-colors font-[Manrope] text-sm cursor-pointer"
                     >
                         <ArrowBackIcon fontSize="small" />
-                        <span>Back</span>
-                    </button>
+                        Back
+                    </Button>
 
                     <Button
                         variant="primary"

@@ -8,7 +8,8 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useNavigate } from 'react-router-dom';
 import SampleModal from '../../components/SampleModal';
 import { toast } from 'react-toastify';
-
+import LockIcon from '@mui/icons-material/Lock';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
 
 function PersonalInfo() {
     const navigate = useNavigate();
@@ -109,7 +110,7 @@ function PersonalInfo() {
                             value={currentUser.email}
                             readOnly
                             className="text-[#64748B] cursor-not-allowed"
-
+                            leftIcon={<LockIcon fontSize="small" sx={{ color: '#64748B' }} />}
                             disabled
                         />
 
@@ -118,6 +119,7 @@ function PersonalInfo() {
                             <select
                                 name="location"
                                 value={formData.location}
+                                leftIcon={<LocationOnIcon fontSize="small" sx={{ color: '#fff' }} />}
                                 onChange={handleChange}
                                 className="w-full h-[38px] px-3 rounded-[10px] border border-white/10 bg-black/50 text-white focus:outline-none focus:ring-1 focus:ring-indigo-500/50 text-sm transition-all font-[Manrope] appearance-none cursor-pointer"
                                 style={{

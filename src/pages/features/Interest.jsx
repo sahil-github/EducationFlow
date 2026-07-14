@@ -223,14 +223,14 @@ function Interest() {
 
                 {/* Navigation Buttons */}
                 <div className="w-full flex items-center justify-between mt-2 p-1 ">
-                    <button
-                        type="button"
+                    <Button
+                        variant="ghost"
                         onClick={() => navigate('/learning-goals')}
                         className="flex items-center gap-1.5 text-[#A1A1AA] hover:text-white transition-colors font-[Manrope] text-sm cursor-pointer"
                     >
                         <ArrowBackIcon fontSize="small" />
-                        <span>Back</span>
-                    </button>
+                        Back
+                    </Button>
 
                     <Button
                         variant="primary"

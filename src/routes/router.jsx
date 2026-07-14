@@ -47,7 +47,7 @@ const OnboardingGuard = () => {
     if (path === '/learning-goals' && (!currentUser.name || !currentUser.location)) {
         return <Navigate to="/personal-info" replace />;
     }
-    if (path === '/interests' && !currentUser.learningGoal) {
+    if (path === '/interests' && (!currentUser.learningGoal || (Array.isArray(currentUser.learningGoal) && currentUser.learningGoal.length === 0))) {
         return <Navigate to="/learning-goals" replace />;
     }
     if (path === '/skill-assessment' && (!currentUser.interests || currentUser.interests.length === 0)) {

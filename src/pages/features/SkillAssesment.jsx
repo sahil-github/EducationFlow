@@ -8,7 +8,7 @@ import CodeIcon from '@mui/icons-material/Code';
 import ColorLensIcon from '@mui/icons-material/ColorLens';
 import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
 import Slider from '@mui/material/Slider';
-import { Car } from 'lucide-react';
+
 
 function SkillAssesment() {
     const navigate = useNavigate();
@@ -89,18 +89,22 @@ function SkillAssesment() {
                         </Card>
                     ))}
 
-                    <button className='text-[#A1A1AA] w-full border border-dashed border-gray-600 p-4 rounded-3xl text-xs font-bold font-[Manrope] '>+ Add another skill</button>
+
+                    <Button className='text-[#A1A1AA] w-full border border-dashed border-gray-600 p-4 rounded-3xl text-xs font-bold font-[Manrope] '
+                        variant='ghost'
+                    >+ Add another skill</Button>
                 </Card>
                 {/* Navigation Buttons */}
                 <div className="w-full flex items-center justify-between mt-2 p-1">
-                    <button
+                    <Button
                         type="button"
                         onClick={() => navigate('/interests')}
                         className="flex items-center gap-1.5 text-[#A1A1AA] hover:text-white transition-colors font-[Manrope] text-sm cursor-pointer"
+                        variant="ghost"
                     >
                         <ArrowBackIcon fontSize="small" />
-                        <span>Back</span>
-                    </button>
+                        Back
+                    </Button>
 
                     <Button
                         variant="primary"

@@ -18,6 +18,7 @@ import CommentIcon from '@mui/icons-material/Comment';
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Logo from '../assets/logo/Logo.png';
+import { ChevronRight } from 'lucide-react';
 const drawerWidth = 240;
 
 const navItems = [
@@ -38,7 +39,7 @@ export default function Sidebar({ children, open, setOpen }) {
         <Box sx={{ display: 'flex', minHeight: '100vh' }}>
             <Drawer
                 variant={isMobile ? "temporary" : "persistent"}
-                anchor="left"
+                anchor={isMobile ? 'right' : 'left'}
                 open={open}
                 onClose={() => setOpen(false)}
                 sx={{
@@ -75,13 +76,22 @@ export default function Sidebar({ children, open, setOpen }) {
                         </span>
 
 
-                        <IconButton
+                        {isMobile ? <IconButton
                             onClick={() => setOpen(false)}
                             size="small"
                             sx={{ color: '#fff' }}
                         >
-                            <ChevronLeftIcon />
-                        </IconButton>
+                            <ChevronRight />
+                        </IconButton> :
+
+                            <IconButton
+                                onClick={() => setOpen(false)}
+                                size="small"
+                                sx={{ color: '#fff' }}
+                            >
+                                <ChevronLeftIcon />
+                            </IconButton>
+                        }
                     </div>
                 </div>
 
