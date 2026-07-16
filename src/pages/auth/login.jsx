@@ -11,13 +11,13 @@ import Input from "../../components/Inputs";
 import { useFormik } from "formik";
 import { NavLink, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-
+import { saveUsers, getUsers, saveCurrentUser, getCurrentUser } from '../../utils/store';
 function Login() {
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const currentUser = JSON.parse(localStorage.getItem('current_user'));
+        const currentUser = getCurrentUser()
         if (currentUser && currentUser.email) {
             navigate('/home');
         }
@@ -50,16 +50,19 @@ function Login() {
             setIsLoading(true);
 
             try {
-                const Users = JSON.parse(localStorage.getItem("users")) || [];
+                const Users = getUsers()    
 
                 const matchedUser = Users.find(u => u.email === values.email && u.password === values.password);
 
                 if (!matchedUser) {
                     toast.error("Invalid email or password. Please try again or Signup.");
                     return;
-                }
-
-                localStorage.setItem("current_user", JSON.stringify(matchedUser)); 
+                }                
+                // Create a copy and remove password before saving to session
+                const sanitizedUser = { ...matchedUser };
+                delete sanitizedUser.password;
+                
+                saveCurrentUser(sanitizedUser);
                 navigate("/home");
             } finally {
                 setIsLoading(false);
@@ -91,7 +94,7 @@ function Login() {
                         </div>
 
                         <h1 className="text-white font-bold text-2xl md:text-3xl sm:text-xl font-[Poppins] leading-tight tracking-tight mb-3">
-                            Unleash your <br/>visionary potential.
+                            Unleash your <br />visionary potential.
                         </h1>
 
                         <p className="text-[#94A3B8] font-[Manrope] text-xs md:text-sm  leading-relaxed ">

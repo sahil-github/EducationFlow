@@ -10,6 +10,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation }
 import Mainlayout from '../layout/Mainlayout';
 import Authlayout from '../layout/Authlayout';
 
+import { getCurrentUser } from '../utils/store';
+
 export const ROUTES = {
     LOGIN: '/login',
     SIGNUP: '/signup',
@@ -22,13 +24,13 @@ export const ROUTES = {
 };
 
 const isFullyOnboarded = () => {
-    const user = JSON.parse(localStorage.getItem('current_user'));
+    const user = getCurrentUser();
     return !!(user && user.onboardingCompleted);
 };
 
 const RequireAuth = () => {
-    const session = localStorage.getItem('current_user');
-    if (!session) {
+    const session = getCurrentUser();
+    if (!session || !session.email) {
         return <Navigate to="/login" replace />;
     }
     return <Outlet />;
@@ -36,7 +38,7 @@ const RequireAuth = () => {
 
 const OnboardingGuard = () => {
     const location = useLocation();
-    const currentUser = JSON.parse(localStorage.getItem('current_user')) || {};
+    const currentUser = getCurrentUser();
 
     if (isFullyOnboarded()) {
         return <Navigate to="/home" replace />;

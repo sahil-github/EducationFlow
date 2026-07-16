@@ -12,7 +12,6 @@ import {
     getUsers,
     saveUsers,
 } from "../../../utils/store"
-
 import SelectField from "../../../components/SelectField";
 import { FIELDS } from "../../../constants/constants";
 
@@ -21,14 +20,17 @@ export default function LearningGoals() {
     const navigate = useNavigate();
     const [learningGoal, setLearningGoal] = useState(() => {
         const currentUser = getCurrentUser();
-        return currentUser.learningGoal || {};
+        return Array.isArray(currentUser.learningGoal) ? currentUser.learningGoal : [];
     });
 
     const handleChange = (fieldId, value) => {
-        setLearningGoal((prev) => ({
-            ...prev,
-            [fieldId]: value,
-        }));
+        setLearningGoal((prev) => {
+            const exists = prev.find(item => item.id === fieldId);
+            if (exists) {
+                return prev.map(item => item.id === fieldId ? { id: fieldId, value } : item);
+            }
+            return [...prev, { id: fieldId, value }];
+        });
     };
 
     const handleContinue = () => {
@@ -61,7 +63,7 @@ export default function LearningGoals() {
         );
 
         if (userIndex !== -1) {
-            users[userIndex] = updatedUser;
+            users[userIndex] = { ...users[userIndex], learningGoal };
             saveUsers(users);
         }
 
@@ -89,7 +91,7 @@ export default function LearningGoals() {
                                 key={field.id}
                                 label={field.label}
                                 name={field.id}
-                                value={learningGoal[field.id] || ""}
+                                value={learningGoal.find(item => item.id === field.id)?.value || ""}
                                 options={field.options}
                                 placeholder={`Select your ${field.label.toLowerCase()}...`}
                                 onChange={(e) =>

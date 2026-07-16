@@ -16,7 +16,7 @@ import {
     getUsers,
     saveUsers,
 } from "../../utils/store"
-import SelectField from '../../components/SelectField';
+// import SelectField from '../../components/SelectField';
 
 function PersonalInfo() {
     const navigate = useNavigate();

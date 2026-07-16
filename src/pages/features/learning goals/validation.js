@@ -1,6 +1,6 @@
 export const validateLearningGoals = (fields, learningGoal) => {
     const unfilledFields = fields.filter(
-        (field) => !learningGoal[field.id]
+        (field) => !learningGoal.find(item => item.id === field.id)?.value
     );
 
     return {

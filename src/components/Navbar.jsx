@@ -7,20 +7,21 @@ import MenuIcon from '@mui/icons-material/Menu';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { IconButton, Box, Avatar, Menu, MenuItem, ListItemIcon, Divider, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { getCurrentUser } from '../utils/store';
 
 function Navbar({ sidebarOpen, setSidebarOpen }) {
     const navigate = useNavigate();
     const [anchorEl, setAnchorEl] = useState(null);
-    const [currentUser, setCurrentUser] = useState(() => JSON.parse(localStorage.getItem('current_user')) || {});
+    const [currentUser, setCurrentUser] = useState(() => getCurrentUser());
 
     useEffect(() => {
         const handleUserUpdate = () => {
-            setCurrentUser(JSON.parse(localStorage.getItem('current_user')) || {});
+            setCurrentUser(getCurrentUser());
         };
-        
+
         window.addEventListener('currentUserUpdate', handleUserUpdate);
         window.addEventListener('storage', handleUserUpdate); // Also listen to cross-tab updates
-        
+
         return () => {
             window.removeEventListener('currentUserUpdate', handleUserUpdate);
             window.removeEventListener('storage', handleUserUpdate);
@@ -38,7 +39,8 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('current_user');
+        sessionStorage.removeItem('current_user');
+        // Do NOT remove 'users', that's the database!
         handleProfileClose();
         navigate('/login');
     };

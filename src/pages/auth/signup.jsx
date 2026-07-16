@@ -11,13 +11,13 @@ import GoogleIcon from '../../assets/icons/googleicon.png';
 import AppleIcon from '../../assets/icons/applelogo.png';
 import LinkedInIcon from '../../assets/icons/LinkedIn.png';
 import { Users } from "lucide-react";
-
+import { saveUsers, getUsers, getCurrentUser, saveCurrentUser } from '../../utils/store';
 function Signup() {
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const currentUser = JSON.parse(localStorage.getItem('current_user'));
+        const currentUser = getCurrentUser()
         if (currentUser && currentUser.email) {
             navigate('/home');
         }
@@ -60,7 +60,7 @@ function Signup() {
         onSubmit: async (values) => {
             setIsLoading(true);
             try {
-                const Users = JSON.parse(localStorage.getItem('users')) || [];
+                const Users = getUsers()
 
                 const userExists = Users.some(u => u.email === values.email);
                 if (userExists) {
@@ -69,10 +69,15 @@ function Signup() {
                     return;
                 }
                 const newUser = { ...values };
+                delete newUser.confirmpassword;
+                
                 Users.push(newUser);
-                localStorage.setItem("users", JSON.stringify(Users));
+                saveUsers(Users)
 
-                localStorage.setItem("current_user", JSON.stringify(newUser));
+                const sanitizedUser = { ...newUser };
+                delete sanitizedUser.password;
+
+                saveCurrentUser(sanitizedUser)
                 toast.success("Registration Successful! Complet Onboarding process");
                 navigate("/personal-info");
 

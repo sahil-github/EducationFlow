@@ -17,10 +17,16 @@ import {
 
 function SkillAssesment() {
     const navigate = useNavigate();
-    const [skills, setSkills] = useState({
-        'Web development': 70,
-        'Public speaking': 70,
-        'UI/UX Design': 70
+    const [skills, setSkills] = useState(() => {
+        const currentUser = getCurrentUser();
+        if (Array.isArray(currentUser.skills)) {
+            return currentUser.skills;
+        }
+        return [
+            { id: 'Web development', level: 70 },
+            { id: 'Public speaking', level: 70 },
+            { id: 'UI/UX Design', level: 70 }
+        ];
     });
 
     const levels = [
@@ -64,7 +70,10 @@ function SkillAssesment() {
 
                 {/* Card container */}
                 <Card className="flex flex-col gap-5 p-5">
-                    {levels.map((level, index) => (
+                    {levels.map((level, index) => {
+                        const currentSkill = skills.find(s => s.id === level.id);
+                        const skillLevel = currentSkill ? currentSkill.level : 0;
+                        return (
                         <Card key={index} className="w-full   p-4 bg-[#1E293B66]">
                             <div className="flex flex-col ">
                                 <div className='flex flex-row gap-4 justify-between'>
@@ -74,14 +83,14 @@ function SkillAssesment() {
                                     </div>
                                     <div className='flex flex-row gap-2 justify-end'>
                                         <p className='text-[#A1A1AA] bg-[#0F172A] p-2 rounded-lg text-xs font-bold font-[Manrope]'>
-                                            {getLevelLabel(skills[level.id])}
+                                            {getLevelLabel(skillLevel)}
                                         </p>
                                     </div>
                                 </div>
                                 <Slider
                                     size="small"
-                                    value={skills[level.id]}
-                                    onChange={(e, val) => setSkills(prev => ({ ...prev, [level.id]: val }))}
+                                    value={skillLevel}
+                                    onChange={(e, val) => setSkills(prev => prev.map(s => s.id === level.id ? { ...s, level: val } : s))}
                                     aria-label="Small"
                                     valueLabelDisplay="auto"
                                 />
@@ -92,7 +101,7 @@ function SkillAssesment() {
                                 </div>
                             </div>
                         </Card>
-                    ))}
+                    )})}
 
 
                     <Button className='text-[#A1A1AA] w-full border border-dashed border-gray-600 p-4 rounded-3xl text-xs font-bold font-[Manrope] '

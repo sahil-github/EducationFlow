@@ -1,27 +1,17 @@
-import * as React from 'react';
+import React, { useEffect, useRef } from 'react';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import { Box } from '@mui/material';
-
-
-const bios = [
-    "Passionate Full Stack Developer focused on building modern, scalable web applications and continuously learning new technologies.",
-    "Tech enthusiast who enjoys solving real-world problems through clean code, innovative solutions, and continuous learning.",
-    "Frontend developer dedicated to creating responsive, user-friendly interfaces with React and modern JavaScript.",
-    "Aspiring software engineer passionate about web development, problem-solving, and building impactful digital products.",
-    "Lifelong learner exploring web technologies, UI/UX design, and software engineering best practices every day."
-];
-
-
+import { bios } from '../constants/constants';
 
 
 export default function SampleModal({ open, onClose, onSelectSample }) {
 
 
-    const descriptionElementRef = React.useRef(null);
-    React.useEffect(() => {
+    const descriptionElementRef =useRef(null);
+    useEffect(() => {
         if (open) {
             const { current: descriptionElement } = descriptionElementRef;
             if (descriptionElement !== null) {
