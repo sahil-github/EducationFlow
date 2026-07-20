@@ -22,6 +22,7 @@ function Login() {
             navigate('/home');
         }
     }, [navigate]);
+
     const formik = useFormik({
         initialValues: {
             email: '',
@@ -48,20 +49,18 @@ function Login() {
         },
         onSubmit: async (values) => {
             setIsLoading(true);
-
             try {
                 const Users = getUsers()    
-
                 const matchedUser = Users.find(u => u.email === values.email && u.password === values.password);
-
                 if (!matchedUser) {
                     toast.error("Invalid email or password. Please try again or Signup.");
                     return;
-                }                
+                }
+
                 // Create a copy and remove password before saving to session
                 const sanitizedUser = { ...matchedUser };
                 delete sanitizedUser.password;
-                
+
                 saveCurrentUser(sanitizedUser);
                 navigate("/home");
             } finally {

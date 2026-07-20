@@ -16,12 +16,12 @@ function Signup() {
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const currentUser = getCurrentUser()
-        if (currentUser && currentUser.email) {
-            navigate('/home');
-        }
-    }, [navigate]);
+    // useEffect(() => {
+    //     const currentUser = getCurrentUser()
+    //     if (currentUser && currentUser.email) {
+    //         navigate('/home');
+    //     }
+    // }, [navigate]);
     const formik = useFormik({
         initialValues: {
             name: '',

@@ -9,7 +9,6 @@ import Review from '../pages/features/Review'
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom'
 import Mainlayout from '../layout/Mainlayout';
 import Authlayout from '../layout/Authlayout';
-
 import { getCurrentUser } from '../utils/store';
 
 export const ROUTES = {
