@@ -10,7 +10,8 @@ import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import ScienceIcon from "@mui/icons-material/Science";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import BiotechIcon from "@mui/icons-material/Biotech";
-
+import ColorLensIcon from '@mui/icons-material/ColorLens';
+import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
 
 export const InterestData = [
     {
@@ -242,3 +243,18 @@ export const bios = [
     "Lifelong learner exploring web technologies, UI/UX design, and software engineering best practices every day."
 ];
 
+export const locations = [
+    "San Francisco, CA",
+    "New York, NY",
+    "London, UK",
+    "Bengaluru, India",
+    "Toronto, Canada",
+    "Sydney, Australia",
+    "Remote / Anywhere",
+];
+
+export const levels = [
+    { id: 'Web development', title: 'Web Development', icon: <CodeIcon /> },
+    { id: 'Public speaking', title: 'Public Speaking', icon: <RecordVoiceOverIcon /> },
+    { id: 'UI/UX Design', title: 'UI/UX Design', icon: <ColorLensIcon /> }
+];

@@ -1,19 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Card from '../../components/Card';
-import Button from '../../components/Button';
+import Card from '../../../components/Card';
+import Button from '../../../components/Button';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import CodeIcon from '@mui/icons-material/Code';
-import ColorLensIcon from '@mui/icons-material/ColorLens';
-import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
 import Slider from '@mui/material/Slider';
 import {
     getCurrentUser,
     saveCurrentUser,
     getUsers,
     saveUsers,
-} from "../../utils/store";
+} from "../../../utils/store";
+import { levels } from "../../../constants/constants";
+
 
 function SkillAssesment() {
     const navigate = useNavigate();
@@ -29,11 +28,6 @@ function SkillAssesment() {
         ];
     });
 
-    const levels = [
-        { id: 'Web development', title: 'Web Development', icon: <CodeIcon /> },
-        { id: 'Public speaking', title: 'Public Speaking', icon: <RecordVoiceOverIcon /> },
-        { id: 'UI/UX Design', title: 'UI/UX Design', icon: <ColorLensIcon /> }
-    ];
 
     const getLevelLabel = (value) => {
         if (value <= 32) return "Novice";
@@ -74,34 +68,35 @@ function SkillAssesment() {
                         const currentSkill = skills.find(s => s.id === level.id);
                         const skillLevel = currentSkill ? currentSkill.level : 0;
                         return (
-                        <Card key={index} className="w-full   p-4 bg-[#1E293B66]">
-                            <div className="flex flex-col ">
-                                <div className='flex flex-row gap-4 justify-between'>
-                                    <div className='flex flex-row gap-2 '>
-                                        <p className='text-[#6366F1] bg-gray-500/20  rounded-full'>{level.icon}</p>
-                                        <p className='text-white'>{level.title}</p>
+                            <Card key={index} className="w-full   p-4 bg-[#1E293B66]">
+                                <div className="flex flex-col ">
+                                    <div className='flex flex-row gap-4 justify-between'>
+                                        <div className='flex flex-row gap-2 '>
+                                            <p className='text-[#6366F1] bg-gray-500/20  rounded-full'>{level.icon}</p>
+                                            <p className='text-white'>{level.title}</p>
+                                        </div>
+                                        <div className='flex flex-row gap-2 justify-end'>
+                                            <p className='text-[#A1A1AA] bg-[#0F172A] p-2 rounded-lg text-xs font-bold font-[Manrope]'>
+                                                {getLevelLabel(skillLevel)}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div className='flex flex-row gap-2 justify-end'>
-                                        <p className='text-[#A1A1AA] bg-[#0F172A] p-2 rounded-lg text-xs font-bold font-[Manrope]'>
-                                            {getLevelLabel(skillLevel)}
-                                        </p>
+                                    <Slider
+                                        size="small"
+                                        value={skillLevel}
+                                        onChange={(e, val) => setSkills(prev => prev.map(s => s.id === level.id ? { ...s, level: val } : s))}
+                                        aria-label="Small"
+                                        valueLabelDisplay="auto"
+                                    />
+                                    <div className='flex justify-between text-[10px] text-[#A1A1AA] font-[Manrope]'>
+                                        <span>Novice</span>
+                                        <span>Intermediate</span>
+                                        <span>Expert</span>
                                     </div>
                                 </div>
-                                <Slider
-                                    size="small"
-                                    value={skillLevel}
-                                    onChange={(e, val) => setSkills(prev => prev.map(s => s.id === level.id ? { ...s, level: val } : s))}
-                                    aria-label="Small"
-                                    valueLabelDisplay="auto"
-                                />
-                                <div className='flex justify-between text-[10px] text-[#A1A1AA] font-[Manrope]'>
-                                    <span>Novice</span>
-                                    <span>Intermediate</span>
-                                    <span>Expert</span>
-                                </div>
-                            </div>
-                        </Card>
-                    )})}
+                            </Card>
+                        )
+                    })}
 
 
                     <Button className='text-[#A1A1AA] w-full border border-dashed border-gray-600 p-4 rounded-3xl text-xs font-bold font-[Manrope] '

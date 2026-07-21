@@ -1,10 +1,10 @@
 import Login from '../pages/auth/login'
 import SignUp from '../pages/auth/signup'
 import Home from '../pages/features/Home'
-import PersonalInfo from '../pages/features/PersonalInfo'
+import PersonalInfo from '../pages/features/PersonalInfo/PersonalInfo'
 import LearningGoals from '../pages/features/learning goals/LearningGoals'
 import Interests from '../pages/features/Interest/Interest'
-import SkillAssessment from '../pages/features/SkillAssesment'
+import SkillAssessment from '../pages/features/SkillAssessment/SkillAssesment'
 import Review from '../pages/features/Review'
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom'
 import Mainlayout from '../layout/Mainlayout';
@@ -44,6 +44,7 @@ const OnboardingGuard = () => {
     }
 
     const path = location.pathname;
+    console.log(location.pathname);
 
     if (path === '/learning-goals' && (!currentUser.name || !currentUser.location)) {
         return <Navigate to="/personal-info" replace />;

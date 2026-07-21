@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import Card from '../../components/Card';
-import Input from '../../components/Inputs';
-import Button from '../../components/Button';
+import Card from '../../../components/Card';
+import Input from '../../../components/Inputs';
+import Button from '../../../components/Button';
 import AddAPhotoOutlinedIcon from '@mui/icons-material/AddAPhotoOutlined';
 import EditIcon from '@mui/icons-material/Edit';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useNavigate } from 'react-router-dom';
-import SampleModal from '../../components/SampleModal';
+import SampleModal from '../../../components/SampleModal';
 import { toast } from 'react-toastify';
 import LockIcon from '@mui/icons-material/Lock';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -15,8 +15,9 @@ import {
     saveCurrentUser,
     getUsers,
     saveUsers,
-} from "../../utils/store"
+} from "../../../utils/store"
 // import SelectField from '../../components/SelectField';
+import { locations } from '../../../constants/constants';
 
 function PersonalInfo() {
     const navigate = useNavigate();
@@ -137,13 +138,7 @@ function PersonalInfo() {
                                 }}
                             >
                                 <option value="" disabled className="text-gray-900">Select your location</option>
-                                <option value="San Francisco, CA" className="bg-[#1E1E2A] text-white">San Francisco, CA</option>
-                                <option value="New York, NY" className="bg-[#1E1E2A] text-white">New York, NY</option>
-                                <option value="London, UK" className="bg-[#1E1E2A] text-white">London, UK</option>
-                                <option value="Bengaluru, India" className="bg-[#1E1E2A] text-white">Bengaluru, India</option>
-                                <option value="Toronto, Canada" className="bg-[#1E1E2A] text-white">Toronto, Canada</option>
-                                <option value="Sydney, Australia" className="bg-[#1E1E2A] text-white">Sydney, Australia</option>
-                                <option value="Remote / Anywhere" className="bg-[#1E1E2A] text-white">Remote / Anywhere</option>
+                                {locations.map(location => <option key={location} value={location} className="bg-[#1E1E2A] text-white">{location}</option>)}
                             </select>
                         </div>
 
