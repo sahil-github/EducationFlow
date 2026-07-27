@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
@@ -9,15 +9,16 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
-import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import PersonIcon from '@mui/icons-material/Person';
 import TrackChangesIcon from '@mui/icons-material/TrackChanges';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import StarBorderRoundedIcon from '@mui/icons-material/StarBorderRounded';
 import CommentIcon from '@mui/icons-material/Comment';
+import { useTheme } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import Logo from '../assets/logo/Logo.png';
-
+import { ChevronRight } from 'lucide-react';
 const drawerWidth = 240;
 
 const navItems = [
@@ -28,17 +29,19 @@ const navItems = [
     { text: 'Review', icon: <CommentIcon />, route: '/review' },
 ];
 
-export default function Sidebar({ children }) {
+export default function Sidebar({ children, open, setOpen }) {
     const navigate = useNavigate();
     const location = useLocation();
-    const [open, setOpen] = useState(true);
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
     return (
         <Box sx={{ display: 'flex', minHeight: '100vh' }}>
             <Drawer
-                variant="persistent"
-                anchor="left"
+                variant={isMobile ? "temporary" : "persistent"}
+                anchor={isMobile ? 'right' : 'left'}
                 open={open}
+                onClose={() => setOpen(false)}
                 sx={{
                     width: drawerWidth,
                     flexShrink: 0,
@@ -53,11 +56,11 @@ export default function Sidebar({ children }) {
                     },
                 }}
             >
-                {/* Header: logo + close button */}
+                {/* Header: close button */}
                 <div style={{
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
+                    justifyContent: 'between',
                     padding: '16px 12px 12px',
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -71,14 +74,25 @@ export default function Sidebar({ children }) {
                         }}>
                             EduFlow
                         </span>
+
+
+                        {isMobile ? <IconButton
+                            onClick={() => setOpen(false)}
+                            size="small"
+                            sx={{ color: '#fff' }}
+                        >
+                            <ChevronRight />
+                        </IconButton> :
+
+                            <IconButton
+                                onClick={() => setOpen(false)}
+                                size="small"
+                                sx={{ color: '#fff' }}
+                            >
+                                <ChevronLeftIcon />
+                            </IconButton>
+                        }
                     </div>
-                    <IconButton
-                        onClick={() => setOpen(false)}
-                        size="small"
-                        sx={{ color: 'rgba(255,255,255,0.4)', '&:hover': { color: '#fff' } }}
-                    >
-                        <ChevronLeftIcon />
-                    </IconButton>
                 </div>
 
                 <Divider sx={{ borderColor: 'rgba(255,255,255,0.06)' }} />
@@ -89,7 +103,12 @@ export default function Sidebar({ children }) {
                         return (
                             <ListItem key={text} disablePadding sx={{ mb: 0.5 }}>
                                 <ListItemButton
-                                    onClick={() => navigate(route)}
+                                    onClick={() => {
+                                        navigate(route);
+                                        if (isMobile) {
+                                            setOpen(false);
+                                        }
+                                    }}
                                     sx={{
                                         borderRadius: '12px',
                                         transition: 'all 0.2s',
@@ -137,20 +156,12 @@ export default function Sidebar({ children }) {
                     flexGrow: 1,
                     minHeight: '100vh',
                     overflowY: 'auto',
-                    marginLeft: open ? 0 : `-${drawerWidth}px`,
+                    padding: '0 24px',
+                    marginLeft: isMobile ? 0 : (open ? 0 : `-${drawerWidth}px`),
                     transition: 'margin 0.25s ease',
+                    // maxWidth: '1200px',
                 }}
             >
-                {!open && (
-                    <div style={{ padding: '12px 16px' }}>
-                        <IconButton
-                            onClick={() => setOpen(true)}
-                            sx={{ color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#fff' } }}
-                        >
-                            <MenuIcon />
-                        </IconButton>
-                    </div>
-                )}
                 {children}
             </Box>
         </Box>

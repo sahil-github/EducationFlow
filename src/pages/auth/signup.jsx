@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { useNavigate, Link, NavLink } from 'react-router-dom';
 import { useFormik } from 'formik';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import Radio from '@mui/material/Radio';
 import Button from '../../components/Button';
 import Input from '../../components/Inputs';
 import Logo from '../../assets/logo/Logo.png';
@@ -11,228 +11,20 @@ import GoogleIcon from '../../assets/icons/googleicon.png';
 import AppleIcon from '../../assets/icons/applelogo.png';
 import LinkedInIcon from '../../assets/icons/LinkedIn.png';
 import { Users } from "lucide-react";
-// function Signup() {
-//     const navigate = useNavigate();
-//     const [isLoading, setIsLoading] = useState(false);
-//     const [clicked, setClicked] = useState(false);
-
-//     const formik = useFormik({
-//         initialValues: {
-//             name: '',
-//             email: '',
-//             password: '',
-//             agree: false,
-//         },
-//         validate: (values) => {
-//             const errors = {};
-//             if (!values.name) {
-//                 errors.name = 'Full Name is required';
-//             }
-
-//             if (!values.email) {
-//                 errors.email = 'Email is required';
-//             } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values.email)) {
-//                 errors.email = 'Please enter a valid email address';
-//             }
-
-//             if (!values.password) {
-//                 errors.password = 'Password is required';
-//             } else if (values.password.length < 8) {
-//                 errors.password = 'Password must be at least 8 characters';
-//             } else if (!values.password.includes('@')) {
-//                 errors.password = 'Password must contain the special character @';
-//             }
-
-//             if (!values.agree && !clicked) {
-//                 errors.agree = 'You must agree to the Terms and Privacy Policy';
-//             }
-//             return errors;
-//         },
-//         onSubmit: (values) => {
-//             setIsLoading(true);
-//             setTimeout(() => {
-//                 setIsLoading(false);
-//                 navigate('/home');
-//             }, 1000);
-//         },
-//     });
-
-//     const handleFormSubmit = (e) => {
-//         e.preventDefault();
-//         formik.handleSubmit(e);
-//     };
-
-//     return (
-//         <div className="min-h-screen text-white flex flex-col justify-between">
-//             {/* Header */}
-//             <header className="px-8 md:px-12 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
-//                 <div className="flex items-center gap-2">
-//                     <NavLink to="/" className="flex items-center gap-2">
-//                         <img src={Logo} alt="Logo" className="w-10 h-10" />
-//                         <span className="font-bold text-xl tracking-wide font-[Poppins] text-[#6366F1]">EduFlow</span>
-//                     </NavLink>
-//                 </div>
-
-//                 <span className="text-[#A1A1AA] text-xs font-[Manrope]">
-//                     Already have an account?{' '}
-//                     <Link to="/login" className="text-[#6366F1] font-semibold hover:text-[#4F46E5] transition-colors ml-1">
-//                         Sign In
-//                     </Link>
-//                 </span>
-//             </header>
-
-//             {/* Main content grid */}
-//             <main className="flex-1 flex items-center justify-center px-4 py-6">
-//                 <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-
-//                     {/* Left Column - Graphic/Info */}
-//                     <div className="lg:col-span-7 flex flex-col gap-6 justify-start p-4 sm:p-6">
-//                         <div className="self-start px-3 py-1 bg-[#6366F1]/10 border border-[#6366F1]/20 rounded-full">
-//                             <span className="text-[#6366F1] text-[10px] uppercase font-bold tracking-wider font-[Manrope]">Join the Cohort</span>
-//                         </div>
-
-//                         <h1 className="text-white font-[Poppins] font-bold text-3xl sm:text-4xl md:text-5xl leading-tight tracking-tight">
-//                             Accelerate your learning journey.
-//                         </h1>
-
-//                         <p className="text-[#94A3B8] font-[Manrope] text-sm md:text-base leading-relaxed">
-//                             Join a global community of innovators, builders, and learners. Experience peer-to-peer
-//                             learning structured with advanced feedback loops.
-//                         </p>
-
-//                         <div className="w-full mt-4">
-//                             <img src={Margin} alt="Meeting" className="w-full rounded-[24px] shadow-2xl object-cover" />
-//                         </div>
-//                     </div>
-
-//                     {/* Right Column - Form */}
-//                     <div className="lg:col-span-5 w-full flex justify-center">
-//                         <div className="w-full max-w-[420px] bg-[#1E1E24]/80 backdrop-blur-md border border-white/10 rounded-[28px] p-6 md:p-8 shadow-2xl">
-//                             <h2 className="text-xl font-bold font-[Poppins] mb-1 text-white">Sign Up</h2>
-//                             <p className="text-slate-400 text-xs font-[Manrope] mb-6">Create your account to start learning.</p>
-
-//                             <form onSubmit={handleFormSubmit} noValidate className="flex flex-col gap-4">
-//                                 <Input
-//                                     size="small"
-//                                     label="Full Name"
-//                                     type="text"
-//                                     placeholder="Alex Carter"
-//                                     name="name"
-//                                     value={formik.values.name}
-//                                     onChange={formik.handleChange}
-//                                     onBlur={formik.handleBlur}
-//                                     error={formik.touched.name && formik.errors.name}
-//                                 />
-
-//                                 <Input
-//                                     size="small"
-//                                     label="Email"
-//                                     type="email"
-//                                     placeholder="alex@example.com"
-//                                     name="email"
-//                                     value={formik.values.email}
-//                                     onChange={formik.handleChange}
-//                                     onBlur={formik.handleBlur}
-//                                     error={formik.touched.email && formik.errors.email}
-//                                 />
-
-//                                 <Input
-//                                     size="small"
-//                                     label="Password"
-//                                     type="password"
-//                                     placeholder="••••••••"
-//                                     name="password"
-//                                     value={formik.values.password}
-//                                     onChange={formik.handleChange}
-//                                     onBlur={formik.handleBlur}
-//                                     error={formik.touched.password && formik.errors.password}
-//                                 />
-//                                 <span className="text-[#64748B] text-[10px] font-[Manrope] -mt-3 self-start block">Min. 8 characters with @</span>
-
-//                                 <div className="flex flex-col gap-1">
-//                                     <div className="flex items-start gap-1.5">
-//                                         <Radio
-//                                             type="button"
-//                                             size="small"
-//                                             checked={formik.values.agree || clicked}
-//                                             onClick={() => {
-//                                                 const val = !clicked;
-//                                                 setClicked(val);
-//                                                 formik.setFieldValue('agree', val);
-//                                             }}
-//                                             sx={{
-//                                                 color: 'rgba(255,255,255,0.2)',
-//                                                 '&.Mui-checked': { color: '#6366F1' },
-//                                                 padding: '1px',
-//                                             }}
-//                                         />
-//                                         <span className="text-[#A1A1AA] text-xs font-[Manrope] mt-0.5">
-//                                             I agree to the{' '}
-//                                             <span className="text-[#6366F1] cursor-pointer hover:underline">Terms of Service</span>
-//                                             {' '}and{' '}
-//                                             <span className="text-[#6366F1] cursor-pointer hover:underline">Privacy Policy</span>.
-//                                         </span>
-//                                     </div>
-//                                     {formik.touched.agree && formik.errors.agree && (
-//                                         <p className="text-[10px] text-red-500 font-[Manrope] ml-6">{formik.errors.agree}</p>
-//                                     )}
-//                                 </div>
-
-//                                 <Button
-//                                     type="submit"
-//                                     variant="primary"
-//                                     disabled={isLoading}
-//                                     className="w-full h-11 bg-[#6366F1] hover:bg-[#4F46E5] text-white font-bold rounded-2xl tracking-wide uppercase transition-all duration-200 shadow-lg shadow-[#6366F1]/20 font-[Poppins] text-xs"
-//                                 >
-//                                     {isLoading ? 'Creating Account...' : 'Create Account'}
-//                                 </Button>
-
-//                                 <div className="flex items-center my-1">
-//                                     <div className="flex-1 border-t border-white/10"></div>
-//                                     <span className="px-3 text-[10px] text-slate-500 font-bold uppercase tracking-wider font-[Manrope]">Or sign up with</span>
-//                                     <div className="flex-1 border-t border-white/10"></div>
-//                                 </div>
-
-//                                 <div className="grid grid-cols-3 gap-3">
-//                                     <Button
-//                                         variant="outline"
-//                                         className="h-10 rounded-xl !px-0 flex items-center justify-center gap-2"
-//                                     >
-//                                         <img src={GoogleIcon} alt="Google" className="w-4 h-4 object-contain" />
-//                                     </Button>
-//                                     <Button
-//                                         variant="outline"
-//                                         className="h-10 rounded-xl !px-0 flex items-center justify-center gap-2 !bg-[#000] !border-white/10 hover:!bg-neutral-900"
-//                                     >
-//                                         <img src={AppleIcon} alt="Apple" className="w-4 h-4 object-contain" />
-//                                     </Button>
-//                                     <Button
-//                                         variant="outline"
-//                                         className="h-10 rounded-xl !px-0 flex items-center justify-center gap-2 !bg-[#0077B5] !border-transparent hover:!bg-[#005987]"
-//                                     >
-//                                         <img src={LinkedInIcon} alt="LinkedIn" className="w-4 h-4 object-contain" />
-//                                     </Button>
-//                                 </div>
-//                             </form>
-//                         </div>
-//                     </div>
-//                 </div>
-//             </main>
-//         </div>
-//     );
-// }
-
-// export default Signup;
+import { useDispatch, useSelector } from 'react-redux';
+import { registerUser } from '../../features/auth/authThunks';
 
 function Signup() {
-    const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
-    const [clicked, setClicked] = useState(false);
+    const dispatch = useDispatch();
+    const { loading } = useSelector((state) => state.auth);
+
     const formik = useFormik({
         initialValues: {
             name: '',
             email: '',
             password: '',
+            confirmpassword: '',
             agree: false
         },
         validate: (values) => {
@@ -254,36 +46,37 @@ function Signup() {
                 errors.password = 'Password must contain the special character @';
             }
 
-            if (!values.agree) {
-                errors.agree = 'You must agree to the Terms and Privacy Policy';
+            if (!values.confirmpassword) {
+                errors.confirmpassword = "Confirm Password is required"
+            } else if (values.confirmpassword !== values.password) {
+                errors.confirmpassword = 'Password does not match';
             }
 
             return errors;
         },
         onSubmit: async (values) => {
-            setIsLoading(true);
             try {
-                console.log('Signup submitted:', values);
-                // TODO: call your API here
-            } finally {
-                setIsLoading(false);
+                await dispatch(registerUser({
+                    name: values.name,
+                    email: values.email,
+                    password: values.password
+                })).unwrap();
+
+                toast.success("Registration Successful! Please log in.");
+                navigate("/login");
+            } catch (err) {
+                toast.error(err || "Registration failed");
             }
         },
     });
 
-    const handleFormSubmit = (e) => {
-        e.preventDefault();
-        if (formik.isValid) {
-            navigate("/home");
-        }
-    };
+
 
     return (
         <div
-            // style={{ backgroundImage: `url(${backgroundImage})` }}
             className="min-h-screen bg-cover bg-center text-white flex flex-col justify-between"
         >
-            <nav className="sticky top-0 shadow-md">
+            <nav className="sticky top-0 shadow-md  z-50 bg-[#18181C]">
                 {/* Header */}
                 <header className="px-8 md:px-12 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
                     <div className="flex items-center gap-2">
@@ -302,7 +95,7 @@ function Signup() {
                 </header>
             </nav>
             {/* Main Content Area */}
-            <main className="flex-1 flex items-center justify-center px-6 py-6">
+            <main className="flex-1 flex items-center justify-center p-6">
                 <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
 
                     {/* Left Column - Hero Description */}
@@ -405,7 +198,7 @@ function Signup() {
                             </div>
 
                             {/* Form */}
-                            <form onSubmit={formik.handleSubmit} noValidate className="flex flex-col gap-4">
+                            <form onSubmit={formik.handleSubmit} className="flex flex-col gap-4">
                                 {/* Full Name */}
                                 <Input
                                     size="small"
@@ -447,9 +240,22 @@ function Signup() {
                                     size="small"
                                 />
                                 <span className="text-[#64748B] text-[10px] font-[Manrope] -mt-3 self-start block">Min. 8 characters</span>
+                                <Input
+                                    label="Confirm Password"
+                                    type="password"
+                                    placeholder="••••••••"
+                                    name="confirmpassword"
+                                    value={formik.values.confirmpassword}
+                                    onChange={formik.handleChange}
+                                    onBlur={formik.handleBlur}
+                                    error={formik.touched.confirmpassword && formik.errors.confirmpassword}
+                                    size="small"
+                                />
+
+
 
                                 {/* Agreement Checkbox */}
-                                <div className="flex flex-col gap-1">
+                                {/* <div className="flex flex-col gap-1">
                                     <div className="flex items-start  gap-1.5 ">
                                         <Radio
                                             type="button"
@@ -474,16 +280,15 @@ function Signup() {
                                             <p className="text-[10px] text-red-500 font-[Manrope] ml-6">{formik.errors.agree}</p>
                                         )}
                                     </div>
-                                </div>
+                                </div> */}
                                 {/* Create Account Button */}
                                 <Button
-                                    type="submit"
-                                    onClick={handleFormSubmit}
+                                    type='submit'
                                     variant="primary"
-                                    disabled={isLoading}
+                                    disabled={loading}
                                     className="w-full h-11 bg-[#6366F1] hover:bg-[#4F46E5] text-white font-bold rounded-2xl tracking-wide uppercase transition-all duration-200 shadow-lg shadow-[#6366F1]/20 font-[Poppins] !py-2 text-xs"
                                 >
-                                    {isLoading ? "Creating..." : "Create Account"}
+                                    {loading ? "Creating..." : "Create Account"}
                                 </Button>
                             </form>
                         </div>
