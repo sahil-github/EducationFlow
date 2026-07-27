@@ -1,5 +1,6 @@
 import Login from '../pages/auth/login'
 import SignUp from '../pages/auth/signup'
+import ForgotPassword from '../pages/auth/forgotPassword'
 import Home from '../pages/features/Home'
 import PersonalInfo from '../pages/features/PersonalInfo/PersonalInfo'
 import LearningGoals from '../pages/features/learning goals/LearningGoals'
@@ -20,6 +21,7 @@ export const ROUTES = {
     INTERESTS: '/interests',
     SKILL_ASSESSMENT: '/skill-assessment',
     REVIEW: '/review',
+    FORGOT_PASSWORD: '/forgot-password',
 };
 
 const isFullyOnboarded = () => {
@@ -71,6 +73,7 @@ function AppRoutes() {
                         <Route path="/" element={<Navigate to="/login" />} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/signup" element={<SignUp />} />
+                        <Route path="/forgot-password" element={<ForgotPassword />} />
                     </Route>
 
                     <Route element={<RequireAuth />}>

@@ -11,17 +11,14 @@ import GoogleIcon from '../../assets/icons/googleicon.png';
 import AppleIcon from '../../assets/icons/applelogo.png';
 import LinkedInIcon from '../../assets/icons/LinkedIn.png';
 import { Users } from "lucide-react";
-import { saveUsers, getUsers, getCurrentUser, saveCurrentUser } from '../../utils/store';
-function Signup() {
-    const [isLoading, setIsLoading] = useState(false);
-    const navigate = useNavigate();
+import { useDispatch, useSelector } from 'react-redux';
+import { registerUser } from '../../features/auth/authThunks';
 
-    // useEffect(() => {
-    //     const currentUser = getCurrentUser()
-    //     if (currentUser && currentUser.email) {
-    //         navigate('/home');
-    //     }
-    // }, [navigate]);
+function Signup() {
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const { loading } = useSelector((state) => state.auth);
+
     const formik = useFormik({
         initialValues: {
             name: '',
@@ -58,31 +55,17 @@ function Signup() {
             return errors;
         },
         onSubmit: async (values) => {
-            setIsLoading(true);
             try {
-                const Users = getUsers()
+                await dispatch(registerUser({
+                    name: values.name,
+                    email: values.email,
+                    password: values.password
+                })).unwrap();
 
-                const userExists = Users.some(u => u.email === values.email);
-                if (userExists) {
-                    toast.error("User already exists! Please log in.");
-                    navigate("/login");
-                    return;
-                }
-                const newUser = { ...values };
-                delete newUser.confirmpassword;
-                
-                Users.push(newUser);
-                saveUsers(Users)
-
-                const sanitizedUser = { ...newUser };
-                delete sanitizedUser.password;
-
-                saveCurrentUser(sanitizedUser)
-                toast.success("Registration Successful! Complet Onboarding process");
-                navigate("/personal-info");
-
-            } finally {
-                setIsLoading(false);
+                toast.success("Registration Successful! Please log in.");
+                navigate("/login");
+            } catch (err) {
+                toast.error(err || "Registration failed");
             }
         },
     });
@@ -300,13 +283,12 @@ function Signup() {
                                 </div> */}
                                 {/* Create Account Button */}
                                 <Button
-
                                     type='submit'
                                     variant="primary"
-                                    disabled={isLoading}
+                                    disabled={loading}
                                     className="w-full h-11 bg-[#6366F1] hover:bg-[#4F46E5] text-white font-bold rounded-2xl tracking-wide uppercase transition-all duration-200 shadow-lg shadow-[#6366F1]/20 font-[Poppins] !py-2 text-xs"
                                 >
-                                    {isLoading ? "Creating..." : "Create Account"}
+                                    {loading ? "Creating..." : "Create Account"}
                                 </Button>
                             </form>
                         </div>

@@ -1,4 +1,3 @@
-
 import Button from '../../components/Button';
 import Logo from '../../assets/logo/Logo.png';
 import Checkbox from '@mui/material/Checkbox';
@@ -6,27 +5,50 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import GoogleIcon from "../../assets/icons/googleicon.png";
 import AppleIcon from "../../assets/icons/applelogo.png";
 import LinkedInIcon from "../../assets/icons/LinkedIn.png";
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import Input from "../../components/Inputs";
 import { useFormik } from "formik";
 import { NavLink, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { saveUsers, getUsers, saveCurrentUser, getCurrentUser } from '../../utils/store';
+import { useDispatch, useSelector } from 'react-redux';
+import { loginUser, socialLoginUser } from '../../features/Auth/authThunks';
+import { clearError } from '../../features/Auth/authSlice';
 function Login() {
-    const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const { loading } = useSelector((state) => state.auth);
+
+    const handleSocialLogin = async (provider, providerToken = "oauth_token_from_google_sdk") => {
+        try {
+            // TODO: Replace default providerToken with actual SDK token from Google/Apple/LinkedIn
+            await dispatch(socialLoginUser({
+                provider: provider,
+                providerToken: providerToken
+            })).unwrap();
+
+            toast.success(`${provider} Login successful!`);
+            navigate("/home");
+        } catch (err) {
+            toast.error(err || `${provider} login failed`);
+        }
+    };
 
     useEffect(() => {
-        const currentUser = getCurrentUser()
-        if (currentUser && currentUser.email) {
-            navigate('/home');
-        }
-    }, [navigate]);
+        dispatch(clearError());
+    }, [dispatch]);
+
+    // useEffect(() => {
+    //     const currentUser = getCurrentUser()
+    //     if (currentUser && currentUser.email) {
+    //         navigate('/home');
+    //     }
+    // }, [navigate]);
 
     const formik = useFormik({
         initialValues: {
             email: '',
             password: '',
+            rememberMe: false
         },
         validate: (values) => {
             const errors = {};
@@ -48,23 +70,17 @@ function Login() {
             return errors;
         },
         onSubmit: async (values) => {
-            setIsLoading(true);
             try {
-                const Users = getUsers()    
-                const matchedUser = Users.find(u => u.email === values.email && u.password === values.password);
-                if (!matchedUser) {
-                    toast.error("Invalid email or password. Please try again or Signup.");
-                    return;
-                }
+                await dispatch(loginUser({
+                    email: values.email,
+                    password: values.password,
+                    rememberMe: values.rememberMe
+                })).unwrap();
 
-                // Create a copy and remove password before saving to session
-                const sanitizedUser = { ...matchedUser };
-                delete sanitizedUser.password;
-
-                saveCurrentUser(sanitizedUser);
+                toast.success("Login successful!");
                 navigate("/home");
-            } finally {
-                setIsLoading(false);
+            } catch (err) {
+                toast.error(err || "Login failed");
             }
         },
     });
@@ -130,7 +146,9 @@ function Login() {
 
                                 <button
                                     type="button"
-                                    className="w-full h-10 flex items-center justify-center gap-2.5 bg-[#22222A] hover:bg-[#2A2A34] text-white text-xs font-semibold font-[Manrope] rounded-full border border-white/10 transition-all duration-200 cursor-pointer"
+                                    onClick={() => handleSocialLogin('Google')}
+                                    disabled={loading}
+                                    className="w-full h-10 flex items-center justify-center gap-2.5 bg-[#22222A] hover:bg-[#2A2A34] text-white text-xs font-semibold font-[Manrope] rounded-full border border-white/10 transition-all duration-200 cursor-pointer disabled:opacity-50"
                                 >
                                     <img src={GoogleIcon} alt="Google" className="w-3.5 h-3.5" />
                                     Log in with Google
@@ -139,7 +157,9 @@ function Login() {
 
                                 <button
                                     type="button"
-                                    className="w-full h-10 flex items-center justify-center gap-2.5 bg-white hover:bg-gray-100 text-black text-xs font-semibold font-[Manrope] rounded-full transition-all duration-200 cursor-pointer"
+                                    onClick={() => handleSocialLogin('Apple')}
+                                    disabled={loading}
+                                    className="w-full h-10 flex items-center justify-center gap-2.5 bg-white hover:bg-gray-100 text-black text-xs font-semibold font-[Manrope] rounded-full transition-all duration-200 cursor-pointer disabled:opacity-50"
                                 >
                                     <img src={AppleIcon} alt="Apple" className="w-3.5 h-3.5" />
                                     Log in with Apple
@@ -148,7 +168,9 @@ function Login() {
 
                                 <button
                                     type="button"
-                                    className="w-full h-10 flex items-center justify-center gap-2.5 bg-[#0077B5] hover:bg-[#00669C] text-white text-xs font-semibold font-[Manrope] rounded-full transition-all duration-200 cursor-pointer"
+                                    onClick={() => handleSocialLogin('LinkedIn')}
+                                    disabled={loading}
+                                    className="w-full h-10 flex items-center justify-center gap-2.5 bg-[#0077B5] hover:bg-[#00669C] text-white text-xs font-semibold font-[Manrope] rounded-full transition-all duration-200 cursor-pointer disabled:opacity-50"
                                 >
                                     <img src={LinkedInIcon} alt="LinkedIn" className="w-3.5 h-3.5" />
                                     Log in with LinkedIn
@@ -182,11 +204,13 @@ function Login() {
 
                                     label="Password"
                                     rightElement={
-                                        <span
-                                            className="text-[#6366F1] text-[11px] font-[Manrope] font-medium cursor-pointer hover:text-[#4F46E5] transition-colors"
-                                        >
-                                            Forgot password?
-                                        </span>
+                                        <NavLink to="/forgot-password">
+                                            <span
+                                                className="text-[#6366F1] text-[11px] font-[Manrope] font-medium cursor-pointer hover:text-[#4F46E5] transition-colors"
+                                            >
+                                                Forgot password?
+                                            </span>
+                                        </NavLink>
                                     }
                                     type="password"
                                     placeholder="••••••••"
@@ -202,8 +226,8 @@ function Login() {
                                 <div className="flex items-center gap-1.5 -ml-2">
                                     <Checkbox
                                         size="small"
-                                        checked={formik.values.remember || false}
-                                        onChange={(e) => formik.setFieldValue('remember', e.target.checked)}
+                                        checked={formik.values.rememberMe}
+                                        onChange={(e) => formik.setFieldValue('rememberMe', e.target.checked)}
                                         sx={{
                                             color: 'rgba(255,255,255,0.2)',
                                             '&.Mui-checked': { color: '#6366F1' },
@@ -219,10 +243,10 @@ function Login() {
                                 <Button
                                     type="submit"
                                     variant="primary"
-                                    disabled={isLoading}
+                                    disabled={loading}
                                     className="w-full h-10 bg-[#6366F1] hover:bg-[#4F46E5] text-white font-bold rounded-2xl tracking-wide transition-all duration-200 shadow-lg shadow-[#6366F1]/20 font-[Poppins] !py-2 text-xs"
                                 >
-                                    {isLoading ? "Loging In..." : "Log In"}
+                                    {loading ? "Logging In..." : "Log In"}
                                 </Button>
 
                                 {/* Sign Up Link */}
