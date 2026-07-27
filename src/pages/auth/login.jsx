@@ -11,8 +11,9 @@ import { useFormik } from "formik";
 import { NavLink, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useDispatch, useSelector } from 'react-redux';
+
+import { clearError } from '../../features/Auth/authSlice';
 import { loginUser, socialLoginUser } from '../../features/auth/authThunks';
-import { clearError } from '../../features/auth/authSlice';
 
 function Login() {
     const navigate = useNavigate();

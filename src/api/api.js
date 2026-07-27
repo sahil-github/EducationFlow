@@ -1,4 +1,3 @@
-// src/api/api.js
 import axios from "axios";
 
 const api = axios.create({
@@ -25,7 +24,7 @@ api.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      sessionStorage.removeItem("current_user");
+      localStorage.removeItem("current_user");
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
       }
