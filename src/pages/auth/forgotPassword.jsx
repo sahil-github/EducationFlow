@@ -7,8 +7,8 @@ import { useFormik } from "formik";
 import { NavLink, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useDispatch, useSelector } from 'react-redux';
-import { sendPasswordReset } from '../../features/Auth/authThunks';
-import { clearError } from '../../features/Auth/authSlice';
+import { sendPasswordReset } from '../../features/auth/authThunks';
+import { clearError } from '../../features/auth/authSlice';
 
 function ForgotPassword() {
     const navigate = useNavigate();
