@@ -63,7 +63,7 @@ function Signup() {
                 })).unwrap();
 
                 toast.success("Registration Successful! Please log in.");
-                navigate("/login");
+                navigate("/personal-info");
             } catch (err) {
                 toast.error(err || "Registration failed");
             }

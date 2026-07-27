@@ -7,8 +7,8 @@ import { useFormik } from "formik";
 import { NavLink, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useDispatch, useSelector } from 'react-redux';
-import { sendPasswordReset } from '../../features/Auth/authThunks';
-import { clearError } from '../../features/Auth/authSlice';
+import { sendPasswordReset } from '../../features/auth/authThunks';
+import { clearError } from '../../features/auth/authSlice';
 
 function ForgotPassword() {
     const navigate = useNavigate();
@@ -69,7 +69,7 @@ function ForgotPassword() {
                         <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center mb-6 border border-white/10 mx-auto">
                             <AutoAwesomeIcon sx={{ fontSize: 20, color: '#6366F1' }} />
                         </div>
-                        
+
                         <h2 className="text-white font-semibold text-xl md:text-2xl font-[Poppins] tracking-tight mb-2 text-center">
                             Reset your password
                         </h2>

@@ -2,48 +2,83 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: import.meta.env?.VITE_API_BASE_URL || "http://localhost:5000",
-    headers: {
-        "Content-Type": "application/json"
-    }
+  baseURL: import.meta.env?.VITE_API_BASE_URL || "http://localhost:5000",
+  headers: {
+    "Content-Type": "application/json"
+  }
 });
 
-// Request Interceptor: Attach the token to every outgoing request automatically
+// Request Interceptor: Attach token except for auth endpoints
 api.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
+  const token = localStorage.getItem("token");
+  const isAuthRoute = config.url?.includes('/api/auth/');
+  if (token && !isAuthRoute) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
-// Response Interceptor: Catch global 401 Unauthorized errors (expired token)
+// Response Interceptor: Handle 401 unauthorized errors
 api.interceptors.response.use(
-    (response) => response.data,
-    (error) => {
-        if (error.response && error.response.status === 401) {
-            localStorage.removeItem("token");
-            localStorage.removeItem("user");
-            if (window.location.pathname !== '/login') {
-                window.location.href = '/login';
-            }
-        }
-        return Promise.reject(error.response?.data || error);
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      sessionStorage.removeItem("current_user");
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
     }
+    return Promise.reject(error);
+  }
 );
 
 export const authApi = {
-  register: (fullName, email, password) =>
-    api.post('/api/auth/register', { fullName, email, password }),
+  register: (data, emailArg, passwordArg) => {
+    let name, email, password;
+    if (typeof data === 'object' && data !== null) {
+      name = data.name || data.fullName || '';
+      email = data.email || '';
+      password = data.password || '';
+    } else {
+      name = data || '';
+      email = emailArg || '';
+      password = passwordArg || '';
+    }
+    return api.post('/api/auth/register', { name, fullName: name, email, password });
+  },
 
-  login: (email, password, rememberMe = false) =>
-    api.post('/api/auth/login', { email, password, rememberMe }),
+  login: (credentials, passwordArg, rememberMeArg = false) => {
+    let email, password, rememberMe;
+    if (typeof credentials === 'object' && credentials !== null) {
+      email = credentials.email || '';
+      password = credentials.password || '';
+      rememberMe = credentials.rememberMe ?? false;
+    } else {
+      email = credentials || '';
+      password = passwordArg || '';
+      rememberMe = rememberMeArg ?? false;
+    }
+    return api.post('/api/auth/login', { email, password, rememberMe });
+  },
 
-  forgotPassword: (email) =>
-    api.post('/api/auth/forgot-password', { email }),
+  forgotPassword: (data) => {
+    const email = typeof data === 'object' && data !== null ? data.email : data;
+    return api.post('/api/auth/forgot-password', { email });
+  },
 
-  socialLogin: (provider, providerToken) =>
-    api.post('/api/auth/social-login', { provider, providerToken }),
+  socialLogin: (data, tokenArg) => {
+    let provider, providerToken;
+    if (typeof data === 'object' && data !== null) {
+      provider = data.provider || '';
+      providerToken = data.providerToken || '';
+    } else {
+      provider = data || '';
+      providerToken = tokenArg || '';
+    }
+    return api.post('/api/auth/social-login', { provider, providerToken });
+  },
 };
 
 export const courseApi = {
