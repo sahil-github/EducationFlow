@@ -6,11 +6,15 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import MenuIcon from '@mui/icons-material/Menu';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { IconButton, Box, Avatar, Menu, MenuItem, ListItemIcon, Divider, Typography } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import { getCurrentUser } from '../utils/store';
+import { useDispatch } from 'react-redux';
+import { logout } from '../features/auth/authSlice';
+import { getCurrentUser, clearCurrentUser } from '../utils/store';
+import { Search, NotificationsOutlined, SettingsOutlined, LogoutOutlined } from '@mui/icons-material';
+import { NavLink, useNavigate } from 'react-router-dom';
 
 function Navbar({ sidebarOpen, setSidebarOpen }) {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const [anchorEl, setAnchorEl] = useState(null);
     const [currentUser, setCurrentUser] = useState(() => getCurrentUser());
 
@@ -39,8 +43,8 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
     };
 
     const handleLogout = () => {
-        sessionStorage.removeItem('current_user');
-        // Do NOT remove 'users', that's the database!
+        dispatch(logout());
+        clearCurrentUser();
         handleProfileClose();
         navigate('/login');
     };
@@ -73,14 +77,41 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                             <ChevronRightIcon />
                         </IconButton>
                     )}
+                    {/*.................. Condition  if user login and onboarding proccess complete.................  */}
+                    <div className="flex gap-6 text-sm text-gray-400 font-medium">
+                        <NavLink to='/' className={({ isActive }) =>
+                            isActive ? "text-white border-b-2 border-blue-500 pb-1" : "text-gray-600"}>Dashboard</NavLink>
+                        <NavLink to='/catalog' className={({ isActive }) =>
+                            isActive ? "text-white border-b-2 border-blue-500 pb-1" : "text-gray-600"}>Catalog</NavLink>
+                        <NavLink to='/my-learning' className={({ isActive }) =>
+                            isActive ? "text-white border-b-2 border-blue-500 pb-1" : "text-gray-600"}>My Learning</NavLink>
+                    </div>
                 </div>
 
                 {/* Right Side */}
                 <div className='cursor-pointer p-3'>
 
+
                     {/* Desktop: Notification + Profile Avatar */}
                     <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 2 }}>
-                        <NotificationsIcon sx={{ fontSize: 25, color: '#C7C4D8' }} />
+                         {/*.................. Condition  if user login and onboarding proccess complete.................  */}
+                   
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fontSize="small" />
+                            <input
+                                type="text"
+                                placeholder="Search courses..."
+                                className="bg-transparent border border-white/20 rounded-full py-2 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-blue-500 w-64 placeholder-gray-500"
+                            />
+                        </div>
+                        <button className="text-gray-400 hover:text-white">
+                            <NotificationsOutlined />
+                        </button>
+                        <button className="text-gray-400 hover:text-white">
+                            <SettingsOutlined />
+                        </button>
+
+                        {/* <NotificationsIcon sx={{ fontSize: 25, color: '#C7C4D8' }} /> */}
 
                         {/* Profile Avatar Button */}
                         <Box

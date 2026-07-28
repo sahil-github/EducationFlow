@@ -1,4 +1,5 @@
 import axios from "axios";
+import { clearCurrentUser } from "../utils/store";
 
 const api = axios.create({
   baseURL: import.meta.env?.VITE_API_BASE_URL || "http://localhost:5000",
@@ -7,7 +8,7 @@ const api = axios.create({
   }
 });
 
-// Request Interceptor: Attach token except for auth endpoints
+
 // Request Interceptor: Attach token except for auth endpoints
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem("token");
@@ -22,9 +23,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      localStorage.removeItem("current_user");
+      clearCurrentUser();
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
       }
@@ -66,22 +65,22 @@ export const authApi = {
     const email = typeof data === 'object' && data !== null ? data.email : data;
     return api.post('/api/auth/forgot-password', { email });
   },
-  forgotPassword: (data) => {
-    const email = typeof data === 'object' && data !== null ? data.email : data;
-    return api.post('/api/auth/forgot-password', { email });
-  },
+  // forgotPassword: (data) => {
+  //   const email = typeof data === 'object' && data !== null ? data.email : data;
+  //   return api.post('/api/auth/forgot-password', { email });
+  // },
 
-  socialLogin: (data, tokenArg) => {
-    let provider, providerToken;
-    if (typeof data === 'object' && data !== null) {
-      provider = data.provider || '';
-      providerToken = data.providerToken || '';
-    } else {
-      provider = data || '';
-      providerToken = tokenArg || '';
-    }
-    return api.post('/api/auth/social-login', { provider, providerToken });
-  },
+  // socialLogin: (data, tokenArg) => {
+  //   let provider, providerToken;
+  //   if (typeof data === 'object' && data !== null) {
+  //     provider = data.provider || '';
+  //     providerToken = data.providerToken || '';
+  //   } else {
+  //     provider = data || '';
+  //     providerToken = tokenArg || '';
+  //   }
+  //   return api.post('/api/auth/social-login', { provider, providerToken });
+  // },
   socialLogin: (data, tokenArg) => {
     let provider, providerToken;
     if (typeof data === 'object' && data !== null) {

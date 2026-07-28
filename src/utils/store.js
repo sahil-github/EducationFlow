@@ -18,6 +18,14 @@ export const saveCurrentUser = (user) => {
     }
 };
 
+export const clearCurrentUser = () => {
+    sessionStorage.removeItem("current_user");
+    localStorage.removeItem("current_user");
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    window.dispatchEvent(new Event("currentUserUpdate"));
+};
+
 export const getUsers = () => {
     return JSON.parse(localStorage.getItem("users")) || [];
 };

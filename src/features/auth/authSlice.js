@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { loginUser, registerUser, socialLoginUser } from './authThunks';
+import { clearCurrentUser } from '../../utils/store';
 
 const initialState = {
     user: localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null,
@@ -16,9 +17,7 @@ const authSlice = createSlice({
             state.user = null;
             state.token = null;
             state.error = null;
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            localStorage.removeItem('current_user');
+            clearCurrentUser();
         },
         clearError: (state) => {
             state.error = null;

@@ -133,7 +133,7 @@ export default function Review() {
         toast.success(
             "Onboarding profile submitted successfully! Welcome aboard 🎉"
         );
-        navigate("/home");
+        navigate("/dashboard");
     };
 
     const profileFields = [

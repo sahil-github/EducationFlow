@@ -13,6 +13,7 @@ import { toast } from 'react-toastify';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser, socialLoginUser } from '../../features/auth/authThunks';
 import { clearError } from '../../features/auth/authSlice';
+
 function Login() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -21,13 +22,17 @@ function Login() {
     const handleSocialLogin = async (provider, providerToken = "oauth_token_from_google_sdk") => {
         try {
             // TODO: Replace default providerToken with actual SDK token from Google/Apple/LinkedIn
-            await dispatch(socialLoginUser({
+            const res = await dispatch(socialLoginUser({
                 provider: provider,
                 providerToken: providerToken
             })).unwrap();
 
             toast.success(`${provider} Login successful!`);
-            navigate("/home");
+            if (res?.user?.onboardingCompleted) {
+                navigate("/dashboard");
+            } else {
+                navigate("/personal-info");
+            }
         } catch (err) {
             toast.error(err || `${provider} login failed`);
         }
@@ -36,13 +41,6 @@ function Login() {
     useEffect(() => {
         dispatch(clearError());
     }, [dispatch]);
-
-    // useEffect(() => {
-    //     const currentUser = getCurrentUser()
-    //     if (currentUser && currentUser.email) {
-    //         navigate('/home');
-    //     }
-    // }, [navigate]);
 
     const formik = useFormik({
         initialValues: {
@@ -71,16 +69,26 @@ function Login() {
         },
         onSubmit: async (values) => {
             try {
-                await dispatch(loginUser({
+                const res = await dispatch(loginUser({
                     email: values.email,
                     password: values.password,
                     rememberMe: values.rememberMe
                 })).unwrap();
 
                 toast.success("Login successful!");
-                navigate("/home");
+                if (res?.user?.onboardingCompleted) {
+                    navigate("/dashboard");
+                } else {
+                    navigate("/personal-info");
+                }
             } catch (err) {
-                toast.error(err || "Login failed");
+                const errorMsg = typeof err === 'string' ? err : err?.message || "Login failed";
+                toast.error(errorMsg);
+                if (errorMsg.toLowerCase().includes("not found") || errorMsg.toLowerCase().includes("sign up")) {
+                    setTimeout(() => {
+                        navigate("/signup");
+                    }, 1200);
+                }
             }
         },
     });

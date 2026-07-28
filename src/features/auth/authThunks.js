@@ -14,18 +14,26 @@ export const loginUser = createAsyncThunk(
             }
 
             const token = data.token || "jwt-auth-token-sample";
-            const user = data.user || {
-                email: credentials.email,
-                name: credentials.email.split('@')[0],
-                onboardingCompleted: false
-            };
+            const users = getUsers();
+            const existingIndex = users.findIndex(u => u.email === credentials.email || (data.user && u.email === data.user.email));
+
+            let user;
+            if (data.user) {
+                user = existingIndex !== -1 ? { ...users[existingIndex], ...data.user } : data.user;
+            } else if (existingIndex !== -1) {
+                user = users[existingIndex];
+            } else {
+                user = {
+                    email: credentials.email,
+                    name: credentials.email.split('@')[0],
+                    onboardingCompleted: false
+                };
+            }
 
             saveCurrentUser(user);
             localStorage.setItem('token', token);
             localStorage.setItem('user', JSON.stringify(user));
 
-            const users = getUsers();
-            const existingIndex = users.findIndex(u => u.email === user.email);
             if (existingIndex !== -1) {
                 users[existingIndex] = { ...users[existingIndex], ...user };
             } else {
@@ -38,28 +46,20 @@ export const loginUser = createAsyncThunk(
             // Handle offline/network error fallback for standalone testing
             if (!error.response && (error.code === 'ERR_NETWORK' || error.message?.includes('Network Error') || error.code === 'ECONNREFUSED')) {
                 const users = getUsers();
-                const localUser = users.find(u => u.email === credentials.email);
-                if (localUser && localUser.password === credentials.password) {
-                    const mockToken = "mock-jwt-token-" + Date.now();
-                    saveCurrentUser(localUser);
-                    localStorage.setItem('token', mockToken);
-                    localStorage.setItem('user', JSON.stringify(localUser));
-                    return { token: mockToken, user: localUser, success: true };
-                } else if (localUser && localUser.password !== credentials.password) {
-                    return rejectWithValue("Invalid email or password");
+                const cleanEmail = (credentials.email || '').trim().toLowerCase();
+                const localUser = users.find(u => (u.email || '').trim().toLowerCase() === cleanEmail);
+                if (localUser) {
+                    if (localUser.password === credentials.password) {
+                        const mockToken = "mock-jwt-token-" + Date.now();
+                        saveCurrentUser(localUser);
+                        localStorage.setItem('token', mockToken);
+                        localStorage.setItem('user', JSON.stringify(localUser));
+                        return { token: mockToken, user: localUser, success: true };
+                    } else {
+                        return rejectWithValue("Invalid email or password");
+                    }
                 }
-                const demoUser = {
-                    email: credentials.email,
-                    name: credentials.email.split('@')[0],
-                    onboardingCompleted: false
-                };
-                const mockToken = "mock-jwt-token-" + Date.now();
-                saveCurrentUser(demoUser);
-                localStorage.setItem('token', mockToken);
-                localStorage.setItem('user', JSON.stringify(demoUser));
-                users.push({ ...demoUser, password: credentials.password });
-                saveUsers(users);
-                return { token: mockToken, user: demoUser, success: true };
+                return rejectWithValue("Account not found. Please sign up first.");
             }
 
             const errorMsg = error.response?.data?.message || error.message || "Login failed";
@@ -79,31 +79,46 @@ export const registerUser = createAsyncThunk(
             }
 
             const users = getUsers();
+            if (users.some(u => u.email === userData.email)) {
+                return rejectWithValue("An account with this email already exists. Please log in.");
+            }
+
             const newUser = {
                 name: userData.name,
                 email: userData.email,
                 password: userData.password,
                 onboardingCompleted: false
             };
-            if (!users.some(u => u.email === userData.email)) {
-                users.push(newUser);
-                saveUsers(users);
-            }
-            return data;
+            users.push(newUser);
+            saveUsers(users);
+
+            const token = data.token || "jwt-auth-token-sample";
+            saveCurrentUser(newUser);
+            localStorage.setItem('token', token);
+            localStorage.setItem('user', JSON.stringify(newUser));
+
+            return { token, user: newUser, ...data };
         } catch (error) {
             if (!error.response && (error.code === 'ERR_NETWORK' || error.message?.includes('Network Error') || error.code === 'ECONNREFUSED')) {
                 const users = getUsers();
+                if (users.some(u => u.email === userData.email)) {
+                    return rejectWithValue("An account with this email already exists. Please log in.");
+                }
+
                 const newUser = {
                     name: userData.name,
                     email: userData.email,
                     password: userData.password,
                     onboardingCompleted: false
                 };
-                if (!users.some(u => u.email === userData.email)) {
-                    users.push(newUser);
-                    saveUsers(users);
-                }
-                return { success: true, message: "User registered" };
+                users.push(newUser);
+                saveUsers(users);
+
+                const mockToken = "mock-jwt-token-" + Date.now();
+                saveCurrentUser(newUser);
+                localStorage.setItem('token', mockToken);
+                localStorage.setItem('user', JSON.stringify(newUser));
+                return { token: mockToken, user: newUser, success: true, message: "User registered" };
             }
             const errorMsg = error.response?.data?.message || error.message || "Registration failed";
             return rejectWithValue(errorMsg);
