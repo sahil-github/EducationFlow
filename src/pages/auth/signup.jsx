@@ -62,10 +62,16 @@ function Signup() {
                     password: values.password
                 })).unwrap();
 
-                toast.success("Registration Successful! Please log in.");
+                toast.success("Registration successful! Let's set up your profile.");
                 navigate("/personal-info");
             } catch (err) {
-                toast.error(err || "Registration failed");
+                const errorMsg = typeof err === 'string' ? err : err?.message || "Registration failed";
+                toast.error(errorMsg);
+                if (errorMsg.toLowerCase().includes("already exists") || errorMsg.toLowerCase().includes("log in")) {
+                    setTimeout(() => {
+                        navigate("/login");
+                    }, 1200);
+                }
             }
         },
     });

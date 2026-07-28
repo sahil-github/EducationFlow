@@ -1,7 +1,9 @@
 import Login from '../pages/auth/login'
 import SignUp from '../pages/auth/signup'
 import ForgotPassword from '../pages/auth/forgotPassword'
-import Home from '../pages/features/Home'
+import Dashboard from '../pages/Dashboard/Dashboard'
+import Catalog from '../pages/Catalog/Catalog'
+import MyLearning from '../pages/MyLearning/MyLearning'
 import PersonalInfo from '../pages/features/PersonalInfo/PersonalInfo'
 import LearningGoals from '../pages/features/learning goals/LearningGoals'
 import Interests from '../pages/features/Interest/Interest'
@@ -15,7 +17,7 @@ import { getCurrentUser } from '../utils/store';
 export const ROUTES = {
     LOGIN: '/login',
     SIGNUP: '/signup',
-    HOME: '/home',
+    DASHBOARD: '/dashboard',
     PERSONAL_INFO: '/personal-info',
     LEARNING_GOALS: '/learning-goals',
     INTERESTS: '/interests',
@@ -29,10 +31,33 @@ const isFullyOnboarded = () => {
     return !!(user && user.onboardingCompleted);
 };
 
-const RequireAuth = () => {
+const isAuthenticated = () => {
+    const token = localStorage.getItem("token");
     const session = getCurrentUser();
-    if (!session || !session.email) {
+    return !!(token && session && session.email);
+};
+
+const PublicOnlyGuard = () => {
+    if (isAuthenticated()) {
+        if (isFullyOnboarded()) {
+            return <Navigate to="/dashboard" replace />;
+        } else {
+            return <Navigate to="/personal-info" replace />;
+        }
+    }
+    return <Outlet />;
+};
+
+const RequireAuth = () => {
+    if (!isAuthenticated()) {
         return <Navigate to="/login" replace />;
+    }
+    return <Outlet />;
+};
+
+const RequireCompletedOnboarding = () => {
+    if (!isFullyOnboarded()) {
+        return <Navigate to="/personal-info" replace />;
     }
     return <Outlet />;
 };
@@ -42,7 +67,7 @@ const OnboardingGuard = () => {
     const currentUser = getCurrentUser();
 
     if (isFullyOnboarded()) {
-        return <Navigate to="/home" replace />;
+        return <Navigate to="/dashboard" replace />;
     }
 
     const path = location.pathname;
@@ -69,16 +94,23 @@ function AppRoutes() {
         <>
             <Router>
                 <Routes>
-                    <Route element={<Authlayout />}>
-                        <Route path="/" element={<Navigate to="/login" />} />
-                        <Route path="/login" element={<Login />} />
-                        <Route path="/signup" element={<SignUp />} />
-                        <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route element={<PublicOnlyGuard />}>
+                        <Route element={<Authlayout />}>
+                            <Route path="/" element={<Navigate to="/login" />} />
+                            <Route path="/login" element={<Login />} />
+                            <Route path="/signup" element={<SignUp />} />
+                            <Route path="/forgot-password" element={<ForgotPassword />} />
+
+                        </Route>
                     </Route>
 
                     <Route element={<RequireAuth />}>
                         <Route element={<Mainlayout />}>
-                            <Route path="/home" element={<Home />} />
+                            <Route element={<RequireCompletedOnboarding />}>
+                                <Route path="/dashboard" element={<Dashboard />} />
+                                <Route path='/catalog' element={<Catalog />}></Route>
+                                <Route path='/my-learning' element={<MyLearning />}></Route>
+                            </Route>
 
                             <Route element={<OnboardingGuard />}>
                                 <Route path="/personal-info" element={<PersonalInfo />} />
