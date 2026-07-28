@@ -30,6 +30,33 @@ function MyLearning() {
             buttonText: "Finish Module",
         },
     ];
+
+    const courseSavedCategories = [
+        {
+            id: 1,
+            category: "Management",
+            title: "Time Mastery for Creatives",
+            duration: "4.5 hours",
+        },
+        {
+            id: 2,
+            category: "Security",
+            title: "Cybersecurity Fundamentals",
+            duration: "12 hours",
+        },
+    ];
+
+    const completedCategories = [{
+        id: 1,
+        course: 'Intro to Agile',
+        certificateDate: 'certified oct 12'
+    },
+    {
+        id: 2,
+        course: 'Modern Js ES6+',
+        certificateDate: 'certified sep 28'
+    }
+    ]
     return (
         <div className="w-full p-10">
             <div className=" ">
@@ -60,8 +87,36 @@ function MyLearning() {
                     ))}
                 </div>
             </div>
-            <div>
-                <h1 className="text-white text-2xl font-bold mb-4 ">Saved for Later</h1>
+            <div className='flex gap-4 '>
+                <div className=''>
+                    <h1 className="text-white text-2xl font-bold mb-4 ">Saved for Later</h1>
+                    <div className='flex  justify-start gap-4'>
+                        {courseSavedCategories.map((course) => (
+                            <Card className="flex  gap-4 p-4 rounded-xl border border-gray-700 bg-[#1A1D24]" key={course.id} >
+
+                                {/* Image goes here */}
+                                <div>
+                                    <p className="text-xs text-gray-400">{course.category}</p>
+                                    <h3 className="text-white font-medium">{course.title}</h3>
+                                    <p className="text-sm text-gray-400">🕒 {course.duration}</p>
+                                </div>
+                            </Card>
+                        ))}
+
+
+                    </div>
+                </div>
+                <div className=''>
+                    <h1 className="text-white text-2xl font-bold mb-4 ">Completed</h1>
+                    {completedCategories.map((complete) => (
+                        <Card className="   p-4 rounded-xl border border-gray-700 bg-[#1A1D24]" key={complete.id} >
+                            <h3 className="text-white font-medium">{complete.course}</h3>
+                            <p className="text-xs text-gray-400">{complete.certificateDate}</p>
+
+                        </Card>
+                    ))}
+                </div>
+
             </div>
         </div>
     )

@@ -12,11 +12,15 @@ import { getCurrentUser, clearCurrentUser } from '../utils/store';
 import { Search, NotificationsOutlined, SettingsOutlined, LogoutOutlined } from '@mui/icons-material';
 import { NavLink, useNavigate } from 'react-router-dom';
 
+
 function Navbar({ sidebarOpen, setSidebarOpen }) {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const [anchorEl, setAnchorEl] = useState(null);
     const [currentUser, setCurrentUser] = useState(() => getCurrentUser());
+
+
+
 
     useEffect(() => {
         const handleUserUpdate = () => {
@@ -77,7 +81,7 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                             <ChevronRightIcon />
                         </IconButton>
                     )}
-                    {/*.................. Condition  if user login and onboarding proccess complete.................  */}
+                    {/*.................. Condition  if user login and onboarding proccess is completed.................  */}
                     <div className="flex gap-6 text-sm text-gray-400 font-medium">
                         <NavLink to='/' className={({ isActive }) =>
                             isActive ? "text-white border-b-2 border-blue-500 pb-1" : "text-gray-600"}>Dashboard</NavLink>
@@ -87,6 +91,42 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                             isActive ? "text-white border-b-2 border-blue-500 pb-1" : "text-gray-600"}>My Learning</NavLink>
                     </div>
                 </div>
+                {/* {showDashboardUI && (
+                    <div className="flex gap-6 text-sm text-gray-400 font-medium">
+                        <NavLink
+                            to="/"
+                            className={({ isActive }) =>
+                                isActive
+                                    ? "text-white border-b-2 border-blue-500 pb-1"
+                                    : "text-gray-600"
+                            }
+                        >
+                            Dashboard
+                        </NavLink>
+
+                        <NavLink
+                            to="/catalog"
+                            className={({ isActive }) =>
+                                isActive
+                                    ? "text-white border-b-2 border-blue-500 pb-1"
+                                    : "text-gray-600"
+                            }
+                        >
+                            Catalog
+                        </NavLink>
+
+                        <NavLink
+                            to="/my-learning"
+                            className={({ isActive }) =>
+                                isActive
+                                    ? "text-white border-b-2 border-blue-500 pb-1"
+                                    : "text-gray-600"
+                            }
+                        >
+                            My Learning
+                        </NavLink>
+                    </div>
+                )} */}
 
                 {/* Right Side */}
                 <div className='cursor-pointer p-3'>
@@ -94,8 +134,8 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
 
                     {/* Desktop: Notification + Profile Avatar */}
                     <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 2 }}>
-                         {/*.................. Condition  if user login and onboarding proccess complete.................  */}
-                   
+                        {/*.................. Condition  if user login and onboarding proccess is completed.................  */}
+
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fontSize="small" />
                             <input
