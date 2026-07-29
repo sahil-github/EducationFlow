@@ -2,6 +2,7 @@ import { Button } from "@mui/material";
 import Card from "../../components/Card";
 import { Star, AccessTime, KeyboardArrowLeft, KeyboardArrowRight } from '@mui/icons-material';
 import { courses } from "../../constants/constants";
+import { courses } from "../../constants/constants";
 function Catalog() {
 
 
