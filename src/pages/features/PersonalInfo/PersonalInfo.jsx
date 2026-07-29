@@ -15,7 +15,7 @@ import {
     saveCurrentUser,
     getUsers,
     saveUsers,
-} from "../../../utils/store"
+} from "../../../utils/storage"
 // import SelectField from '../../components/SelectField';
 import { locations } from '../../../constants/constants';
 

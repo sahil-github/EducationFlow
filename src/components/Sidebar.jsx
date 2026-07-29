@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import List from '@mui/material/List';
@@ -35,121 +36,131 @@ export default function Sidebar({ children, open, setOpen }) {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
+    // Show the onboarding sidebar ONLY while the user hasn't completed onboarding.
+    // Once onboarding is done (dashboard + all app pages), the Drawer is fully
+    // removed from the DOM — not just hidden — so it takes no space and
+    // imposes no layout offset on the main content area.
+    const { user } = useSelector((state) => state.auth);
+    const showSidebar = !user?.onboardingCompleted;
+
     return (
         <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-            <Drawer
-                variant={isMobile ? "temporary" : "persistent"}
-                anchor={isMobile ? 'right' : 'left'}
-                open={open}
-                onClose={() => setOpen(false)}
-                sx={{
-                    width: drawerWidth,
-                    flexShrink: 0,
-                    '& .MuiDrawer-paper': {
+                {/* Onboarding Sidebar — only rendered during the onboarding flow */}
+            {showSidebar && (
+                <Drawer
+                    variant={isMobile ? "temporary" : "persistent"}
+                    anchor={isMobile ? 'right' : 'left'}
+                    open={open}
+                    onClose={() => setOpen(false)}
+                    sx={{
                         width: drawerWidth,
-                        boxSizing: 'border-box',
-                        backgroundColor: 'rgba(18, 18, 24, 0.80)',
-                        backdropFilter: 'blur(16px)',
-                        WebkitBackdropFilter: 'blur(16px)',
-                        borderRight: '1px solid rgba(255,255,255,0.06)',
-                        color: '#fff',
-                    },
-                }}
-            >
-                {/* Header: close button */}
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'between',
-                    padding: '16px 12px 12px',
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <img src={Logo} alt="Logo" style={{ width: 36, height: 36 }} />
-                        <span style={{
-                            fontFamily: 'Poppins, sans-serif',
-                            fontWeight: 700,
-                            fontSize: 17,
-                            color: '#6366F1',
-                            letterSpacing: '0.03em',
-                        }}>
-                            EduFlow
-                        </span>
+                        flexShrink: 0,
+                        '& .MuiDrawer-paper': {
+                            width: drawerWidth,
+                            boxSizing: 'border-box',
+                            backgroundColor: 'rgba(18, 18, 24, 0.80)',
+                            backdropFilter: 'blur(16px)',
+                            WebkitBackdropFilter: 'blur(16px)',
+                            borderRight: '1px solid rgba(255,255,255,0.06)',
+                            color: '#fff',
+                        },
+                    }}
+                >
+                    {/* Header: close button */}
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'between',
+                        padding: '16px 12px 12px',
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <img src={Logo} alt="Logo" style={{ width: 36, height: 36 }} />
+                            <span style={{
+                                fontFamily: 'Poppins, sans-serif',
+                                fontWeight: 700,
+                                fontSize: 17,
+                                color: '#6366F1',
+                                letterSpacing: '0.03em',
+                            }}>
+                                EduFlow
+                            </span>
 
 
-                        {isMobile ? <IconButton
-                            onClick={() => setOpen(false)}
-                            size="small"
-                            sx={{ color: '#fff' }}
-                        >
-                            <ChevronRight />
-                        </IconButton> :
-
-                            <IconButton
+                            {isMobile ? <IconButton
                                 onClick={() => setOpen(false)}
                                 size="small"
                                 sx={{ color: '#fff' }}
                             >
-                                <ChevronLeftIcon />
-                            </IconButton>
-                        }
-                    </div>
-                </div>
+                                <ChevronRight />
+                            </IconButton> :
 
-                <Divider sx={{ borderColor: 'rgba(255,255,255,0.06)' }} />
-
-                <List sx={{ px: 1, pt: 1 }}>
-                    {navItems.map(({ text, icon, route }) => {
-                        const isActive = location.pathname === route;
-                        return (
-                            <ListItem key={text} disablePadding sx={{ mb: 0.5 }}>
-                                <ListItemButton
-                                    onClick={() => {
-                                        navigate(route);
-                                        if (isMobile) {
-                                            setOpen(false);
-                                        }
-                                    }}
-                                    sx={{
-                                        borderRadius: '12px',
-                                        transition: 'all 0.2s',
-                                        backgroundColor: isActive ? 'rgba(99,102,241,0.15)' : 'transparent',
-                                        '&:hover': {
-                                            backgroundColor: isActive
-                                                ? 'rgba(99,102,241,0.2)'
-                                                : 'rgba(255,255,255,0.05)',
-                                        },
-                                    }}
+                                <IconButton
+                                    onClick={() => setOpen(false)}
+                                    size="small"
+                                    sx={{ color: '#fff' }}
                                 >
-                                    <ListItemIcon sx={{ color: isActive ? '#6366F1' : '#C7C4D8', minWidth: 36 }}>
-                                        {icon}
-                                    </ListItemIcon>
-                                    <ListItemText
-                                        primary={text}
+                                    <ChevronLeftIcon />
+                                </IconButton>
+                            }
+                        </div>
+                    </div>
+
+                    <Divider sx={{ borderColor: 'rgba(255,255,255,0.06)' }} />
+
+                    <List sx={{ px: 1, pt: 1 }}>
+                        {navItems.map(({ text, icon, route }) => {
+                            const isActive = location.pathname === route;
+                            return (
+                                <ListItem key={text} disablePadding sx={{ mb: 0.5 }}>
+                                    <ListItemButton
+                                        onClick={() => {
+                                            navigate(route);
+                                            if (isMobile) {
+                                                setOpen(false);
+                                            }
+                                        }}
                                         sx={{
-                                            '& .MuiTypography-root': {
-                                                fontFamily: 'Poppins, sans-serif',
-                                                fontWeight: isActive ? 600 : 400,
-                                                fontSize: '0.85rem',
-                                                color: isActive ? '#fff' : '#C7C4D8',
+                                            borderRadius: '12px',
+                                            transition: 'all 0.2s',
+                                            backgroundColor: isActive ? 'rgba(99,102,241,0.15)' : 'transparent',
+                                            '&:hover': {
+                                                backgroundColor: isActive
+                                                    ? 'rgba(99,102,241,0.2)'
+                                                    : 'rgba(255,255,255,0.05)',
                                             },
                                         }}
-                                    />
-                                    {isActive && (
-                                        <div style={{
-                                            width: 4, height: 24,
-                                            borderRadius: 4,
-                                            backgroundColor: '#6366F1',
-                                            marginLeft: 8,
-                                        }} />
-                                    )}
-                                </ListItemButton>
-                            </ListItem>
-                        );
-                    })}
-                </List>
-            </Drawer>
+                                    >
+                                        <ListItemIcon sx={{ color: isActive ? '#6366F1' : '#C7C4D8', minWidth: 36 }}>
+                                            {icon}
+                                        </ListItemIcon>
+                                        <ListItemText
+                                            primary={text}
+                                            sx={{
+                                                '& .MuiTypography-root': {
+                                                    fontFamily: 'Poppins, sans-serif',
+                                                    fontWeight: isActive ? 600 : 400,
+                                                    fontSize: '0.85rem',
+                                                    color: isActive ? '#fff' : '#C7C4D8',
+                                                },
+                                            }}
+                                        />
+                                        {isActive && (
+                                            <div style={{
+                                                width: 4, height: 24,
+                                                borderRadius: 4,
+                                                backgroundColor: '#6366F1',
+                                                marginLeft: 8,
+                                            }} />
+                                        )}
+                                    </ListItemButton>
+                                </ListItem>
+                            );
+                        })}
+                    </List>
+                </Drawer>
+            )}
 
-            {/* Main content */}
+            {/* Main content — margin adjusts based on sidebar visibility */}
             <Box
                 component="main"
                 sx={{
@@ -157,9 +168,12 @@ export default function Sidebar({ children, open, setOpen }) {
                     minHeight: '100vh',
                     overflowY: 'auto',
                     padding: '0 24px',
-                    marginLeft: isMobile ? 0 : (open ? 0 : `-${drawerWidth}px`),
+                    // Only apply the drawer-offset margin during onboarding.
+                    // On dashboard pages the Drawer doesn't exist so margin is always 0.
+                    marginLeft: showSidebar
+                        ? (isMobile ? 0 : (open ? 0 : `-${drawerWidth}px`))
+                        : 0,
                     transition: 'margin 0.25s ease',
-                    // maxWidth: '1200px',
                 }}
             >
                 {children}

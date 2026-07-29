@@ -58,10 +58,9 @@ function MyLearning() {
     }
     ]
     return (
-        <div className="w-full p-10">
+        <div className="w-full max-w-7xl mx-auto p-4 md:p-10 pb-20">
             <div className=" ">
-                <h1 className="text-white text-4xl font-bold mb-4 ">
-
+                <h1 className="text-white text-2xl md:text-4xl font-bold mb-4 ">
                     My Learning
                 </h1>
                 <p className="text-gray-400 text-lg max-w-2xl leading-relaxed mb-8">
@@ -69,7 +68,7 @@ function MyLearning() {
             </div>
             <div>
                 <h2 className='text-xl mb-2'> <PlayCircleIcon className='mr-2' fontSize="large" />In Progress</h2>
-                <div className='flex gap-4 mb-4'>
+                <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-8'>
                     {learningCourses.map((course) => (
 
                         <Card className="h-full w-full px-4 text-start rounded-xl " key={course.id}>
@@ -87,10 +86,10 @@ function MyLearning() {
                     ))}
                 </div>
             </div>
-            <div className='flex gap-4 '>
-                <div className=''>
+            <div className='flex flex-col xl:flex-row gap-8 xl:gap-6 mt-8'>
+                <div className='flex-1'>
                     <h1 className="text-white text-2xl font-bold mb-4 ">Saved for Later</h1>
-                    <div className='flex  justify-start gap-4'>
+                    <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                         {courseSavedCategories.map((course) => (
                             <Card className="flex  gap-4 p-4 rounded-xl border border-gray-700 bg-[#1A1D24]" key={course.id} >
 
@@ -106,8 +105,9 @@ function MyLearning() {
 
                     </div>
                 </div>
-                <div className=''>
+                <div className='flex-1'>
                     <h1 className="text-white text-2xl font-bold mb-4 ">Completed</h1>
+                    <div className="flex flex-col gap-4">
                     {completedCategories.map((complete) => (
                         <Card className="   p-4 rounded-xl border border-gray-700 bg-[#1A1D24]" key={complete.id} >
                             <h3 className="text-white font-medium">{complete.course}</h3>
@@ -115,6 +115,7 @@ function MyLearning() {
 
                         </Card>
                     ))}
+                    </div>
                 </div>
 
             </div>

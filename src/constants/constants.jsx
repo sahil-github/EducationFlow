@@ -258,3 +258,64 @@ export const levels = [
     { id: 'Public speaking', title: 'Public Speaking', icon: <RecordVoiceOverIcon /> },
     { id: 'UI/UX Design', title: 'UI/UX Design', icon: <ColorLensIcon /> }
 ];
+export const courses = [
+    {
+        id: 1,
+        category: "DATA SCIENCE",
+        title: "Advanced Machine Learning with Python",
+        instructor: "Dr. Sarah Jenkins",
+        duration: "24h content",
+        modules: 12,
+        rating: 4.9,
+
+    },
+    {
+        id: 2,
+        category: "DESIGN",
+        title: "Design Thinking Foundations",
+        instructor: "Marcus Thorne",
+        duration: "15h content",
+        modules: 8,
+        rating: 4.8,
+
+    },
+    {
+        id: 3,
+        category: "BUSINESS",
+        title: "Strategic Project Management",
+        instructor: "Elena Rodriguez",
+        duration: "18h content",
+        modules: 10,
+        rating: 4.7,
+
+    },
+    {
+        id: 4,
+        category: "FINANCE",
+        title: "Blockchain & Future Markets",
+        instructor: "Jameson Blackwood",
+        duration: "30h content",
+        modules: 14,
+        rating: 4.9,
+
+    },
+    {
+        id: 5,
+        category: "DEVELOPMENT",
+        title: "Emotional Intelligence for Leaders",
+        instructor: "Dr. Linda Zhang",
+        duration: "10h content",
+        modules: 6,
+        rating: 4.6,
+
+    },
+    {
+        id: 6,
+        category: "ANALYTICS",
+        title: "Data-Driven Decision Making",
+        instructor: "Robert Chen",
+        duration: "20h content",
+        modules: 11,
+        rating: 4.8,
+    },
+];

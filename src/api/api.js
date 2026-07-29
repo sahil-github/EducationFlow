@@ -101,4 +101,11 @@ export const courseApi = {
     api.post('/api/courses', { title, instructor, duration }),
 };
 
-export default api;
+// Named exports for direct consumption in thunks — eliminates the need for the
+// authApi.js re-export shim.
+export const login = authApi.login;
+export const register = authApi.register;
+export const forgotPassword = authApi.forgotPassword;
+export const socialLogin = authApi.socialLogin;
+
+export default api;

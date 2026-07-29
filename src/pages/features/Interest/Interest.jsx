@@ -12,7 +12,7 @@ import {
     saveCurrentUser,
     getUsers,
     saveUsers,
-} from "../../../utils/store"
+} from "../../../utils/storage"
 
 
 function Interest() {

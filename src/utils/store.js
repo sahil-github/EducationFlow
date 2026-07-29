@@ -1,35 +1,5 @@
-export const getCurrentUser = () => {
-    const sessionUser = sessionStorage.getItem("current_user");
-    if (sessionUser) {
-        try { return JSON.parse(sessionUser); } catch(e) {}
-    }
-    const localUser = localStorage.getItem("user");
-    if (localUser) {
-        try { return JSON.parse(localUser); } catch(e) {}
-    }
-    return {};
-};
-
-export const saveCurrentUser = (user) => {
-    if (user) {
-        sessionStorage.setItem("current_user", JSON.stringify(user));
-        localStorage.setItem("user", JSON.stringify(user));
-        window.dispatchEvent(new Event("currentUserUpdate"));
-    }
-};
-
-export const clearCurrentUser = () => {
-    sessionStorage.removeItem("current_user");
-    localStorage.removeItem("current_user");
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    window.dispatchEvent(new Event("currentUserUpdate"));
-};
-
-export const getUsers = () => {
-    return JSON.parse(localStorage.getItem("users")) || [];
-};
-
-export const saveUsers = (users) => {
-    localStorage.setItem("users", JSON.stringify(users));
-};
+// DEPRECATED: This file has been renamed to storage.js to avoid confusion
+// with the Redux store (store/store.js).
+// All imports should be updated to use '../utils/storage' instead.
+// This shim exists only for backward compatibility; it will be removed.
+export * from './storage';

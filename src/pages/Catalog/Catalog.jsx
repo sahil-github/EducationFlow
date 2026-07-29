@@ -1,75 +1,15 @@
 import { Button } from "@mui/material";
 import Card from "../../components/Card";
 import { Star, AccessTime, KeyboardArrowLeft, KeyboardArrowRight } from '@mui/icons-material';
-
+import { courses } from "../../constants/constants";
 function Catalog() {
-    const courses = [
-        {
-            id: 1,
-            category: "DATA SCIENCE",
-            title: "Advanced Machine Learning with Python",
-            instructor: "Dr. Sarah Jenkins",
-            duration: "24h content",
-            modules: 12,
-            rating: 4.9,
 
-        },
-        {
-            id: 2,
-            category: "DESIGN",
-            title: "Design Thinking Foundations",
-            instructor: "Marcus Thorne",
-            duration: "15h content",
-            modules: 8,
-            rating: 4.8,
-
-        },
-        {
-            id: 3,
-            category: "BUSINESS",
-            title: "Strategic Project Management",
-            instructor: "Elena Rodriguez",
-            duration: "18h content",
-            modules: 10,
-            rating: 4.7,
-
-        },
-        {
-            id: 4,
-            category: "FINANCE",
-            title: "Blockchain & Future Markets",
-            instructor: "Jameson Blackwood",
-            duration: "30h content",
-            modules: 14,
-            rating: 4.9,
-
-        },
-        {
-            id: 5,
-            category: "DEVELOPMENT",
-            title: "Emotional Intelligence for Leaders",
-            instructor: "Dr. Linda Zhang",
-            duration: "10h content",
-            modules: 6,
-            rating: 4.6,
-
-        },
-        {
-            id: 6,
-            category: "ANALYTICS",
-            title: "Data-Driven Decision Making",
-            instructor: "Robert Chen",
-            duration: "20h content",
-            modules: 11,
-            rating: 4.8,
-        },
-    ];
 
     return (
-        <div className="w-full max-w-7xl mx-auto p-10 pb-20">
+        <div className="w-full max-w-7xl mx-auto p-4 md:p-10 pb-20">
             {/* Header Section */}
             <div className="mb-8">
-                <h1 className="text-white text-5xl font-bold mb-4">
+                <h1 className="text-white text-2xl md:text-4xl font-bold mb-4">
                     Course Catalog
                 </h1>
                 <p className="text-gray-400 text-lg max-w-2xl leading-relaxed">
@@ -78,10 +18,10 @@ function Catalog() {
             </div>
 
             {/* Filter Bar */}
-            <Card className="p-4 mb-8 bg-[#13151a]/80 border-white/5 flex items-center justify-between">
-                <div className="flex items-center gap-4">
+            <Card className="p-4 mb-8 bg-[#13151a]/80 border-white/5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 w-full md:w-auto">
                     <span className="text-gray-400 text-sm">Categories:</span>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                         <button className="px-4 py-1.5 rounded-full bg-blue-600 text-white text-sm font-medium transition-colors">All</button>
                         <button className="px-4 py-1.5 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 text-sm font-medium transition-colors cursor-pointer">Data Science</button>
                         <button className="px-4 py-1.5 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 text-sm font-medium transition-colors cursor-pointer">Design Thinking</button>
@@ -89,8 +29,8 @@ function Catalog() {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 w-full md:w-auto">
+                    <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
                         <span className="text-gray-400 text-sm">Difficulty:</span>
                         <select className="bg-transparent border border-white/20 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500 appearance-none cursor-pointer">
                             <option className="bg-[#1c1f28]">All Levels</option>
@@ -99,7 +39,7 @@ function Catalog() {
                             <option className="bg-[#1c1f28]">Advanced</option>
                         </select>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
                         <span className="text-gray-400 text-sm">Sort:</span>
                         <select className="bg-transparent border border-white/20 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500 appearance-none cursor-pointer">
                             <option className="bg-[#1c1f28]">Popularity</option>

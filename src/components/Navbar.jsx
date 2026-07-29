@@ -5,10 +5,11 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import MenuIcon from '@mui/icons-material/Menu';
 import LogoutIcon from '@mui/icons-material/Logout';
-import { IconButton, Box, Avatar, Menu, MenuItem, ListItemIcon, Divider, Typography } from '@mui/material';
-import { useDispatch } from 'react-redux';
+import CloseIcon from '@mui/icons-material/Close';
+import { IconButton, Box, Avatar, Menu, MenuItem, ListItemIcon, Divider, Typography, Drawer, List, ListItem, ListItemButton, ListItemText } from '@mui/material';
+import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../features/auth/authSlice';
-import { getCurrentUser, clearCurrentUser } from '../utils/store';
+import { getCurrentUser } from '../utils/storage';
 import { Search, NotificationsOutlined, SettingsOutlined, LogoutOutlined } from '@mui/icons-material';
 import { NavLink, useNavigate } from 'react-router-dom';
 
@@ -17,10 +18,12 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const [anchorEl, setAnchorEl] = useState(null);
+    const [mobileNavOpen, setMobileNavOpen] = useState(false);
     const [currentUser, setCurrentUser] = useState(() => getCurrentUser());
 
-
-
+    // Read auth state from Redux — the single source of truth.
+    const { token, user } = useSelector((state) => state.auth);
+    const showAppNav = !!(token && user?.onboardingCompleted);
 
     useEffect(() => {
         const handleUserUpdate = () => {
@@ -28,7 +31,7 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
         };
 
         window.addEventListener('currentUserUpdate', handleUserUpdate);
-        window.addEventListener('storage', handleUserUpdate); // Also listen to cross-tab updates
+        window.addEventListener('storage', handleUserUpdate); 
 
         return () => {
             window.removeEventListener('currentUserUpdate', handleUserUpdate);
@@ -48,9 +51,18 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
 
     const handleLogout = () => {
         dispatch(logout());
-        clearCurrentUser();
         handleProfileClose();
         navigate('/login');
+    };
+
+    // Depending on user state, the hamburger menu should open either the
+    // Onboarding Sidebar (via props) OR the Authenticated Mobile Nav (local state)
+    const handleHamburgerClick = () => {
+        if (showAppNav) {
+            setMobileNavOpen(true);
+        } else {
+            setSidebarOpen(true);
+        }
     };
 
     return (
@@ -59,7 +71,8 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '0 16px'
+                padding: '0 16px',
+                minHeight: '64px'
             }}>
                 {/* Left Side: Brand Logo, Name, and Collapsed Sidebar Chevron */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -73,7 +86,7 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                     }}>
                         EduFlow
                     </span>
-                    {!sidebarOpen && (
+                    {!sidebarOpen && !showAppNav && (
                         <IconButton
                             onClick={() => setSidebarOpen(true)}
                             sx={{ display: { xs: 'none', md: 'flex' }, color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#fff' } }}
@@ -82,76 +95,45 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                         </IconButton>
                     )}
                     {/*.................. Condition  if user login and onboarding proccess is completed.................  */}
-                    <div className="flex gap-6 text-sm text-gray-400 font-medium">
-                        <NavLink to='/' className={({ isActive }) =>
-                            isActive ? "text-white border-b-2 border-blue-500 pb-1" : "text-gray-600"}>Dashboard</NavLink>
-                        <NavLink to='/catalog' className={({ isActive }) =>
-                            isActive ? "text-white border-b-2 border-blue-500 pb-1" : "text-gray-600"}>Catalog</NavLink>
-                        <NavLink to='/my-learning' className={({ isActive }) =>
-                            isActive ? "text-white border-b-2 border-blue-500 pb-1" : "text-gray-600"}>My Learning</NavLink>
-                    </div>
+                    {showAppNav && (
+                        <div className="hidden md:flex gap-6 ml-10 text-sm text-gray-400 font-medium">
+                            <NavLink to='/dashboard' end className={({ isActive }) =>
+                                isActive ? "text-white border-b-2 border-blue-500 pb-1" : "text-gray-600"}>Dashboard</NavLink>
+                            <NavLink to='/catalog' end className={({ isActive }) =>
+                                isActive ? "text-white border-b-2 border-blue-500 pb-1" : "text-gray-600"}>Catalog</NavLink>
+                            <NavLink to='/my-learning' end className={({ isActive }) =>
+                                isActive ? "text-white border-b-2 border-blue-500 pb-1" : "text-gray-600"}>My Learning</NavLink>
+                        </div>
+                    )}
+                    {/* upto this */}
                 </div>
-                {/* {showDashboardUI && (
-                    <div className="flex gap-6 text-sm text-gray-400 font-medium">
-                        <NavLink
-                            to="/"
-                            className={({ isActive }) =>
-                                isActive
-                                    ? "text-white border-b-2 border-blue-500 pb-1"
-                                    : "text-gray-600"
-                            }
-                        >
-                            Dashboard
-                        </NavLink>
-
-                        <NavLink
-                            to="/catalog"
-                            className={({ isActive }) =>
-                                isActive
-                                    ? "text-white border-b-2 border-blue-500 pb-1"
-                                    : "text-gray-600"
-                            }
-                        >
-                            Catalog
-                        </NavLink>
-
-                        <NavLink
-                            to="/my-learning"
-                            className={({ isActive }) =>
-                                isActive
-                                    ? "text-white border-b-2 border-blue-500 pb-1"
-                                    : "text-gray-600"
-                            }
-                        >
-                            My Learning
-                        </NavLink>
-                    </div>
-                )} */}
 
                 {/* Right Side */}
-                <div className='cursor-pointer p-3'>
+                <div className='flex items-center gap-2 py-2'>
 
 
                     {/* Desktop: Notification + Profile Avatar */}
                     <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 2 }}>
                         {/*.................. Condition  if user login and onboarding proccess is completed.................  */}
-
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fontSize="small" />
-                            <input
-                                type="text"
-                                placeholder="Search courses..."
-                                className="bg-transparent border border-white/20 rounded-full py-2 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-blue-500 w-64 placeholder-gray-500"
-                            />
-                        </div>
-                        <button className="text-gray-400 hover:text-white">
-                            <NotificationsOutlined />
-                        </button>
-                        <button className="text-gray-400 hover:text-white">
-                            <SettingsOutlined />
-                        </button>
-
-                        {/* <NotificationsIcon sx={{ fontSize: 25, color: '#C7C4D8' }} /> */}
+                        {showAppNav && (
+                            <>
+                                <div className="relative hidden lg:block">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fontSize="small" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search courses..."
+                                        className="bg-transparent border border-white/20 rounded-full py-1.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-blue-500 w-48 xl:w-64 placeholder-gray-500"
+                                    />
+                                </div>
+                                <IconButton sx={{ color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#fff' } }}>
+                                    <NotificationsOutlined />
+                                </IconButton>
+                                <IconButton sx={{ color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#fff' } }}>
+                                    <SettingsOutlined />
+                                </IconButton>
+                            </>
+                        )}
+                        {/* upto this */}
 
                         {/* Profile Avatar Button */}
                         <Box
@@ -179,7 +161,6 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                             >
                                 {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : <PersonIcon sx={{ fontSize: 18 }} />}
                             </Avatar>
-
                         </Box>
                     </Box>
 
@@ -188,7 +169,7 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                         {/* Mobile profile icon */}
                         <IconButton
                             onClick={handleProfileClick}
-                            sx={{ color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#fff' } }}
+                            sx={{ color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#fff' }, p: 0.5 }}
                         >
                             <Avatar
                                 sx={{
@@ -203,8 +184,8 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                             </Avatar>
                         </IconButton>
                         <IconButton
-                            onClick={() => setSidebarOpen(true)}
-                            sx={{ color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#fff' } }}
+                            onClick={handleHamburgerClick}
+                            sx={{ color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#fff' }, p: 0.5 }}
                         >
                             <MenuIcon />
                         </IconButton>
@@ -260,12 +241,83 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                     <ListItemIcon sx={{ color: '#F87171', minWidth: 'auto' }}>
                         <LogoutIcon fontSize="small" /> Logout
                     </ListItemIcon>
-
                 </MenuItem>
             </Menu>
+
+            {/* Mobile Authenticated Navigation Drawer */}
+            <Drawer
+                anchor="top"
+                open={mobileNavOpen}
+                onClose={() => setMobileNavOpen(false)}
+                PaperProps={{
+                    sx: {
+                        backgroundColor: '#18181C',
+                        color: '#fff',
+                        borderBottom: '1px solid rgba(255,255,255,0.1)'
+                    }
+                }}
+            >
+                <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{
+                        fontFamily: 'Poppins, sans-serif',
+                        fontWeight: 700,
+                        fontSize: 17,
+                        color: '#6366F1',
+                        letterSpacing: '0.03em',
+                    }}>
+                        EduFlow Menu
+                    </span>
+                    <IconButton onClick={() => setMobileNavOpen(false)} sx={{ color: '#fff' }}>
+                        <CloseIcon />
+                    </IconButton>
+                </Box>
+                <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
+                <List sx={{ px: 2, py: 2 }}>
+                    <ListItem disablePadding>
+                        <ListItemButton 
+                            component={NavLink} 
+                            to="/dashboard" 
+                            onClick={() => setMobileNavOpen(false)}
+                            sx={{
+                                borderRadius: '8px',
+                                mb: 1,
+                                '&.active': { backgroundColor: 'rgba(99, 102, 241, 0.1)', color: '#6366F1' }
+                            }}
+                        >
+                            <ListItemText primary="Dashboard" primaryTypographyProps={{ fontFamily: 'Poppins', fontWeight: 500 }} />
+                        </ListItemButton>
+                    </ListItem>
+                    <ListItem disablePadding>
+                        <ListItemButton 
+                            component={NavLink} 
+                            to="/catalog" 
+                            onClick={() => setMobileNavOpen(false)}
+                            sx={{
+                                borderRadius: '8px',
+                                mb: 1,
+                                '&.active': { backgroundColor: 'rgba(99, 102, 241, 0.1)', color: '#6366F1' }
+                            }}
+                        >
+                            <ListItemText primary="Catalog" primaryTypographyProps={{ fontFamily: 'Poppins', fontWeight: 500 }} />
+                        </ListItemButton>
+                    </ListItem>
+                    <ListItem disablePadding>
+                        <ListItemButton 
+                            component={NavLink} 
+                            to="/my-learning" 
+                            onClick={() => setMobileNavOpen(false)}
+                            sx={{
+                                borderRadius: '8px',
+                                '&.active': { backgroundColor: 'rgba(99, 102, 241, 0.1)', color: '#6366F1' }
+                            }}
+                        >
+                            <ListItemText primary="My Learning" primaryTypographyProps={{ fontFamily: 'Poppins', fontWeight: 500 }} />
+                        </ListItemButton>
+                    </ListItem>
+                </List>
+            </Drawer>
         </nav>
     );
 }
 
 export default Navbar;
-
