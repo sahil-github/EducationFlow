@@ -28,10 +28,10 @@ export const Dashboard = () => {
     ];
 
     return (
-        <div className="w-full max-w-7xl mx-auto p-10 pb-20 grid grid-cols-12 gap-8">
+        <div className="w-full max-w-7xl mx-auto p-4 md:p-10 pb-20 grid grid-cols-1 lg:grid-cols-12 gap-8">
 
             {/* Left Column - Main Content */}
-            <div className="col-span-8 flex flex-col gap-12">
+            <div className="col-span-1 lg:col-span-8 flex flex-col gap-12">
 
                 {/* Welcome Section */}
                 <Card className="p-8 bg-gradient-to-br from-[#1c1f28]/80 to-[#1c1f28]/40 border-t-blue-500/20">
@@ -43,7 +43,7 @@ export const Dashboard = () => {
                         You're doing great! You completed 4 lessons this week. Keep the momentum going to finish <span className="text-white font-semibold">Project Management</span> by Friday.
                     </p>
 
-                    <div className="grid grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {aboutUser.map((item, index) => (
                             <div key={index} className="bg-[#13151a]/60 border border-white/5 rounded-2xl p-6 flex flex-col justify-between h-32">
                                 <div className="text-gray-400 text-xs font-semibold tracking-wider uppercase mb-2">{item.title}</div>
@@ -96,7 +96,7 @@ export const Dashboard = () => {
                 {/* Recommended for You */}
                 <div>
                     <h2 className="text-white text-2xl font-bold tracking-wide mb-6">Recommended for You</h2>
-                    <div className="grid grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         {recommendations.map((course, index) => (
                             <Card key={index} className="bg-[#1c1f28]/60 border-transparent hover:border-blue-500/50 transition-colors cursor-pointer flex p-5 items-center gap-6">
                                 <div className="w-20 h-20 rounded-xl bg-gradient-to-tr from-blue-900 to-indigo-800 flex items-center justify-center text-3xl shadow-inner border border-white/10 shrink-0">
@@ -124,7 +124,7 @@ export const Dashboard = () => {
             </div>
 
             {/* Right Column - Sidebar */}
-            <div className="col-span-4 flex flex-col gap-6">
+            <div className="col-span-1 lg:col-span-4 flex flex-col gap-8">
 
                 {/* Live Classes */}
                 <Card className="p-6 bg-[#1c1f28]/60">

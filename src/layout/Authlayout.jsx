@@ -4,7 +4,6 @@ import { Outlet } from 'react-router-dom';
 function Authlayout() {
     return (
         <>
-
             <Outlet />
         </>
     );

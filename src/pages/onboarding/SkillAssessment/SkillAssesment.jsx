@@ -10,7 +10,7 @@ import {
     saveCurrentUser,
     getUsers,
     saveUsers,
-} from "../../../utils/store";
+} from "../../../utils/storage";
 import { levels } from "../../../constants/constants";
 
 

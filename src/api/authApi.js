@@ -1,11 +1,7 @@
-// src/api/authApi.js
-import { authApi } from "./api";
-
-// Re-export individual auth functions for compatibility with existing thunks
-export const login = authApi.login;
-export const register = authApi.register;
-export const forgotPassword = authApi.forgotPassword;
-export const socialLogin = authApi.socialLogin;
-
-// Optional default export containing all functions (maintains previous default shape)
-export default { login, register, forgotPassword, socialLogin };
+// DEPRECATED: authApi.js was a thin re-export shim with no added value.
+// Import directly from './api' instead:
+//   import { login, register, forgotPassword, socialLogin } from '../api/api';
+//
+// This file is kept temporarily for backward compatibility and can be deleted
+// once all consumers have been updated.
+export { login, register, forgotPassword, socialLogin } from './api';

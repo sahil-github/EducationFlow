@@ -111,7 +111,7 @@ import {
     saveCurrentUser,
     getUsers,
     saveUsers,
-} from "../../utils/store";
+} from "../../utils/storage";
 
 export default function Review() {
     const navigate = useNavigate();
