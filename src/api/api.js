@@ -2,7 +2,7 @@ import axios from "axios";
 import { clearCurrentUser } from "../utils/store";
 
 const api = axios.create({
-  baseURL: import.meta.env?.VITE_API_BASE_URL || "http://localhost:5000",
+  baseURL: import.meta.env?.VITE_API_BASE_URL,
   headers: {
     "Content-Type": "application/json"
   }
@@ -11,11 +11,11 @@ const api = axios.create({
 
 // Request Interceptor: Attach token except for auth endpoints
 api.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 // Response Interceptor: Handle 401 unauthorized errors
@@ -44,7 +44,7 @@ export const authApi = {
       email = emailArg || '';
       password = passwordArg || '';
     }
-    return api.post('/api/auth/register', { name, fullName: name, email, password });
+    return api.post('/api/auth/register', { name, email, password });
   },
 
   login: (credentials, passwordArg, rememberMeArg = false) => {
@@ -58,29 +58,15 @@ export const authApi = {
       password = passwordArg || '';
       rememberMe = rememberMeArg ?? false;
     }
-    return api.post('/api/auth/login', { email, password, rememberMe });
+    return api.post('/api/auth/login', { email, password });
+
   },
 
   forgotPassword: (data) => {
     const email = typeof data === 'object' && data !== null ? data.email : data;
     return api.post('/api/auth/forgot-password', { email });
   },
-  // forgotPassword: (data) => {
-  //   const email = typeof data === 'object' && data !== null ? data.email : data;
-  //   return api.post('/api/auth/forgot-password', { email });
-  // },
 
-  // socialLogin: (data, tokenArg) => {
-  //   let provider, providerToken;
-  //   if (typeof data === 'object' && data !== null) {
-  //     provider = data.provider || '';
-  //     providerToken = data.providerToken || '';
-  //   } else {
-  //     provider = data || '';
-  //     providerToken = tokenArg || '';
-  //   }
-  //   return api.post('/api/auth/social-login', { provider, providerToken });
-  // },
   socialLogin: (data, tokenArg) => {
     let provider, providerToken;
     if (typeof data === 'object' && data !== null) {
@@ -94,12 +80,7 @@ export const authApi = {
   },
 };
 
-export const courseApi = {
-  getAll: () => api.get('/api/courses'),
-  getById: (id) => api.get(`/api/courses/${id}`),
-  create: (title, instructor, duration) =>
-    api.post('/api/courses', { title, instructor, duration }),
-};
+
 
 // Named exports for direct consumption in thunks — eliminates the need for the
 // authApi.js re-export shim.
@@ -108,4 +89,4 @@ export const register = authApi.register;
 export const forgotPassword = authApi.forgotPassword;
 export const socialLogin = authApi.socialLogin;
 
-export default api;
+export default api;
