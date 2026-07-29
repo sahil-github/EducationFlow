@@ -10,9 +10,10 @@ import Interests from '../pages/features/Interest/Interest'
 import SkillAssessment from '../pages/features/SkillAssessment/SkillAssesment'
 import Review from '../pages/features/Review'
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import Mainlayout from '../layout/Mainlayout';
 import Authlayout from '../layout/Authlayout';
-import { getCurrentUser } from '../utils/store';
+import { getCurrentUser } from '../utils/storage';
 
 export const ROUTES = {
     LOGIN: '/login',
@@ -26,52 +27,77 @@ export const ROUTES = {
     FORGOT_PASSWORD: '/forgot-password',
 };
 
-const isFullyOnboarded = () => {
-    const user = getCurrentUser();
-    return !!(user && user.onboardingCompleted);
-};
+// ---------------------------------------------------------------------------
+// Route Guards — all use Redux (state.auth) as the single source of truth.
+// authSlice initializes from localStorage on app startup, so sessions survive
+// page refreshes without guards ever reading localStorage directly.
+// ---------------------------------------------------------------------------
 
-const isAuthenticated = () => {
-    const token = localStorage.getItem("token");
-    const session = getCurrentUser();
-    return !!(token && session && session.email);
-};
-
+/**
+ * Prevents already-authenticated users from accessing public auth pages.
+ * Redirects to /dashboard (onboarded) or /personal-info (not onboarded).
+ */
 const PublicOnlyGuard = () => {
-    if (isAuthenticated()) {
-        if (isFullyOnboarded()) {
-            return <Navigate to="/dashboard" replace />;
-        } else {
-            return <Navigate to="/personal-info" replace />;
-        }
+    const { token, user } = useSelector((state) => state.auth);
+    const authenticated = !!(token && user?.email);
+
+    if (authenticated) {
+        return user?.onboardingCompleted
+            ? <Navigate to="/dashboard" replace />
+            : <Navigate to="/personal-info" replace />;
     }
     return <Outlet />;
 };
 
+/**
+ * Blocks unauthenticated users from accessing any app route.
+ */
 const RequireAuth = () => {
-    if (!isAuthenticated()) {
+    const { token, user } = useSelector((state) => state.auth);
+
+    if (!token || !user?.email) {
         return <Navigate to="/login" replace />;
     }
     return <Outlet />;
 };
 
+/**
+ * Blocks users who haven't finished onboarding from accessing dashboard routes.
+ */
 const RequireCompletedOnboarding = () => {
-    if (!isFullyOnboarded()) {
+    const { user } = useSelector((state) => state.auth);
+
+    if (!user?.onboardingCompleted) {
         return <Navigate to="/personal-info" replace />;
     }
     return <Outlet />;
 };
 
+/**
+ * Guards the onboarding step routes.
+ *
+ * - Fully-onboarded users are redirected to /dashboard.
+ * - Step prerequisites are checked via getCurrentUser() because each step
+ *   saves data to localStorage via saveCurrentUser() without yet dispatching
+ *   updateUser() to Redux. This is the only remaining localStorage read in
+ *   the guard layer and should be removed once onboarding steps dispatch
+ *   updateUser() after saving their data.
+ *
+ * TODO: dispatch updateUser() from each onboarding step, then replace
+ *       getCurrentUser() below with the Redux `user` object.
+ */
 const OnboardingGuard = () => {
+    const { user } = useSelector((state) => state.auth);
     const location = useLocation();
-    const currentUser = getCurrentUser();
 
-    if (isFullyOnboarded()) {
+    if (user?.onboardingCompleted) {
         return <Navigate to="/dashboard" replace />;
     }
 
+    // Step-prerequisite checks — read from storage since onboarding data is
+    // written there but not yet synced back into Redux state.
+    const currentUser = getCurrentUser();
     const path = location.pathname;
-    console.log(location.pathname);
 
     if (path === '/learning-goals' && (!currentUser.name || !currentUser.location)) {
         return <Navigate to="/personal-info" replace />;

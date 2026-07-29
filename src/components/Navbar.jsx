@@ -6,9 +6,9 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import MenuIcon from '@mui/icons-material/Menu';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { IconButton, Box, Avatar, Menu, MenuItem, ListItemIcon, Divider, Typography } from '@mui/material';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../features/auth/authSlice';
-import { getCurrentUser, clearCurrentUser } from '../utils/store';
+import { getCurrentUser } from '../utils/storage';
 import { Search, NotificationsOutlined, SettingsOutlined, LogoutOutlined } from '@mui/icons-material';
 import { NavLink, useNavigate } from 'react-router-dom';
 
@@ -18,6 +18,15 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
     const dispatch = useDispatch();
     const [anchorEl, setAnchorEl] = useState(null);
     const [currentUser, setCurrentUser] = useState(() => getCurrentUser());
+
+    // Read auth state from Redux — the single source of truth.
+    // showAppNav is true only when the user is authenticated AND has
+    // completed onboarding. It is false during:
+    //   - Onboarding steps (/personal-info, /learning-goals, etc.)
+    //   - Any future onboarding/auth route added to the project.
+    // Auth pages (/login, /signup) don't render Navbar at all (Authlayout).
+    const { token, user } = useSelector((state) => state.auth);
+    const showAppNav = !!(token && user?.onboardingCompleted);
 
 
 
@@ -48,7 +57,6 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
 
     const handleLogout = () => {
         dispatch(logout());
-        clearCurrentUser();
         handleProfileClose();
         navigate('/login');
     };
@@ -82,51 +90,19 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                         </IconButton>
                     )}
                     {/*.................. Condition  if user login and onboarding proccess is completed.................  */}
-                    <div className="flex gap-6 text-sm text-gray-400 font-medium">
-                        <NavLink to='/' className={({ isActive }) =>
-                            isActive ? "text-white border-b-2 border-blue-500 pb-1" : "text-gray-600"}>Dashboard</NavLink>
-                        <NavLink to='/catalog' className={({ isActive }) =>
-                            isActive ? "text-white border-b-2 border-blue-500 pb-1" : "text-gray-600"}>Catalog</NavLink>
-                        <NavLink to='/my-learning' className={({ isActive }) =>
-                            isActive ? "text-white border-b-2 border-blue-500 pb-1" : "text-gray-600"}>My Learning</NavLink>
-                    </div>
+                    {showAppNav && (
+                        <div className="hidden md:flex gap-6 ml-10 text-sm text-gray-400 font-medium">
+                            {/* `end` prop ensures each item is active only on its exact path, not on child routes */}
+                            <NavLink to='/dashboard' end className={({ isActive }) =>
+                                isActive ? "text-white border-b-2 border-blue-500 pb-1" : "text-gray-600"}>Dashboard</NavLink>
+                            <NavLink to='/catalog' end className={({ isActive }) =>
+                                isActive ? "text-white border-b-2 border-blue-500 pb-1" : "text-gray-600"}>Catalog</NavLink>
+                            <NavLink to='/my-learning' end className={({ isActive }) =>
+                                isActive ? "text-white border-b-2 border-blue-500 pb-1" : "text-gray-600"}>My Learning</NavLink>
+                        </div>
+                    )}
+                    {/* upto this */}
                 </div>
-                {/* {showDashboardUI && (
-                    <div className="flex gap-6 text-sm text-gray-400 font-medium">
-                        <NavLink
-                            to="/"
-                            className={({ isActive }) =>
-                                isActive
-                                    ? "text-white border-b-2 border-blue-500 pb-1"
-                                    : "text-gray-600"
-                            }
-                        >
-                            Dashboard
-                        </NavLink>
-
-                        <NavLink
-                            to="/catalog"
-                            className={({ isActive }) =>
-                                isActive
-                                    ? "text-white border-b-2 border-blue-500 pb-1"
-                                    : "text-gray-600"
-                            }
-                        >
-                            Catalog
-                        </NavLink>
-
-                        <NavLink
-                            to="/my-learning"
-                            className={({ isActive }) =>
-                                isActive
-                                    ? "text-white border-b-2 border-blue-500 pb-1"
-                                    : "text-gray-600"
-                            }
-                        >
-                            My Learning
-                        </NavLink>
-                    </div>
-                )} */}
 
                 {/* Right Side */}
                 <div className='cursor-pointer p-3'>
@@ -135,23 +111,25 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                     {/* Desktop: Notification + Profile Avatar */}
                     <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 2 }}>
                         {/*.................. Condition  if user login and onboarding proccess is completed.................  */}
-
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fontSize="small" />
-                            <input
-                                type="text"
-                                placeholder="Search courses..."
-                                className="bg-transparent border border-white/20 rounded-full py-2 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-blue-500 w-64 placeholder-gray-500"
-                            />
-                        </div>
-                        <button className="text-gray-400 hover:text-white">
-                            <NotificationsOutlined />
-                        </button>
-                        <button className="text-gray-400 hover:text-white">
-                            <SettingsOutlined />
-                        </button>
-
-                        {/* <NotificationsIcon sx={{ fontSize: 25, color: '#C7C4D8' }} /> */}
+                        {showAppNav && (
+                            <>
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fontSize="small" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search courses..."
+                                        className="bg-transparent border border-white/20 rounded-full py-2 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-blue-500 w-64 placeholder-gray-500"
+                                    />
+                                </div>
+                                <button className="text-gray-400 hover:text-white">
+                                    <NotificationsOutlined />
+                                </button>
+                                <button className="text-gray-400 hover:text-white">
+                                    <SettingsOutlined />
+                                </button>
+                            </>
+                        )}
+                        {/* upto this */}
 
                         {/* Profile Avatar Button */}
                         <Box

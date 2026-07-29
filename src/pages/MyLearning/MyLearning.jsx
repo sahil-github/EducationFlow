@@ -61,7 +61,6 @@ function MyLearning() {
         <div className="w-full p-10">
             <div className=" ">
                 <h1 className="text-white text-4xl font-bold mb-4 ">
-
                     My Learning
                 </h1>
                 <p className="text-gray-400 text-lg max-w-2xl leading-relaxed mb-8">
