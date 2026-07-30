@@ -11,6 +11,7 @@ import ListItemText from '@mui/material/ListItemText';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import PersonIcon from '@mui/icons-material/Person';
 import TrackChangesIcon from '@mui/icons-material/TrackChanges';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
@@ -19,13 +20,12 @@ import CommentIcon from '@mui/icons-material/Comment';
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Logo from '../assets/logo/Logo.png';
-import { ChevronRight } from 'lucide-react';
 const drawerWidth = 240;
 
 const navItems = [
     { text: 'Personal Info', icon: <PersonIcon />, route: '/personal-info' },
-    { text: 'Learning Goals', icon: <TrackChangesIcon />, route: '/learning-goals' },
     { text: 'Interests', icon: <LightbulbIcon />, route: '/interests' },
+    { text: 'Learning Goals', icon: <TrackChangesIcon />, route: '/learning-goals' },
     { text: 'Skill Assessment', icon: <StarBorderRoundedIcon />, route: '/skill-assessment' },
     { text: 'Review', icon: <CommentIcon />, route: '/review' },
 ];
@@ -91,7 +91,7 @@ export default function Sidebar({ children, open, setOpen }) {
                                 size="small"
                                 sx={{ color: '#fff' }}
                             >
-                                <ChevronRight />
+                                <ChevronRightIcon />
                             </IconButton> :
 
                                 <IconButton

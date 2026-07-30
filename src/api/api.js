@@ -1,92 +1,93 @@
 import axios from "axios";
-import { clearCurrentUser } from "../utils/store";
+import { clearCurrentUser } from "../utils/storage"; // canonical path (not the deprecated utils/store shim)
+
+// ---------------------------------------------------------------------------
+// Axios instance — single shared client for the entire app.
+// All API calls MUST use this instance so interceptors apply everywhere.
+// ---------------------------------------------------------------------------
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 const api = axios.create({
-  baseURL: import.meta.env?.VITE_API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json"
-  }
+    baseURL: API_BASE_URL,
+    timeout: 10000, // 10 seconds — prevents indefinite UI freezes on slow/dead servers
+    headers: {
+        "Content-Type": "application/json",
+    },
 });
 
-
-// Request Interceptor: Attach token except for auth endpoints
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-// Response Interceptor: Handle 401 unauthorized errors
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      clearCurrentUser();
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
-      }
-    }
-    return Promise.reject(error);
-  }
+// ---------------------------------------------------------------------------
+// Request Interceptor — attach JWT Bearer token to every outgoing request.
+// Token is read from localStorage (kept in sync by authSlice on login/logout).
+// ---------------------------------------------------------------------------
+api.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem("token");
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
 );
 
+// ---------------------------------------------------------------------------
+// Response Interceptor
+//   401 → clear session & redirect to /login (hard redirect is intentional
+//         here because the interceptor runs outside React; a full reload also
+//         clears any stale in-memory state).
+//   Other errors → pass through so individual thunks can handle them.
+// ---------------------------------------------------------------------------
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            clearCurrentUser();
+            if (window.location.pathname !== "/login") {
+                window.location.href = "/login";
+            }
+        }
+        return Promise.reject(error);
+    }
+);
+
+// ---------------------------------------------------------------------------
+// Auth API — all endpoints relative to API_BASE_URL
+// ---------------------------------------------------------------------------
 export const authApi = {
-  register: (data, emailArg, passwordArg) => {
-    let name, email, password;
-    if (typeof data === 'object' && data !== null) {
-      name = data.name || data.fullName || '';
-      email = data.email || '';
-      password = data.password || '';
-    } else {
-      name = data || '';
-      email = emailArg || '';
-      password = passwordArg || '';
-    }
-    return api.post('/api/auth/register', { name, email, password });
-  },
+    login: (credentials) =>
+        api.post("/api/auth/login", {
+            email: credentials.email,
+            password: credentials.password,
+        }),
 
-  login: (credentials, passwordArg, rememberMeArg = false) => {
-    let email, password, rememberMe;
-    if (typeof credentials === 'object' && credentials !== null) {
-      email = credentials.email || '';
-      password = credentials.password || '';
-      rememberMe = credentials.rememberMe ?? false;
-    } else {
-      email = credentials || '';
-      password = passwordArg || '';
-      rememberMe = rememberMeArg ?? false;
-    }
-    return api.post('/api/auth/login', { email, password });
+    register: (data) =>
+        api.post("/api/auth/register", {
+            name: data.name || data.fullName || "",
+            email: data.email,
+            password: data.password,
+        }),
 
-  },
+    forgotPassword: (email) =>
+        api.post("/api/auth/forgot-password", { email }),
 
-  forgotPassword: (data) => {
-    const email = typeof data === 'object' && data !== null ? data.email : data;
-    return api.post('/api/auth/forgot-password', { email });
-  },
-
-  socialLogin: (data, tokenArg) => {
-    let provider, providerToken;
-    if (typeof data === 'object' && data !== null) {
-      provider = data.provider || '';
-      providerToken = data.providerToken || '';
-    } else {
-      provider = data || '';
-      providerToken = tokenArg || '';
-    }
-    return api.post('/api/auth/social-login', { provider, providerToken });
-  },
+    socialLogin: (data) =>
+        api.post("/api/auth/social-login", {
+            provider: data.provider,
+            providerToken: data.providerToken,
+        }),
 };
 
+// ---------------------------------------------------------------------------
+// Course API
+// ---------------------------------------------------------------------------
+// export const courseApi = {
+//     getAll: () => api.get("/api/courses"),
+//     getById: (id) => api.get(`/api/courses/${id}`),
+// };
 
-
-// Named exports for direct consumption in thunks — eliminates the need for the
-// authApi.js re-export shim.
-export const login = authApi.login;
-export const register = authApi.register;
-export const forgotPassword = authApi.forgotPassword;
-export const socialLogin = authApi.socialLogin;
+// ---------------------------------------------------------------------------
+// Named exports — imported directly by authThunks.js
+// ---------------------------------------------------------------------------
+export const { login, register, forgotPassword, socialLogin } = authApi;
 
 export default api;

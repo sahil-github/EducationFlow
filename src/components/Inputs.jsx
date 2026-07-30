@@ -1,5 +1,5 @@
 import React, { forwardRef, useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 const Input = forwardRef(
     ({ className = "", error, leftIcon, label, rightElement, type, ...props }, ref) => {
@@ -61,7 +61,7 @@ const Input = forwardRef(
                             className="absolute right-4 flex items-center justify-center text-white/40 hover:text-white/70 transition-colors cursor-pointer"
                             tabIndex={-1}
                         >
-                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            {showPassword ? <VisibilityOff sx={{ fontSize: 18 }} /> : <Visibility sx={{ fontSize: 18 }} />}
                         </button>
                     )}
                 </div>

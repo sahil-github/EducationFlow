@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import Card from '../../../components/Card';
 import Button from '../../../components/Button';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -7,16 +8,18 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import Input from '../../../components/Inputs';
 import { InterestData } from '../../../constants/constants';
 import { toast } from 'react-toastify';
+import { updateUser } from '../../../features/auth/authSlice';
 import {
     getCurrentUser,
     saveCurrentUser,
     getUsers,
     saveUsers,
-} from "../../../utils/storage"
+} from "../../../utils/storage";
 
 
 function Interest() {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const [selectedInterests, setSelectedInterests] = useState([]);
 
     const toggleInterest = (interest) => {
@@ -53,7 +56,9 @@ function Interest() {
             saveUsers(users);
         }
 
-        navigate("/skill-assessment");
+        dispatch(updateUser({ interests: interestsToSave }));
+
+        navigate("/learning-goals");
     };
 
 
@@ -128,7 +133,7 @@ function Interest() {
                 <div className="w-full flex items-center justify-between mt-2 p-1 ">
                     <Button
                         variant="ghost"
-                        onClick={() => navigate('/learning-goals')}
+                        onClick={() => navigate('/personal-info')}
                         className="flex items-center gap-1.5 text-[#A1A1AA] hover:text-white transition-colors font-[Manrope] text-sm cursor-pointer"
                     >
                         <ArrowBackIcon fontSize="small" />

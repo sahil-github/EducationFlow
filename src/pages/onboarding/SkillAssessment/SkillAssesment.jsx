@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import Card from '../../../components/Card';
 import Button from '../../../components/Button';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import Slider from '@mui/material/Slider';
+import { updateUser } from "../../../features/auth/authSlice";
 import {
     getCurrentUser,
     saveCurrentUser,
@@ -16,6 +18,7 @@ import { levels } from "../../../constants/constants";
 
 function SkillAssesment() {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const [skills, setSkills] = useState(() => {
         const currentUser = getCurrentUser();
         if (Array.isArray(currentUser.skills)) {
@@ -46,6 +49,8 @@ function SkillAssesment() {
             users[userIndex] = { ...users[userIndex], skills: skills };
             saveUsers(users);
         }
+
+        dispatch(updateUser({ skills }));
         navigate('/review');
     };
 
@@ -107,7 +112,7 @@ function SkillAssesment() {
                 <div className="w-full flex items-center justify-between mt-2 p-1">
                     <Button
                         type="button"
-                        onClick={() => navigate('/interests')}
+                        onClick={() => navigate('/learning-goals')}
                         className="flex items-center gap-1.5 text-[#A1A1AA] hover:text-white transition-colors font-[Manrope] text-sm cursor-pointer"
                         variant="ghost"
                     >

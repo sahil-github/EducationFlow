@@ -94,21 +94,19 @@ const OnboardingGuard = () => {
         return <Navigate to="/dashboard" replace />;
     }
 
-    // Step-prerequisite checks — read from storage since onboarding data is
-    // written there but not yet synced back into Redux state.
-    const currentUser = getCurrentUser();
+    const currentUser = { ...getCurrentUser(), ...user };
     const path = location.pathname;
 
-    if (path === '/learning-goals' && (!currentUser.name || !currentUser.location)) {
+    if (path === '/interests' && (!currentUser.name || !currentUser.location)) {
         return <Navigate to="/personal-info" replace />;
     }
-    if (path === '/interests' && (!currentUser.learningGoal || (Array.isArray(currentUser.learningGoal) && currentUser.learningGoal.length === 0))) {
-        return <Navigate to="/learning-goals" replace />;
-    }
-    if (path === '/skill-assessment' && (!currentUser.interests || currentUser.interests.length === 0)) {
+    if (path === '/learning-goals' && (!currentUser.interests || currentUser.interests.length === 0)) {
         return <Navigate to="/interests" replace />;
     }
-    if (path === '/review' && !currentUser.skills) {
+    if (path === '/skill-assessment' && (!currentUser.learningGoal || (Array.isArray(currentUser.learningGoal) && currentUser.learningGoal.length === 0))) {
+        return <Navigate to="/learning-goals" replace />;
+    }
+    if (path === '/review' && (!currentUser.skills || currentUser.skills.length === 0)) {
         return <Navigate to="/skill-assessment" replace />;
     }
 
@@ -140,8 +138,8 @@ function AppRoutes() {
 
                             <Route element={<OnboardingGuard />}>
                                 <Route path="/personal-info" element={<PersonalInfo />} />
-                                <Route path="/learning-goals" element={<LearningGoals />} />
                                 <Route path="/interests" element={<Interests />} />
+                                <Route path="/learning-goals" element={<LearningGoals />} />
                                 <Route path="/skill-assessment" element={<SkillAssessment />} />
                                 <Route path="/review" element={<Review />} />
                             </Route>
