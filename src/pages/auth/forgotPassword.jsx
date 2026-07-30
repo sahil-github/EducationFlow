@@ -8,15 +8,15 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useDispatch, useSelector } from 'react-redux';
 import { sendPasswordReset } from '../../features/auth/authThunks';
-import { clearError } from '../../features/auth/authSlice';
+import { clearResetError } from '../../features/auth/authSlice';
 
 function ForgotPassword() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const { loading } = useSelector((state) => state.auth);
+    const { resetLoading } = useSelector((state) => state.auth);
 
     React.useEffect(() => {
-        dispatch(clearError());
+        dispatch(clearResetError());
     }, [dispatch]);
 
     const formik = useFormik({
@@ -95,10 +95,10 @@ function ForgotPassword() {
                             <Button
                                 type="submit"
                                 variant="primary"
-                                disabled={loading}
+                                disabled={resetLoading}
                                 className="w-full h-11 bg-[#6366F1] hover:bg-[#4F46E5] text-white font-bold rounded-2xl tracking-wide transition-all duration-200 shadow-lg shadow-[#6366F1]/20 font-[Poppins] !py-2 text-xs"
                             >
-                                {loading ? "Sending..." : "Send Reset Link"}
+                                {resetLoading ? "Sending..." : "Send Reset Link"}
                             </Button>
                         </form>
                     </div>

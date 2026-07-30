@@ -1,7 +1,11 @@
-// DEPRECATED: authApi.js was a thin re-export shim with no added value.
-// Import directly from './api' instead:
-//   import { login, register, forgotPassword, socialLogin } from '../api/api';
+// src/api/authApi.js
+// ---------------------------------------------------------------------------
+// Backward-compatibility re-export shim.
+// All auth API logic now lives in src/api/api.js.
+// This file exists solely so any existing import of authApi or its named
+// functions from this path continues to work without changes.
 //
-// This file is kept temporarily for backward compatibility and can be deleted
-// once all consumers have been updated.
-export { login, register, forgotPassword, socialLogin } from './api';
+// TODO: migrate all consumers to import directly from '../api/api' and then
+//       delete this file.
+// ---------------------------------------------------------------------------
+export { authApi, login, register, forgotPassword, socialLogin } from "./api";

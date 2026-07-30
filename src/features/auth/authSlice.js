@@ -1,36 +1,68 @@
-import { createSlice } from '@reduxjs/toolkit';
-import { loginUser, registerUser, socialLoginUser } from './authThunks';
-import { clearCurrentUser } from '../../utils/storage';
+import { createSlice } from "@reduxjs/toolkit";
+import {
+    loginUser,
+    registerUser,
+    socialLoginUser,
+    sendPasswordReset,
+} from "./authThunks";
+import { clearCurrentUser } from "../../utils/storage";
+
+// ---------------------------------------------------------------------------
+// Safe localStorage read — a tampered/malformed value must not crash the app.
+// ---------------------------------------------------------------------------
+const safeParseJSON = (key) => {
+    try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : null;
+    } catch {
+        return null;
+    }
+};
 
 const initialState = {
-    user: localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null,
-    token: localStorage.getItem('token') || null,
+    user: safeParseJSON("user"),
+    token: localStorage.getItem("token") || null,
     loading: false,
     error: null,
+    // Separate loading state for the forgot-password flow so it doesn't
+    // conflict with the main auth loading spinner.
+    resetLoading: false,
+    resetError: null,
 };
 
 const authSlice = createSlice({
-    name: 'auth',
+    name: "auth",
     initialState,
     reducers: {
         logout: (state) => {
             state.user = null;
             state.token = null;
             state.error = null;
-            clearCurrentUser();  // single place for all storage cleanup
+            state.resetError = null;
+            clearCurrentUser(); // clears localStorage token + user keys
         },
         clearError: (state) => {
             state.error = null;
         },
-        // Allows onboarding steps (and other consumers) to push partial user
-        // updates into Redux without a full login round-trip.
+        clearResetError: (state) => {
+            state.resetError = null;
+        },
+        /**
+         * Allows onboarding steps to push partial user updates into Redux
+         * without a full login round-trip.
+         * Also keeps localStorage in sync so page refreshes don't lose the
+         * updated user object.
+         */
         updateUser: (state, action) => {
             state.user = { ...state.user, ...action.payload };
+            // Sync to localStorage so the authSlice initialState picks it up
+            // on a page reload.
+            localStorage.setItem("user", JSON.stringify(state.user));
         },
     },
     extraReducers: (builder) => {
         builder
-            // Login User
+            // ── loginUser ─────────────────────────────────────────────────
             .addCase(loginUser.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -45,8 +77,7 @@ const authSlice = createSlice({
                 state.error = action.payload;
             })
 
-            // Register User — previously only set loading; now correctly
-            // updates Redux so showAppNav is true immediately after signup.
+            // ── registerUser ───────────────────────────────────────────────
             .addCase(registerUser.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -61,7 +92,7 @@ const authSlice = createSlice({
                 state.error = action.payload;
             })
 
-            // Social Login
+            // ── socialLoginUser ────────────────────────────────────────────
             .addCase(socialLoginUser.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -74,9 +105,23 @@ const authSlice = createSlice({
             .addCase(socialLoginUser.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
+            })
+
+            // ── sendPasswordReset ──────────────────────────────────────────
+            .addCase(sendPasswordReset.pending, (state) => {
+                state.resetLoading = true;
+                state.resetError = null;
+            })
+            .addCase(sendPasswordReset.fulfilled, (state) => {
+                state.resetLoading = false;
+            })
+            .addCase(sendPasswordReset.rejected, (state, action) => {
+                state.resetLoading = false;
+                state.resetError = action.payload;
             });
-    }
+    },
 });
 
-export const { logout, clearError, updateUser } = authSlice.actions;
+export const { logout, clearError, clearResetError, updateUser } =
+    authSlice.actions;
 export default authSlice.reducer;
