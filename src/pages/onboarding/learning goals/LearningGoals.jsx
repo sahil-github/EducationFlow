@@ -1,23 +1,26 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import Card from '../../../components/Card';
 import Button from '../../../components/Button';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { toast } from 'react-toastify';
 import { validateLearningGoals } from "./validation";
+import { updateUser } from "../../../features/auth/authSlice";
 import {
     getCurrentUser,
     saveCurrentUser,
     getUsers,
     saveUsers,
-} from "../../../utils/storage"
+} from "../../../utils/storage";
 import SelectField from "../../../components/SelectField";
 import { FIELDS } from "../../../constants/constants";
 
 export default function LearningGoals() {
 
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const [learningGoal, setLearningGoal] = useState(() => {
         const currentUser = getCurrentUser();
         return Array.isArray(currentUser.learningGoal) ? currentUser.learningGoal : [];
@@ -67,7 +70,9 @@ export default function LearningGoals() {
             saveUsers(users);
         }
 
-        navigate("/interests");
+        dispatch(updateUser({ learningGoal }));
+
+        navigate("/skill-assessment");
     };
     return (
         <div className="flex justify-center items-center w-full min-h-screen px-4 sm:px-6 py-6 sm:py-6">
@@ -106,7 +111,7 @@ export default function LearningGoals() {
                 <div className="w-full flex items-center justify-between mt-2 p-1">
                     <Button
                         variant="ghost"
-                        onClick={() => navigate('/personal-info')}
+                        onClick={() => navigate('/interests')}
                         className="flex items-center gap-1.5 text-[#A1A1AA] hover:text-white transition-colors font-[Manrope] text-sm cursor-pointer"
                     >
                         <ArrowBackIcon fontSize="small" />

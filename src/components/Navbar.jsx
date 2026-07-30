@@ -9,7 +9,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { IconButton, Box, Avatar, Menu, MenuItem, ListItemIcon, Divider, Typography, Drawer, List, ListItem, ListItemButton, ListItemText } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../features/auth/authSlice';
-import { getCurrentUser } from '../utils/storage';
+import { getCurrentUser, clearCurrentUser } from '../utils/storage';
 import { Search, NotificationsOutlined, SettingsOutlined, LogoutOutlined } from '@mui/icons-material';
 import { NavLink, useNavigate } from 'react-router-dom';
 
@@ -50,6 +50,7 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
     };
 
     const handleLogout = () => {
+        clearCurrentUser();
         dispatch(logout());
         handleProfileClose();
         navigate('/login');

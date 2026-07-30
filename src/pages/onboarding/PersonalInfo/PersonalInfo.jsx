@@ -6,10 +6,12 @@ import AddAPhotoOutlinedIcon from '@mui/icons-material/AddAPhotoOutlined';
 import EditIcon from '@mui/icons-material/Edit';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import SampleModal from '../../../components/SampleModal';
 import { toast } from 'react-toastify';
 import LockIcon from '@mui/icons-material/Lock';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import { updateUser } from '../../../features/auth/authSlice';
 import {
     getCurrentUser,
     saveCurrentUser,
@@ -21,6 +23,7 @@ import { locations } from '../../../constants/constants';
 
 function PersonalInfo() {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const [isLoading, setIsLoading] = useState(false);
     const currentUser = getCurrentUser();
     const [formData, setFormData] = useState({
@@ -58,11 +61,14 @@ function PersonalInfo() {
             saveUsers(users);
         }
 
+        // Sync Redux state
+        dispatch(updateUser(editableData));
+
         // Dispatch event so Navbar immediately updates its name display
         window.dispatchEvent(new Event('currentUserUpdate'));
 
         setIsLoading(false);
-        navigate('/learning-goals');
+        navigate('/interests');
     };
 
     return (

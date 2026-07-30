@@ -1,6 +1,10 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { login, register, socialLogin, forgotPassword } from "../../api/api";
-import { saveCurrentUser } from "../../utils/storage";
+import {
+    saveCurrentUser,
+    upsertUser,
+    mergeLocalOnboardingData,
+} from "../../utils/storage";
 
 // ---------------------------------------------------------------------------
 // Error normaliser — converts raw Axios errors into user-facing strings.
@@ -27,9 +31,7 @@ const extractErrorMessage = (error, fallback) => {
     return serverMsg || error.message || fallback;
 };
 
-// ---------------------------------------------------------------------------
-// loginUser
-// ---------------------------------------------------------------------------
+
 export const loginUser = createAsyncThunk(
     "auth/loginUser",
     async (credentials, { rejectWithValue }) => {
@@ -45,28 +47,44 @@ export const loginUser = createAsyncThunk(
                 return rejectWithValue("Authentication failed: no token received from server.");
             }
 
-            const user = data?.user;
-            if (!user) {
+            const rawUser = data?.user;
+            if (!rawUser) {
                 return rejectWithValue("Authentication failed: no user data received from server.");
             }
 
-            // Persist session
+            // The backend has no onboarding API, so its login response does NOT
+            // include onboardingCompleted, interests, learningGoal, skills, etc.
+            // mergeLocalOnboardingData() looks up this email in the local users[]
+            // array and re-applies any onboarding fields that were saved there,
+            // so they are never lost across a logout → login cycle.
+            const user = mergeLocalOnboardingData(rawUser);
+
+            // Persist the enriched user object (auth + onboarding fields together)
             saveCurrentUser(user);
             localStorage.setItem("token", token);
-            localStorage.setItem("user", JSON.stringify(user));
 
             return { token, user };
         } catch (error) {
-            // Network failures, timeouts, and server errors all reject — no
-            // offline fallback, no mock tokens, no silent success.
+            // Special case: 404 means no account exists for this email.
+            // Return a typed error object so login.jsx can branch on it
+            // explicitly without fragile string matching — the user must be
+            // redirected to signup, NOT silently authenticated.
+            if (error.response?.status === 404) {
+                return rejectWithValue({
+                    type: "USER_NOT_FOUND",
+                    message:
+                        error.response.data?.message ||
+                        "No account exists with this email. Please sign up first.",
+                });
+            }
+            // Network failures, timeouts, and all other server errors reject —
+            // no offline fallback, no mock tokens, no silent success.
             return rejectWithValue(extractErrorMessage(error, "Login failed."));
         }
     }
 );
 
-// ---------------------------------------------------------------------------
-// registerUser
-// ---------------------------------------------------------------------------
+
 export const registerUser = createAsyncThunk(
     "auth/registerUser",
     async (userData, { rejectWithValue }) => {
@@ -90,7 +108,12 @@ export const registerUser = createAsyncThunk(
             // Persist session
             saveCurrentUser(user);
             localStorage.setItem("token", token);
-            localStorage.setItem("user", JSON.stringify(user));
+
+            // Seed the local users[] array entry for this new user so that
+            // mergeLocalOnboardingData() can find them on future logins.
+            // Without this upsert, onboarding data saved during the pipeline
+            // has nowhere persistent to live and would be lost on re-login.
+            upsertUser(user);
 
             return { token, user };
         } catch (error) {
@@ -99,9 +122,7 @@ export const registerUser = createAsyncThunk(
     }
 );
 
-// ---------------------------------------------------------------------------
-// socialLoginUser
-// ---------------------------------------------------------------------------
+
 export const socialLoginUser = createAsyncThunk(
     "auth/socialLoginUser",
     async (providerData, { rejectWithValue }) => {
@@ -114,15 +135,22 @@ export const socialLoginUser = createAsyncThunk(
                 return rejectWithValue("Social login failed: no token received from server.");
             }
 
-            const user = data?.user;
-            if (!user) {
+            const rawUser = data?.user;
+            if (!rawUser) {
                 return rejectWithValue("Social login failed: no user data received from server.");
             }
+
+            // Same merge strategy as loginUser — restore any locally-stored
+            // onboarding data that the backend doesn't know about yet.
+            const user = mergeLocalOnboardingData(rawUser);
 
             // Persist session
             saveCurrentUser(user);
             localStorage.setItem("token", token);
-            localStorage.setItem("user", JSON.stringify(user));
+
+            // Ensure this social user has an entry in users[] so onboarding
+            // data written during the pipeline can be merged back on next login.
+            upsertUser(user);
 
             return { token, user };
         } catch (error) {
@@ -131,9 +159,7 @@ export const socialLoginUser = createAsyncThunk(
     }
 );
 
-// ---------------------------------------------------------------------------
-// sendPasswordReset
-// ---------------------------------------------------------------------------
+
 export const sendPasswordReset = createAsyncThunk(
     "auth/forgotPassword",
     async (email, { rejectWithValue }) => {
@@ -147,3 +173,4 @@ export const sendPasswordReset = createAsyncThunk(
         }
     }
 );
+

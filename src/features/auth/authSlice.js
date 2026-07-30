@@ -39,7 +39,7 @@ const authSlice = createSlice({
             state.token = null;
             state.error = null;
             state.resetError = null;
-            clearCurrentUser(); // clears localStorage token + user keys
+            clearCurrentUser();
         },
         clearError: (state) => {
             state.error = null;
@@ -50,14 +50,9 @@ const authSlice = createSlice({
         /**
          * Allows onboarding steps to push partial user updates into Redux
          * without a full login round-trip.
-         * Also keeps localStorage in sync so page refreshes don't lose the
-         * updated user object.
          */
         updateUser: (state, action) => {
             state.user = { ...state.user, ...action.payload };
-            // Sync to localStorage so the authSlice initialState picks it up
-            // on a page reload.
-            localStorage.setItem("user", JSON.stringify(state.user));
         },
     },
     extraReducers: (builder) => {

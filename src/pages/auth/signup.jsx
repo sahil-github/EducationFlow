@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useNavigate, Link, NavLink } from 'react-router-dom';
 import { useFormik } from 'formik';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import { AutoAwesome, People } from '@mui/icons-material';
 import Button from '../../components/Button';
 import Input from '../../components/Inputs';
 import Logo from '../../assets/logo/Logo.png';
@@ -10,14 +10,31 @@ import Margin from '../../assets/Margin.png';
 import GoogleIcon from '../../assets/icons/googleicon.png';
 import AppleIcon from '../../assets/icons/applelogo.png';
 import LinkedInIcon from '../../assets/icons/LinkedIn.png';
-import { Users } from "lucide-react";
 import { useDispatch, useSelector } from 'react-redux';
-import { registerUser } from '../../features/auth/authThunks';
+import { registerUser, socialLoginUser } from '../../features/auth/authThunks';
 
 function Signup() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { loading } = useSelector((state) => state.auth);
+
+    const handleSocialLogin = async (provider, providerToken = "oauth_token_from_google_sdk") => {
+        try {
+            const res = await dispatch(socialLoginUser({
+                provider: provider,
+                providerToken: providerToken
+            })).unwrap();
+
+            toast.success(`${provider} Signup successful!`);
+            if (res?.user?.onboardingCompleted) {
+                navigate("/dashboard");
+            } else {
+                navigate("/personal-info");
+            }
+        } catch (err) {
+            toast.error(err || `${provider} signup failed`);
+        }
+    };
 
     const formik = useFormik({
         initialValues: {
@@ -42,8 +59,6 @@ function Signup() {
                 errors.password = 'Password is required';
             } else if (values.password.length < 8) {
                 errors.password = 'Password must be at least 8 characters';
-            } else if (!values.password.includes('@')) {
-                errors.password = 'Password must contain the special character @';
             }
 
             if (!values.confirmpassword) {
@@ -126,7 +141,7 @@ function Signup() {
 
                             <div className="bg-[#18181C]/60 border border-white/5 rounded-2xl p-5 flex flex-col gap-3 shadow-md">
                                 <div className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center border border-white/10 self-start">
-                                    <AutoAwesomeIcon sx={{ fontSize: 18, color: '#6366F1' }} />
+                                    <AutoAwesome sx={{ fontSize: 18, color: '#6366F1' }} />
                                 </div>
                                 <div>
                                     <h3 className="text-white text-sm font-semibold font-[Poppins] mb-1">Adaptive AI</h3>
@@ -139,7 +154,7 @@ function Signup() {
 
                             <div className="bg-[#18181C]/60 border border-white/5 rounded-2xl p-5 flex flex-col gap-3 shadow-md">
                                 <div className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center border border-white/10 self-start">
-                                    <Users size={18} className="text-[#6366F1]" />
+                                    <People sx={{ fontSize: 18, color: '#6366F1' }} />
                                 </div>
                                 <div>
                                     <h3 className="text-white text-sm font-semibold font-[Poppins] mb-1">Global Network</h3>
@@ -171,7 +186,9 @@ function Signup() {
 
                                 <button
                                     type="button"
-                                    className="w-full h-10 flex items-center justify-center gap-2.5 bg-[#22222A] hover:bg-[#2A2A34] text-white text-xs font-semibold font-[Manrope] rounded-full border border-white/10 transition-all duration-200 cursor-pointer"
+                                    onClick={() => handleSocialLogin('Google')}
+                                    disabled={loading}
+                                    className="w-full h-10 flex items-center justify-center gap-2.5 bg-[#22222A] hover:bg-[#2A2A34] text-white text-xs font-semibold font-[Manrope] rounded-full border border-white/10 transition-all duration-200 cursor-pointer disabled:opacity-50"
                                 >
                                     <img src={GoogleIcon} alt="Google" className="w-3.5 h-3.5" />
                                     Log in with Google
@@ -180,7 +197,9 @@ function Signup() {
 
                                 <button
                                     type="button"
-                                    className="w-full h-10 flex items-center justify-center gap-2.5 bg-white hover:bg-gray-100 text-black text-xs font-semibold font-[Manrope] rounded-full transition-all duration-200 cursor-pointer"
+                                    onClick={() => handleSocialLogin('Apple')}
+                                    disabled={loading}
+                                    className="w-full h-10 flex items-center justify-center gap-2.5 bg-white hover:bg-gray-100 text-black text-xs font-semibold font-[Manrope] rounded-full transition-all duration-200 cursor-pointer disabled:opacity-50"
                                 >
                                     <img src={AppleIcon} alt="Apple" className="w-3.5 h-3.5" />
                                     Log in with Apple
@@ -189,7 +208,9 @@ function Signup() {
 
                                 <button
                                     type="button"
-                                    className="w-full h-10 flex items-center justify-center gap-2.5 bg-[#0077B5] hover:bg-[#00669C] text-white text-xs font-semibold font-[Manrope] rounded-full transition-all duration-200 cursor-pointer"
+                                    onClick={() => handleSocialLogin('LinkedIn')}
+                                    disabled={loading}
+                                    className="w-full h-10 flex items-center justify-center gap-2.5 bg-[#0077B5] hover:bg-[#00669C] text-white text-xs font-semibold font-[Manrope] rounded-full transition-all duration-200 cursor-pointer disabled:opacity-50"
                                 >
                                     <img src={LinkedInIcon} alt="LinkedIn" className="w-3.5 h-3.5" />
                                     Log in with LinkedIn

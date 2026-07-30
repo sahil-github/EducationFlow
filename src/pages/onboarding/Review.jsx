@@ -101,20 +101,22 @@
 // }
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { toast } from "react-toastify";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
+import { updateUser } from "../../features/auth/authSlice";
 
 import {
     getCurrentUser,
     saveCurrentUser,
-    getUsers,
-    saveUsers,
+    upsertUser,
 } from "../../utils/storage";
 
 export default function Review() {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
 
     const [user] = useState(() => getCurrentUser());
 
@@ -123,13 +125,20 @@ export default function Review() {
             ...user,
             onboardingCompleted: true,
         };
-        // Update current user
+
+        // Persist to localStorage["user"] and sessionStorage["current_user"]
         saveCurrentUser(updatedUser);
-        // Update user inside users array
-        const updatedUsers = getUsers().map((u) =>
-            u.email === user.email ? { ...u, onboardingCompleted: true } : u
-        );
-        saveUsers(updatedUsers);
+
+        // Upsert into the persistent users[] array so mergeLocalOnboardingData()
+        // can restore onboardingCompleted: true on the next login, even though
+        // the backend has no onboarding API yet. upsertUser() inserts the record
+        // if it doesn't exist yet (e.g. fresh email signup) rather than silently
+        // skipping it like the old getUsers().map() approach did.
+        upsertUser(updatedUser);
+
+        // Sync Redux state so route guards allow /dashboard access immediately
+        dispatch(updateUser({ onboardingCompleted: true }));
+
         toast.success(
             "Onboarding profile submitted successfully! Welcome aboard 🎉"
         );
@@ -225,7 +234,7 @@ export default function Review() {
                                 <span className="text-white text-right">
                                     {user.interests?.length
                                         ? user.interests
-                                            .map((interest) => interest.exname)
+                                            .map((interest) => interest.name || interest.exname)
                                             .join(", ")
                                         : "None"}
                                 </span>
@@ -269,7 +278,7 @@ export default function Review() {
 
                     <Button
                         variant="ghost"
-                        onClick={() => navigate("/interests")}
+                        onClick={() => navigate("/skill-assessment")}
                         className="flex items-center gap-2 text-slate-400 hover:text-white"
                     >
                         <ArrowBackIcon fontSize="small" />
