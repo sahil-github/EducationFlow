@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+// import React, { useState } from 'react';
 import Card from '../../../components/Card';
 import Input from '../../../components/Inputs';
 import Button from '../../../components/Button';
@@ -6,31 +6,57 @@ import AddAPhotoOutlinedIcon from '@mui/icons-material/AddAPhotoOutlined';
 import EditIcon from '@mui/icons-material/Edit';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+// import { useDispatch } from 'react-redux';
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import SampleModal from '../../../components/SampleModal';
 import { toast } from 'react-toastify';
 import LockIcon from '@mui/icons-material/Lock';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
-import { updateUser } from '../../../features/auth/authSlice';
+// import { updateUser } from '../../../features/auth/authSlice';
+// import {
+//     getCurrentUser,
+//     saveCurrentUser,
+//     getUsers,
+//     saveUsers,
+// } from "../../../utils/storage"
+
 import {
-    getCurrentUser,
-    saveCurrentUser,
-    getUsers,
-    saveUsers,
-} from "../../../utils/storage"
+    updatePersonalInfo,
+    getProfile
+} from "../../../features/profile/profileThunks";
 // import SelectField from '../../components/SelectField';
 import { locations } from '../../../constants/constants';
 
 function PersonalInfo() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const [isLoading, setIsLoading] = useState(false);
-    const currentUser = getCurrentUser();
+    // const [isLoading, setIsLoading] = useState(false);
+    // const currentUser = getCurrentUser();
+    const { user, loading } = useSelector(state => state.profile);
+    useEffect(() => {
+        dispatch(getProfile());
+    }, [dispatch]);
+
+
+    // const {
+    //     profile,
+    //     loading
+    // } = useSelector((state) => state.profile);
     const [formData, setFormData] = useState({
-        name: currentUser.name || '',
-        location: currentUser.location || '',
-        bio: currentUser.bio || '',
+        name: "",
+        location: "",
+        bio: "",
     });
+    useEffect(() => {
+        if (user) {
+            setFormData({
+                name: user.fullName || "",
+                location: user.location || "",
+                bio: user.bio || "",
+            });
+        }
+    }, [user]);
     const [bioSamplesModal, setBioSamplesModal] = useState(false);
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -40,37 +66,67 @@ function PersonalInfo() {
         }));
     };
 
-    const handleSubmit = () => {
-        if (!formData.name.trim() || !formData.location.trim()) {
-            toast.error("Please fill in your Name and Location before continuing.");
+    // const handleSubmit = () => {
+    //     if (!formData.name.trim() || !formData.location.trim()) {
+    //         toast.error("Please fill in your Name and Location before continuing.");
+    //         return;
+    //     }
+    //     setIsLoading(true);
+
+    //     // Exclude email from formData — it is read-only and should not be submitted
+    //     const { email: _ignored, ...editableData } = formData;
+
+    //     const currentUser = getCurrentUser();
+    //     const updatedUser = { ...currentUser, ...editableData };
+    //     saveCurrentUser(updatedUser);
+
+    //     const users = getUsers();
+    //     const userIndex = users.findIndex(u => u.email === currentUser.email);
+    //     if (userIndex !== -1) {
+    //         users[userIndex] = { ...users[userIndex], ...editableData };
+    //         saveUsers(users);
+    //     }
+
+    //     // Sync Redux state
+    //     dispatch(updateUser(editableData));
+
+    //     // Dispatch event so Navbar immediately updates its name display
+    //     window.dispatchEvent(new Event('currentUserUpdate'));
+
+    //     setIsLoading(false);
+    //     navigate('/interests');
+    // };
+    const handleSubmit = async () => {
+        if (!formData.name.trim()) {
+            toast.error("Please enter your name.");
             return;
         }
-        setIsLoading(true);
 
-        // Exclude email from formData — it is read-only and should not be submitted
-        const { email: _ignored, ...editableData } = formData;
-
-        const currentUser = getCurrentUser();
-        const updatedUser = { ...currentUser, ...editableData };
-        saveCurrentUser(updatedUser);
-
-        const users = getUsers();
-        const userIndex = users.findIndex(u => u.email === currentUser.email);
-        if (userIndex !== -1) {
-            users[userIndex] = { ...users[userIndex], ...editableData };
-            saveUsers(users);
+        if (!formData.location.trim()) {
+            toast.error("Please select location.");
+            return;
         }
 
-        // Sync Redux state
-        dispatch(updateUser(editableData));
+        try {
 
-        // Dispatch event so Navbar immediately updates its name display
-        window.dispatchEvent(new Event('currentUserUpdate'));
+            const res = await dispatch(
+                updatePersonalInfo({
+                    fullName: formData.name,
+                    location: formData.location,
+                    bio: formData.bio,
+                    avatarUrl: user?.avatarUrl || "",
+                })
+            ).unwrap();
+            console.log(res);
+            toast.success("Profile updated successfully.");
 
-        setIsLoading(false);
-        navigate('/interests');
+            navigate("/interests");
+
+
+        } catch (err) {
+            toast.error(err || "Unable to save profile.");
+        }
     };
-
     return (
         <div className="flex justify-center items-center w-full min-h-screen px-4 sm:px-6 py-6 sm:py-6 ">
             <div className="w-full max-w-2xl flex flex-col gap-6">
@@ -121,7 +177,7 @@ function PersonalInfo() {
                             type="email"
                             placeholder="alex@example.com"
                             name="email"
-                            value={currentUser.email}
+                            value={user?.email || ""}
                             readOnly
                             className="text-[#64748B] cursor-not-allowed"
                             leftIcon={<LockIcon fontSize="small" sx={{ color: '#64748B' }} />}
@@ -175,11 +231,11 @@ function PersonalInfo() {
                 <div className="w-full flex items-center justify-end mt-2 gap-2 p-1">
                     <Button
                         variant="primary"
-                        disabled={isLoading}
+                        disabled={loading}
                         onClick={handleSubmit}
                         className="h-8 px-3 bg-[#6366F1] hover:bg-[#4F46E5] text-white font-bold rounded-2xl tracking-wide transition-all duration-200 shadow-lg shadow-[#6366F1]/20 font-[Poppins] text-xs flex items-center gap-1"
                     >
-                        Continue
+                        {loading ? "Saving..." : "Continue"}
                         <ArrowForwardIcon sx={{ fontSize: 14 }} />
                     </Button>
                 </div>

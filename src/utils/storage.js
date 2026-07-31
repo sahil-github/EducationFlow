@@ -13,6 +13,8 @@ export const getCurrentUser = () => {
     }
     return {};
 };
+const user = getCurrentUser();
+console.log(user);
 
 export const saveCurrentUser = (user) => {
     if (user) {

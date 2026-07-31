@@ -99,6 +99,7 @@
 //         </div>
 //     );
 // }
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
@@ -107,7 +108,6 @@ import { toast } from "react-toastify";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
 import { updateUser } from "../../features/auth/authSlice";
-
 import {
     getCurrentUser,
     saveCurrentUser,
