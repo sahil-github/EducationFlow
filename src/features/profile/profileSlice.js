@@ -1,10 +1,41 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { updatePersonalInfo, updateSkills, updateGoals, updateInterests, updateAvatar, completeOnboarding, getProfile } from "./profileThunks";
+import {
+    getProfile,
+    updatePersonalInfo,
+    uploadAvatar,
+    updateGoals,
+    getInterestOptions,
+    updateInterests,
+    updateSkills,
+    completeOnboarding,
+} from "./profileThunks";
 
+// ---------------------------------------------------------------------------
+// Helpers — build extraReducers cases without repetition.
+// ---------------------------------------------------------------------------
+const pending = (state) => {
+    state.loading = true;
+    state.error = null;
+};
 
+const rejected = (state, action) => {
+    state.loading = false;
+    state.error = action.payload;
+};
+
+// Merge the returned profile patch into existing state instead of replacing
+// the whole object, so partial updates from individual steps don't wipe
+// fields that the backend didn't return in that particular response.
+const fulfilled = (state, action) => {
+    state.loading = false;
+    if (action.payload) {
+        state.profile = { ...state.profile, ...action.payload };
+    }
+};
 
 const initialState = {
-    user: null,
+    profile: null,       // Full profile from GET /api/profile/me
+    interestOptions: [], // From GET /api/profile/interests-options
     loading: false,
     error: null,
 };
@@ -16,96 +47,67 @@ const profileSlice = createSlice({
         clearError: (state) => {
             state.error = null;
         },
+        // Allow onboarding steps to patch profile in Redux without a round-trip
+        patchProfile: (state, action) => {
+            state.profile = { ...state.profile, ...action.payload };
+        },
     },
     extraReducers: (builder) => {
         builder
-            .addCase(updatePersonalInfo.pending, (state) => {
-                state.loading = true;
-                state.error = null;
-            })
-            .addCase(updatePersonalInfo.fulfilled, (state, action) => {
-                state.loading = false;
-                state.user = action.payload;
-            })
-            .addCase(updatePersonalInfo.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.payload;
-            })
-            .addCase(updateSkills.pending, (state) => {
-                state.loading = true;
-                state.error = null;
-            })
-            .addCase(updateSkills.fulfilled, (state, action) => {
-                state.loading = false;
-                state.user = action.payload;
-            })
-            .addCase(updateSkills.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.payload;
-            })
-            .addCase(updateGoals.pending, (state) => {
-                state.loading = true;
-                state.error = null;
-            })
-            .addCase(updateGoals.fulfilled, (state, action) => {
-                state.loading = false;
-                state.user = action.payload;
-            })
-            .addCase(updateGoals.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.payload;
-            })
-            .addCase(updateInterests.pending, (state) => {
-                state.loading = true;
-                state.error = null;
-            })
-            .addCase(updateInterests.fulfilled, (state, action) => {
-                state.loading = false;
-                state.user = action.payload;
-            })
-            .addCase(updateInterests.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.payload;
-            })
-            .addCase(updateAvatar.pending, (state) => {
-                state.loading = true;
-                state.error = null;
-            })
-            .addCase(updateAvatar.fulfilled, (state, action) => {
-                state.loading = false;
-                state.user = action.payload;
-            })
-            .addCase(updateAvatar.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.payload;
-            })
-            .addCase(completeOnboarding.pending, (state) => {
-                state.loading = true;
-                state.error = null;
-            })
-            .addCase(completeOnboarding.fulfilled, (state, action) => {
-                state.loading = false;
-                state.user = action.payload;
-            })
-            .addCase(completeOnboarding.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.payload;
-            })
-            .addCase(getProfile.pending, (state) => {
-                state.loading = true;
-                state.error = null;
-            })
+            // ── getProfile ──────────────────────────────────────────────────
+            .addCase(getProfile.pending, pending)
             .addCase(getProfile.fulfilled, (state, action) => {
                 state.loading = false;
-                state.user = action.payload;
+                state.profile = action.payload;
             })
-            .addCase(getProfile.rejected, (state, action) => {
+            .addCase(getProfile.rejected, rejected)
+
+            // ── updatePersonalInfo ──────────────────────────────────────────
+            .addCase(updatePersonalInfo.pending, pending)
+            .addCase(updatePersonalInfo.fulfilled, fulfilled)
+            .addCase(updatePersonalInfo.rejected, rejected)
+
+            // ── uploadAvatar ────────────────────────────────────────────────
+            .addCase(uploadAvatar.pending, pending)
+            .addCase(uploadAvatar.fulfilled, fulfilled)
+            .addCase(uploadAvatar.rejected, rejected)
+
+            // ── updateGoals ─────────────────────────────────────────────────
+            .addCase(updateGoals.pending, pending)
+            .addCase(updateGoals.fulfilled, fulfilled)
+            .addCase(updateGoals.rejected, rejected)
+
+            // ── getInterestOptions ──────────────────────────────────────────
+            .addCase(getInterestOptions.pending, pending)
+            .addCase(getInterestOptions.fulfilled, (state, action) => {
                 state.loading = false;
-                state.error = action.payload;
-            });
+                state.interestOptions = action.payload ?? [];
+            })
+            .addCase(getInterestOptions.rejected, rejected)
+
+            // ── updateInterests ─────────────────────────────────────────────
+            .addCase(updateInterests.pending, pending)
+            .addCase(updateInterests.fulfilled, fulfilled)
+            .addCase(updateInterests.rejected, rejected)
+
+            // ── updateSkills ────────────────────────────────────────────────
+            .addCase(updateSkills.pending, pending)
+            .addCase(updateSkills.fulfilled, fulfilled)
+            .addCase(updateSkills.rejected, rejected)
+
+            // ── completeOnboarding ──────────────────────────────────────────
+            .addCase(completeOnboarding.pending, pending)
+            .addCase(completeOnboarding.fulfilled, (state, action) => {
+                state.loading = false;
+                state.profile = {
+                    ...state.profile,
+                    ...action.payload,
+                    isOnboarded: true,
+                };
+            })
+            .addCase(completeOnboarding.rejected, rejected);
     },
 });
 
-export const { clearError } = profileSlice.actions;
+export const { clearError, patchProfile } = profileSlice.actions;
 export default profileSlice.reducer;
-

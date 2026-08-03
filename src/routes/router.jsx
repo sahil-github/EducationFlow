@@ -86,33 +86,84 @@ const RequireCompletedOnboarding = () => {
  * TODO: dispatch updateUser() from each onboarding step, then replace
  *       getCurrentUser() below with the Redux `user` object.
  */
+// const OnboardingGuard = () => {
+//     const { user } = useSelector((state) => state.auth);
+//     const location = useLocation();
+//     console.log("Current User:", currentUser);
+//     console.log("Current Path:", path);
+//     if (user?.onboardingCompleted) {
+//         return <Navigate to="/dashboard" replace />;
+//     }
+
+//     const currentUser = { ...getCurrentUser(), ...user };
+//     const path = location.pathname;
+
+//     if (
+//         path === "/interests" &&
+//         (!(currentUser.fullName || currentUser.name) || !currentUser.location)
+//     ) {
+//         return <Navigate to="/personal-info" replace />;
+//     }
+//     console.log("Updated User:", updatedUser);
+//     console.log("Current Path:", window.location.pathname);
+//     if (path === '/learning-goals' && (!currentUser.interests || currentUser.interests.length === 0)) {
+//         return <Navigate to="/interests" replace />;
+//     }
+//     if (path === '/skill-assessment' && (!currentUser.learningGoal || (Array.isArray(currentUser.learningGoal) && currentUser.learningGoal.length === 0))) {
+//         return <Navigate to="/learning-goals" replace />;
+//     }
+//     if (path === '/review' && (!currentUser.skills || currentUser.skills.length === 0)) {
+//         return <Navigate to="/skill-assessment" replace />;
+//     }
+
+//     return <Outlet />;
+// };
 const OnboardingGuard = () => {
     const { user } = useSelector((state) => state.auth);
     const location = useLocation();
+
+    const currentUser = { ...getCurrentUser(), ...user };
+    const path = location.pathname;
+
+    console.log("Current User:", currentUser);
+    console.log("Current Path:", path);
 
     if (user?.onboardingCompleted) {
         return <Navigate to="/dashboard" replace />;
     }
 
-    const currentUser = { ...getCurrentUser(), ...user };
-    const path = location.pathname;
-
-    if (path === '/interests' && (!currentUser.name || !currentUser.location)) {
+    if (
+        path === "/interests" &&
+        (!(currentUser.fullName || currentUser.name) || !currentUser.location)
+    ) {
         return <Navigate to="/personal-info" replace />;
     }
-    if (path === '/learning-goals' && (!currentUser.interests || currentUser.interests.length === 0)) {
+
+    if (
+        path === "/learning-goals" &&
+        (!currentUser.interests || currentUser.interests.length === 0)
+    ) {
         return <Navigate to="/interests" replace />;
     }
-    if (path === '/skill-assessment' && (!currentUser.learningGoal || (Array.isArray(currentUser.learningGoal) && currentUser.learningGoal.length === 0))) {
+
+    if (
+        path === "/skill-assessment" &&
+        (!currentUser.learningGoal ||
+            (Array.isArray(currentUser.learningGoal) &&
+                currentUser.learningGoal.length === 0))
+    ) {
         return <Navigate to="/learning-goals" replace />;
     }
-    if (path === '/review' && (!currentUser.skills || currentUser.skills.length === 0)) {
+
+    if (
+        path === "/review" &&
+        (!currentUser.skills || currentUser.skills.length === 0)
+    ) {
         return <Navigate to="/skill-assessment" replace />;
     }
 
     return <Outlet />;
 };
-
 function AppRoutes() {
     return (
         <>

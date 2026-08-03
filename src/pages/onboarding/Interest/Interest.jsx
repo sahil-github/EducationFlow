@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Card from '../../../components/Card';
 import Button from '../../../components/Button';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -8,19 +8,20 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import Input from '../../../components/Inputs';
 import { InterestData } from '../../../constants/constants';
 import { toast } from 'react-toastify';
-import { updateUser } from '../../../features/auth/authSlice';
-import {
-    getCurrentUser,
-    saveCurrentUser,
-    getUsers,
-    saveUsers,
-} from "../../../utils/storage";
-
+import { updateInterests } from '../../../features/profile/profileThunks';
 
 function Interest() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const [selectedInterests, setSelectedInterests] = useState([]);
+    const { loading, profile } = useSelector((state) => state.profile);
+
+    // Pre-populate from backend profile if user is resuming onboarding
+    const [selectedInterests, setSelectedInterests] = useState(() => {
+        if (Array.isArray(profile?.interests) && profile.interests.length > 0) {
+            return profile.interests;
+        }
+        return [];
+    });
 
     const toggleInterest = (interest) => {
         setSelectedInterests((prev) => {
@@ -32,36 +33,25 @@ function Interest() {
         });
     };
 
-    const submitInterest = () => {
+    const submitInterest = async () => {
         if (selectedInterests.length === 0) {
             toast.error("Please select at least one interest to continue.");
             return;
         }
-        // Strip out the React icon components before saving to JSON
+
+        // Strip React icon components before sending to the backend
         const interestsToSave = selectedInterests.map(item => ({
             id: item.id,
-            name: item.exname
+            name: item.exname || item.name,
         }));
 
-        const currentUser = getCurrentUser();
-        const updatedUser = {
-            ...currentUser,
-            interests: interestsToSave
-        };
-        saveCurrentUser(updatedUser);
-        const users = getUsers();
-        const userIndex = users.findIndex(u => u.email === currentUser.email);
-        if (userIndex !== -1) {
-            users[userIndex] = { ...users[userIndex], interests: interestsToSave };
-            saveUsers(users);
+        try {
+            await dispatch(updateInterests(interestsToSave)).unwrap();
+            navigate("/learning-goals");
+        } catch (err) {
+            toast.error(err || "Failed to save interests. Please try again.");
         }
-
-        dispatch(updateUser({ interests: interestsToSave }));
-
-        navigate("/learning-goals");
     };
-
-
 
     return (
         <div className="flex justify-center items-center w-full min-h-screen px-2 sm:px-6 py-6 sm:py-6 ">
@@ -106,8 +96,8 @@ function Interest() {
                                         <Card
                                             key={interest.id}
                                             onClick={() => toggleInterest(interest)}
-                                            className={`rounded-full flex flex-col  w-full p-4  sm:w-[190px] md:w-[210px] lg:w-[230px]justify-center items-center
-                                                        w-[160px]  bg-[#16161AB2] transition-all duration-200 cursor-pointer
+                                            className={`rounded-full flex flex-col w-full p-4 sm:w-[190px] md:w-[210px] lg:w-[230px] justify-center items-center
+                                                        w-[160px] bg-[#16161AB2] transition-all duration-200 cursor-pointer
                                             ${isSelected
                                                     ? "border border-indigo-500 bg-[#232338]"
                                                     : "border border-[#2D2D45]"
@@ -142,10 +132,11 @@ function Interest() {
 
                     <Button
                         variant="primary"
+                        disabled={loading}
                         onClick={submitInterest}
-                        className="h-8 px-3 bg-[#6366F1] hover:bg-[#4F46E5] text-white font-bold rounded-2xl tracking-wide transition-all duration-200 shadow-lg shadow-[#6366F1]/20 font-[Poppins] text-xs flex items-center gap-1"
+                        className="h-8 px-3 bg-[#6366F1] hover:bg-[#4F46E5] text-white font-bold rounded-2xl tracking-wide transition-all duration-200 shadow-lg shadow-[#6366F1]/20 font-[Poppins] text-xs flex items-center gap-1 disabled:opacity-50"
                     >
-                        Continue
+                        {loading ? 'Saving...' : 'Continue'}
                         <ArrowForwardIcon sx={{ fontSize: 14 }} />
                     </Button>
                 </div>

@@ -1,4 +1,3 @@
-// import React, { useState } from 'react';
 import Card from '../../../components/Card';
 import Input from '../../../components/Inputs';
 import Button from '../../../components/Button';
@@ -6,57 +5,48 @@ import AddAPhotoOutlinedIcon from '@mui/icons-material/AddAPhotoOutlined';
 import EditIcon from '@mui/icons-material/Edit';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useNavigate } from 'react-router-dom';
-// import { useDispatch } from 'react-redux';
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import SampleModal from '../../../components/SampleModal';
 import { toast } from 'react-toastify';
 import LockIcon from '@mui/icons-material/Lock';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
-// import { updateUser } from '../../../features/auth/authSlice';
-// import {
-//     getCurrentUser,
-//     saveCurrentUser,
-//     getUsers,
-//     saveUsers,
-// } from "../../../utils/storage"
-
 import {
     updatePersonalInfo,
-    getProfile
+    getProfile,
 } from "../../../features/profile/profileThunks";
-// import SelectField from '../../components/SelectField';
+import { updateUser } from "../../../features/auth/authSlice";
+import { saveCurrentUser } from "../../../utils/storage";
 import { locations } from '../../../constants/constants';
 
 function PersonalInfo() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    // const [isLoading, setIsLoading] = useState(false);
-    // const currentUser = getCurrentUser();
-    const { user, loading } = useSelector(state => state.profile);
+
+    const { profile, loading } = useSelector(state => state.profile);
+    const { user: authUser } = useSelector(state => state.auth);
+    const user = profile; // alias for readability
+
     useEffect(() => {
         dispatch(getProfile());
     }, [dispatch]);
 
-
-    // const {
-    //     profile,
-    //     loading
-    // } = useSelector((state) => state.profile);
     const [formData, setFormData] = useState({
         name: "",
         location: "",
         bio: "",
     });
+
+    // Pre-fill form when backend profile loads or from authenticated user data
     useEffect(() => {
-        if (user) {
+        if (profile || authUser) {
             setFormData({
-                name: user.fullName || "",
-                location: user.location || "",
-                bio: user.bio || "",
+                name: profile?.fullName || authUser?.name || authUser?.fullName || "",
+                location: profile?.location || "",
+                bio: profile?.bio || "",
             });
         }
-    }, [user]);
+    }, [profile, authUser]);
     const [bioSamplesModal, setBioSamplesModal] = useState(false);
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -66,36 +56,6 @@ function PersonalInfo() {
         }));
     };
 
-    // const handleSubmit = () => {
-    //     if (!formData.name.trim() || !formData.location.trim()) {
-    //         toast.error("Please fill in your Name and Location before continuing.");
-    //         return;
-    //     }
-    //     setIsLoading(true);
-
-    //     // Exclude email from formData — it is read-only and should not be submitted
-    //     const { email: _ignored, ...editableData } = formData;
-
-    //     const currentUser = getCurrentUser();
-    //     const updatedUser = { ...currentUser, ...editableData };
-    //     saveCurrentUser(updatedUser);
-
-    //     const users = getUsers();
-    //     const userIndex = users.findIndex(u => u.email === currentUser.email);
-    //     if (userIndex !== -1) {
-    //         users[userIndex] = { ...users[userIndex], ...editableData };
-    //         saveUsers(users);
-    //     }
-
-    //     // Sync Redux state
-    //     dispatch(updateUser(editableData));
-
-    //     // Dispatch event so Navbar immediately updates its name display
-    //     window.dispatchEvent(new Event('currentUserUpdate'));
-
-    //     setIsLoading(false);
-    //     navigate('/interests');
-    // };
     const handleSubmit = async () => {
         if (!formData.name.trim()) {
             toast.error("Please enter your name.");
@@ -108,8 +68,7 @@ function PersonalInfo() {
         }
 
         try {
-
-            const res = await dispatch(
+            await dispatch(
                 updatePersonalInfo({
                     fullName: formData.name,
                     location: formData.location,
@@ -117,12 +76,20 @@ function PersonalInfo() {
                     avatarUrl: user?.avatarUrl || "",
                 })
             ).unwrap();
-            console.log(res);
+
+            const updatedUserData = {
+                ...authUser,
+                fullName: formData.name,
+                name: formData.name, // compatibility
+                location: formData.location,
+                bio: formData.bio,
+            };
+
+            dispatch(updateUser(updatedUserData));
+            saveCurrentUser(updatedUserData);
+
             toast.success("Profile updated successfully.");
-
             navigate("/interests");
-
-
         } catch (err) {
             toast.error(err || "Unable to save profile.");
         }
@@ -170,14 +137,14 @@ function PersonalInfo() {
                             className="text-white "
                         />
 
-                        {/* Email — read-only, pre-filled from signup */}
+                        {/* Email — read-only, pre-filled from auth/profile */}
                         <Input
                             size="small"
                             label="Email"
                             type="email"
                             placeholder="alex@example.com"
                             name="email"
-                            value={user?.email || ""}
+                            value={profile?.email || authUser?.email || ""}
                             readOnly
                             className="text-[#64748B] cursor-not-allowed"
                             leftIcon={<LockIcon fontSize="small" sx={{ color: '#64748B' }} />}
