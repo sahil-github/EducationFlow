@@ -8,6 +8,8 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { toast } from 'react-toastify';
 import { validateLearningGoals } from "./validation";
 import { updateGoals } from "../../../features/profile/profileThunks";
+import { updateUser } from "../../../features/auth/authSlice";
+import { saveCurrentUser, upsertUser } from "../../../utils/storage";
 import SelectField from "../../../components/SelectField";
 import { FIELDS } from "../../../constants/constants";
 
@@ -15,6 +17,7 @@ export default function LearningGoals() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { loading, profile } = useSelector((state) => state.profile);
+    const { user: authUser } = useSelector((state) => state.auth);
 
     // Pre-populate from backend profile if user is resuming onboarding
     const [learningGoal, setLearningGoal] = useState(() => {
@@ -45,6 +48,15 @@ export default function LearningGoals() {
 
         try {
             await dispatch(updateGoals(learningGoal)).unwrap();
+            const updatedUserData = {
+                ...authUser,
+                ...profile,
+                learningGoal,
+            };
+            dispatch(updateUser(updatedUserData));
+            saveCurrentUser(updatedUserData);
+            upsertUser(updatedUserData);
+
             navigate("/skill-assessment");
         } catch (err) {
             toast.error(err || "Failed to save learning goals. Please try again.");

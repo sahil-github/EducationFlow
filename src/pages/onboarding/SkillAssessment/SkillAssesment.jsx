@@ -8,12 +8,15 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import Slider from '@mui/material/Slider';
 import { toast } from 'react-toastify';
 import { updateSkills } from "../../../features/profile/profileThunks";
+import { updateUser } from "../../../features/auth/authSlice";
+import { saveCurrentUser, upsertUser } from "../../../utils/storage";
 import { levels } from "../../../constants/constants";
 
 function SkillAssesment() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { loading, profile } = useSelector((state) => state.profile);
+    const { user: authUser } = useSelector((state) => state.auth);
 
     const [skills, setSkills] = useState(() => {
         // Pre-populate from backend profile if user is resuming onboarding
@@ -36,6 +39,15 @@ function SkillAssesment() {
     const handleContinue = async () => {
         try {
             await dispatch(updateSkills(skills)).unwrap();
+            const updatedUserData = {
+                ...authUser,
+                ...profile,
+                skills,
+            };
+            dispatch(updateUser(updatedUserData));
+            saveCurrentUser(updatedUserData);
+            upsertUser(updatedUserData);
+
             navigate('/review');
         } catch (err) {
             toast.error(err || "Failed to save skills. Please try again.");

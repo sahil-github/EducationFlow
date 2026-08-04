@@ -22,6 +22,8 @@ function ForgotPassword() {
     const formik = useFormik({
         initialValues: {
             email: '',
+            retypePassword: '',
+            newPassword: ''
         },
         validate: (values) => {
             const errors = {};
@@ -29,6 +31,15 @@ function ForgotPassword() {
                 errors.email = 'Email is required';
             } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values.email)) {
                 errors.email = 'Please enter a valid email address';
+            }
+            if (!values.retypePassword) {
+                errors.retypePassword = 'Re-type password is required';
+            }
+            if (!values.newPassword) {
+                errors.newPassword = 'New password is required';
+            }
+            if (values.retypePassword !== values.newPassword) {
+                errors.retypePassword = 'Passwords do not match';
             }
             return errors;
         },
@@ -66,9 +77,9 @@ function ForgotPassword() {
                 <div className="w-full max-w-[420px] flex flex-col gap-5">
                     {/* Forgot Password Form */}
                     <div className="w-full bg-[#18181C] border border-white/5 rounded-[24px] p-6 md:p-8 shadow-2xl">
-                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center mb-6 border border-white/10 mx-auto">
+                        {/* <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center mb-6 border border-white/10 mx-auto">
                             <AutoAwesomeIcon sx={{ fontSize: 20, color: '#6366F1' }} />
-                        </div>
+                        </div> */}
 
                         <h2 className="text-white font-semibold text-xl md:text-2xl font-[Poppins] tracking-tight mb-2 text-center">
                             Reset your password
@@ -91,6 +102,32 @@ function ForgotPassword() {
                                 size="small"
                             />
 
+                            <Input
+                                label="Re-type password"
+                                type="password"
+                                placeholder="Re-type password"
+                                name="retypePassword"
+                                value={formik.values.retypePassword}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                error={formik.touched.retypePassword && formik.errors.retypePassword}
+                                size="small"
+
+                            />
+
+                            <Input
+                                label="New password"
+                                type="password"
+                                placeholder="New password"
+                                name="newPassword"
+                                value={formik.values.newPassword}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                error={formik.touched.newPassword && formik.errors.newPassword}
+                                size="small"
+
+                            />
+
                             {/* Submit Button */}
                             <Button
                                 type="submit"
@@ -98,13 +135,13 @@ function ForgotPassword() {
                                 disabled={resetLoading}
                                 className="w-full h-11 bg-[#6366F1] hover:bg-[#4F46E5] text-white font-bold rounded-2xl tracking-wide transition-all duration-200 shadow-lg shadow-[#6366F1]/20 font-[Poppins] !py-2 text-xs"
                             >
-                                {resetLoading ? "Sending..." : "Send Reset Link"}
+                                {resetLoading ? "Sending..." : "Submit"}
                             </Button>
                         </form>
                     </div>
 
                     <footer className="w-full flex flex-row justify-center items-center px-1 text-[11px] font-[Manrope] text-[#52525B]">
-                        <span>© 2024 EduFlow Inc.</span>
+                        <span>© 2026 EduFlow Inc.</span>
                     </footer>
                 </div>
             </main>

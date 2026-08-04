@@ -9,11 +9,14 @@ import Input from '../../../components/Inputs';
 import { InterestData } from '../../../constants/constants';
 import { toast } from 'react-toastify';
 import { updateInterests } from '../../../features/profile/profileThunks';
+import { updateUser } from '../../../features/auth/authSlice';
+import { saveCurrentUser, upsertUser } from '../../../utils/storage';
 
 function Interest() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { loading, profile } = useSelector((state) => state.profile);
+    const { user: authUser } = useSelector((state) => state.auth);
 
     // Pre-populate from backend profile if user is resuming onboarding
     const [selectedInterests, setSelectedInterests] = useState(() => {
@@ -47,6 +50,15 @@ function Interest() {
 
         try {
             await dispatch(updateInterests(interestsToSave)).unwrap();
+            const updatedUserData = {
+                ...authUser,
+                ...profile,
+                interests: interestsToSave,
+            };
+            dispatch(updateUser(updatedUserData));
+            saveCurrentUser(updatedUserData);
+            upsertUser(updatedUserData);
+
             navigate("/learning-goals");
         } catch (err) {
             toast.error(err || "Failed to save interests. Please try again.");

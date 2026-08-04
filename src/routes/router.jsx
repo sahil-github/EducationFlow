@@ -120,9 +120,10 @@ const RequireCompletedOnboarding = () => {
 // };
 const OnboardingGuard = () => {
     const { user } = useSelector((state) => state.auth);
+    const { profile } = useSelector((state) => state.profile);
     const location = useLocation();
 
-    const currentUser = { ...getCurrentUser(), ...user };
+    const currentUser = { ...getCurrentUser(), ...user, ...profile };
     const path = location.pathname;
 
     console.log("Current User:", currentUser);
