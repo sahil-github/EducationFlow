@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Logo from '../assets/logo/Logo.png';
 import PersonIcon from '@mui/icons-material/Person';
-import NotificationsIcon from '@mui/icons-material/Notifications';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import MenuIcon from '@mui/icons-material/Menu';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -9,35 +8,22 @@ import CloseIcon from '@mui/icons-material/Close';
 import { IconButton, Box, Avatar, Menu, MenuItem, ListItemIcon, Divider, Typography, Drawer, List, ListItem, ListItemButton, ListItemText } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../features/auth/authSlice';
-import { getCurrentUser, clearCurrentUser } from '../utils/storage';
+import { clearCurrentUser } from '../utils/storage';
 import { Search, NotificationsOutlined, SettingsOutlined, LogoutOutlined } from '@mui/icons-material';
 import { NavLink, useNavigate } from 'react-router-dom';
-
 
 function Navbar({ sidebarOpen, setSidebarOpen }) {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const [anchorEl, setAnchorEl] = useState(null);
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
-    const [currentUser, setCurrentUser] = useState(() => getCurrentUser());
 
-    // Read auth state from Redux — the single source of truth.
+    // Single source of truth: Redux state populated by loginUser + getProfile thunks
     const { token, user } = useSelector((state) => state.auth);
-    const showAppNav = !!(token && user?.onboardingCompleted);
+    const { profile } = useSelector((state) => state.profile);
 
-    useEffect(() => {
-        const handleUserUpdate = () => {
-            setCurrentUser(getCurrentUser());
-        };
-
-        window.addEventListener('currentUserUpdate', handleUserUpdate);
-        window.addEventListener('storage', handleUserUpdate); 
-
-        return () => {
-            window.removeEventListener('currentUserUpdate', handleUserUpdate);
-            window.removeEventListener('storage', handleUserUpdate);
-        };
-    }, []);
+    // Show full app nav only when authenticated AND onboarding is complete
+    const showAppNav = !!(token && profile?.isOnboarded);
 
     const profileOpen = Boolean(anchorEl);
 
@@ -160,7 +146,14 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                                     fontWeight: 700,
                                 }}
                             >
-                                {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : <PersonIcon sx={{ fontSize: 18 }} />}
+                                {profile?.fullName
+                                    ? profile.fullName.charAt(0).toUpperCase()
+                                    : user?.fullName
+                                        ? user.fullName.charAt(0).toUpperCase()
+                                        : user?.name
+                                            ? user.name.charAt(0).toUpperCase()
+                                            : <PersonIcon sx={{ fontSize: 18 }} />
+                                }
                             </Avatar>
                         </Box>
                     </Box>
@@ -181,7 +174,14 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                                     fontWeight: 700,
                                 }}
                             >
-                                {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : <PersonIcon sx={{ fontSize: 18 }} />}
+                                {profile?.fullName
+                                    ? profile.fullName.charAt(0).toUpperCase()
+                                    : user?.fullName
+                                        ? user.fullName.charAt(0).toUpperCase()
+                                        : user?.name
+                                            ? user.name.charAt(0).toUpperCase()
+                                            : <PersonIcon sx={{ fontSize: 18 }} />
+                                }
                             </Avatar>
                         </IconButton>
                         <IconButton
@@ -216,10 +216,10 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                 {/* User Info Header */}
                 <Box sx={{ px: 2, py: 1.5 }}>
                     <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 600, fontSize: 14, color: '#fff' }}>
-                        {currentUser.name || 'User'}
+                        {profile?.fullName || user?.fullName || user?.name || "User"}
                     </Typography>
                     <Typography sx={{ fontFamily: 'Manrope, sans-serif', fontSize: 12, color: '#64748B' }}>
-                        {currentUser.email || ''}
+                        {profile?.email || user?.email || ""}
                     </Typography>
                 </Box>
 
@@ -275,9 +275,9 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                 <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
                 <List sx={{ px: 2, py: 2 }}>
                     <ListItem disablePadding>
-                        <ListItemButton 
-                            component={NavLink} 
-                            to="/dashboard" 
+                        <ListItemButton
+                            component={NavLink}
+                            to="/dashboard"
                             onClick={() => setMobileNavOpen(false)}
                             sx={{
                                 borderRadius: '8px',
@@ -289,9 +289,9 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                         </ListItemButton>
                     </ListItem>
                     <ListItem disablePadding>
-                        <ListItemButton 
-                            component={NavLink} 
-                            to="/catalog" 
+                        <ListItemButton
+                            component={NavLink}
+                            to="/catalog"
                             onClick={() => setMobileNavOpen(false)}
                             sx={{
                                 borderRadius: '8px',
@@ -303,9 +303,9 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                         </ListItemButton>
                     </ListItem>
                     <ListItem disablePadding>
-                        <ListItemButton 
-                            component={NavLink} 
-                            to="/my-learning" 
+                        <ListItemButton
+                            component={NavLink}
+                            to="/my-learning"
                             onClick={() => setMobileNavOpen(false)}
                             sx={{
                                 borderRadius: '8px',

@@ -12,6 +12,7 @@ import AppleIcon from '../../assets/icons/applelogo.png';
 import LinkedInIcon from '../../assets/icons/LinkedIn.png';
 import { useDispatch, useSelector } from 'react-redux';
 import { registerUser, socialLoginUser } from '../../features/auth/authThunks';
+import { getProfile } from '../../features/profile/profileThunks';
 
 function Signup() {
     const navigate = useNavigate();
@@ -20,19 +21,20 @@ function Signup() {
 
     const handleSocialLogin = async (provider, providerToken = "oauth_token_from_google_sdk") => {
         try {
-            const res = await dispatch(socialLoginUser({
-                provider: provider,
-                providerToken: providerToken
-            })).unwrap();
+            await dispatch(socialLoginUser({ provider, providerToken })).unwrap();
 
+            // Fetch backend profile to determine onboarding status
+            const profileResult = await dispatch(getProfile()).unwrap();
             toast.success(`${provider} Signup successful!`);
-            if (res?.user?.onboardingCompleted) {
+
+            if (profileResult?.isOnboarded) {
                 navigate("/dashboard");
             } else {
                 navigate("/personal-info");
             }
         } catch (err) {
-            toast.error(err || `${provider} signup failed`);
+            const msg = typeof err === 'string' ? err : err?.message || `${provider} signup failed`;
+            toast.error(msg);
         }
     };
 

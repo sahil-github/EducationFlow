@@ -1,36 +1,34 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Card from '../../../components/Card';
 import Button from '../../../components/Button';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import Slider from '@mui/material/Slider';
+import { toast } from 'react-toastify';
+import { updateSkills } from "../../../features/profile/profileThunks";
 import { updateUser } from "../../../features/auth/authSlice";
-import {
-    getCurrentUser,
-    saveCurrentUser,
-    getUsers,
-    saveUsers,
-} from "../../../utils/storage";
+import { saveCurrentUser, upsertUser } from "../../../utils/storage";
 import { levels } from "../../../constants/constants";
-
 
 function SkillAssesment() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const { loading, profile } = useSelector((state) => state.profile);
+    const { user: authUser } = useSelector((state) => state.auth);
+
     const [skills, setSkills] = useState(() => {
-        const currentUser = getCurrentUser();
-        if (Array.isArray(currentUser.skills)) {
-            return currentUser.skills;
+        // Pre-populate from backend profile if user is resuming onboarding
+        if (Array.isArray(profile?.skills) && profile.skills.length > 0) {
+            return profile.skills;
         }
         return [
             { id: 'Web development', level: 70 },
             { id: 'Public speaking', level: 70 },
-            { id: 'UI/UX Design', level: 70 }
+            { id: 'UI/UX Design', level: 70 },
         ];
     });
-
 
     const getLevelLabel = (value) => {
         if (value <= 32) return "Novice";
@@ -38,20 +36,22 @@ function SkillAssesment() {
         return "Expert";
     };
 
-    const handleContinue = () => {
-        const currentUser = getCurrentUser();
-        const updatedUser = { ...currentUser, skills: skills };
-        saveCurrentUser(updatedUser);
+    const handleContinue = async () => {
+        try {
+            await dispatch(updateSkills(skills)).unwrap();
+            const updatedUserData = {
+                ...authUser,
+                ...profile,
+                skills,
+            };
+            dispatch(updateUser(updatedUserData));
+            saveCurrentUser(updatedUserData);
+            upsertUser(updatedUserData);
 
-        const users = getUsers();
-        const userIndex = users.findIndex(u => u.email === currentUser.email);
-        if (userIndex !== -1) {
-            users[userIndex] = { ...users[userIndex], skills: skills };
-            saveUsers(users);
+            navigate('/review');
+        } catch (err) {
+            toast.error(err || "Failed to save skills. Please try again.");
         }
-
-        dispatch(updateUser({ skills }));
-        navigate('/review');
     };
 
     return (
@@ -73,11 +73,11 @@ function SkillAssesment() {
                         const currentSkill = skills.find(s => s.id === level.id);
                         const skillLevel = currentSkill ? currentSkill.level : 0;
                         return (
-                            <Card key={index} className="w-full   p-4 bg-[#1E293B66]">
+                            <Card key={index} className="w-full p-4 bg-[#1E293B66]">
                                 <div className="flex flex-col ">
                                     <div className='flex flex-row gap-4 justify-between'>
                                         <div className='flex flex-row gap-2 '>
-                                            <p className='text-[#6366F1] bg-gray-500/20  rounded-full'>{level.icon}</p>
+                                            <p className='text-[#6366F1] bg-gray-500/20 rounded-full'>{level.icon}</p>
                                             <p className='text-white'>{level.title}</p>
                                         </div>
                                         <div className='flex flex-row gap-2 justify-end'>
@@ -103,8 +103,7 @@ function SkillAssesment() {
                         )
                     })}
 
-
-                    <Button className='text-[#A1A1AA] w-full border border-dashed border-gray-600 p-4 rounded-3xl text-xs font-bold font-[Manrope] '
+                    <Button className='text-[#A1A1AA] w-full border border-dashed border-gray-600 p-4 rounded-3xl text-xs font-bold font-[Manrope]'
                         variant='ghost'
                     >+ Add another skill</Button>
                 </Card>
@@ -122,10 +121,11 @@ function SkillAssesment() {
 
                     <Button
                         variant="primary"
+                        disabled={loading}
                         onClick={handleContinue}
-                        className="h-8 px-3 bg-[#6366F1] hover:bg-[#4F46E5] text-white font-bold rounded-2xl tracking-wide transition-all duration-200 shadow-lg shadow-[#6366F1]/20 font-[Poppins] text-xs flex items-center gap-1"
+                        className="h-8 px-3 bg-[#6366F1] hover:bg-[#4F46E5] text-white font-bold rounded-2xl tracking-wide transition-all duration-200 shadow-lg shadow-[#6366F1]/20 font-[Poppins] text-xs flex items-center gap-1 disabled:opacity-50"
                     >
-                        Continue
+                        {loading ? 'Saving...' : 'Continue'}
                         <ArrowForwardIcon sx={{ fontSize: 14 }} />
                     </Button>
                 </div>

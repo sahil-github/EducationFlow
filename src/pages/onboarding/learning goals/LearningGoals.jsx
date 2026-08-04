@@ -1,29 +1,27 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Card from '../../../components/Card';
 import Button from '../../../components/Button';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { toast } from 'react-toastify';
 import { validateLearningGoals } from "./validation";
+import { updateGoals } from "../../../features/profile/profileThunks";
 import { updateUser } from "../../../features/auth/authSlice";
-import {
-    getCurrentUser,
-    saveCurrentUser,
-    getUsers,
-    saveUsers,
-} from "../../../utils/storage";
+import { saveCurrentUser, upsertUser } from "../../../utils/storage";
 import SelectField from "../../../components/SelectField";
 import { FIELDS } from "../../../constants/constants";
 
 export default function LearningGoals() {
-
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const { loading, profile } = useSelector((state) => state.profile);
+    const { user: authUser } = useSelector((state) => state.auth);
+
+    // Pre-populate from backend profile if user is resuming onboarding
     const [learningGoal, setLearningGoal] = useState(() => {
-        const currentUser = getCurrentUser();
-        return Array.isArray(currentUser.learningGoal) ? currentUser.learningGoal : [];
+        return Array.isArray(profile?.learningGoal) ? profile.learningGoal : [];
     });
 
     const handleChange = (fieldId, value) => {
@@ -36,10 +34,8 @@ export default function LearningGoals() {
         });
     };
 
-    const handleContinue = () => {
-
-        const { isValid, unfilledFields } =
-            validateLearningGoals(FIELDS, learningGoal);
+    const handleContinue = async () => {
+        const { isValid, unfilledFields } = validateLearningGoals(FIELDS, learningGoal);
 
         if (!isValid) {
             toast.error(
@@ -50,30 +46,23 @@ export default function LearningGoals() {
             return;
         }
 
-        const currentUser = getCurrentUser();
+        try {
+            await dispatch(updateGoals(learningGoal)).unwrap();
+            const updatedUserData = {
+                ...authUser,
+                ...profile,
+                learningGoal,
+            };
+            dispatch(updateUser(updatedUserData));
+            saveCurrentUser(updatedUserData);
+            upsertUser(updatedUserData);
 
-        const updatedUser = {
-            ...currentUser,
-            learningGoal,
-        };
-
-        saveCurrentUser(updatedUser);
-
-        const users = getUsers();
-
-        const userIndex = users.findIndex(
-            user => user.email === currentUser.email
-        );
-
-        if (userIndex !== -1) {
-            users[userIndex] = { ...users[userIndex], learningGoal };
-            saveUsers(users);
+            navigate("/skill-assessment");
+        } catch (err) {
+            toast.error(err || "Failed to save learning goals. Please try again.");
         }
-
-        dispatch(updateUser({ learningGoal }));
-
-        navigate("/skill-assessment");
     };
+
     return (
         <div className="flex justify-center items-center w-full min-h-screen px-4 sm:px-6 py-6 sm:py-6">
             <div className="w-full max-w-3xl flex flex-col gap-6">
@@ -120,10 +109,11 @@ export default function LearningGoals() {
 
                     <Button
                         variant="primary"
+                        disabled={loading}
                         onClick={handleContinue}
-                        className="h-8 px-3 bg-[#6366F1] hover:bg-[#4F46E5] text-white font-bold rounded-2xl tracking-wide transition-all duration-200 shadow-lg shadow-[#6366F1]/20 font-[Poppins] text-xs flex items-center gap-1"
+                        className="h-8 px-3 bg-[#6366F1] hover:bg-[#4F46E5] text-white font-bold rounded-2xl tracking-wide transition-all duration-200 shadow-lg shadow-[#6366F1]/20 font-[Poppins] text-xs flex items-center gap-1 disabled:opacity-50"
                     >
-                        Continue
+                        {loading ? 'Saving...' : 'Continue'}
                         <ArrowForwardIcon sx={{ fontSize: 14 }} />
                     </Button>
                 </div>

@@ -1,163 +1,39 @@
-// import React, { useEffect, useState } from 'react';
-// import { useNavigate } from 'react-router-dom';
-// import Card from '../../components/Card';
-// import Button from '../../components/Button';
-// import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-// import { toast } from 'react-toastify';
-
-// export default function Review() {
-//     const navigate = useNavigate();
-//     const [user, setUser] = useState({});
-
-//     useEffect(() => {
-//         const savedData = JSON.parse(localStorage.getItem("current_user")) || {};
-//         setUser(savedData);
-//     }, []);
-
-//     const handleSubmit = () => {
-//         const currentUser = JSON.parse(localStorage.getItem("current_user")) || {};
-//         const updatedUser = { ...currentUser, onboardingCompleted: true };
-//         localStorage.setItem("current_user", JSON.stringify(updatedUser));
-
-//         const users = JSON.parse(localStorage.getItem("users")) || [];
-//         const userIndex = users.findIndex(u => u.email === currentUser.email);
-//         if (userIndex !== -1) {
-//             users[userIndex] = { ...users[userIndex], onboardingCompleted: true };
-//             localStorage.setItem("users", JSON.stringify(users));
-//         }
-
-//         toast.success('Onboarding profile submitted successfully! Welcome aboard 🎉');
-//         navigate('/home');
-//     };
-
-//     return (
-//         <div className="flex justify-center items-center w-full min-h-screen px-4 sm:px-6 py-6 sm:py-6">
-//             <div className="w-full max-w-3xl flex flex-col gap-6">
-
-//                 {/* Heading */}
-//                 <div className="flex flex-col items-start gap-1">
-//                     <h1 className="font-[Poppins] text-lg sm:text-xl font-bold text-white">
-//                         Review Profile
-//                     </h1>
-//                     <p className="font-[Manrope] text-xs text-[#64748B]">
-//                         Confirm your selections to finalize your cohort onboarding path.
-//                     </p>
-//                 </div>
-
-//                 {/* Card container */}
-//                 <Card>
-//                     <div className="p-6 space-y-4 text-white">
-//                         <div className="flex justify-between py-2.5 border-b border-white/5">
-//                             <span className="text-slate-400 text-sm font-[Manrope]">Name</span>
-//                             <span className="text-white text-sm font-semibold font-[Manrope]">{user.name || 'Not Provided'}</span>
-//                         </div>
-//                         <div className="flex justify-between py-2.5 border-b border-white/5">
-//                             <span className="text-slate-400 text-sm font-[Manrope]">Email</span>
-//                             <span className="text-white text-sm font-semibold font-[Manrope]">{user.email || 'Not Provided'}</span>
-//                         </div>
-//                         <div className="flex justify-between py-2.5 border-b border-white/5">
-//                             <span className="text-slate-400 text-sm font-[Manrope]">Location</span>
-//                             <span className="text-white text-sm font-semibold font-[Manrope]">{user.location || 'Not Provided'}</span>
-//                         </div>
-//                         <div className="flex justify-between py-2.5 border-b border-white/5">
-//                             <span className="text-slate-400 text-sm font-[Manrope]">Learning Goal</span>
-//                             <span className="text-white text-sm font-semibold font-[Manrope] capitalize">
-//                                 {Array.isArray(user.learningGoal)
-//                                     ? user.learningGoal.map(item => item.value).join(', ')
-//                                     : user.learningGoal || 'Not Provided'}
-//                             </span>
-//                         </div>
-//                         <div className="flex justify-between py-2.5 border-b border-white/5">
-//                             <span className="text-slate-400 text-sm font-[Manrope]">Interests Selected</span>
-//                             <span className="text-white text-sm font-semibold font-[Manrope] text-right">
-//                                 {user.interests ? user.interests.map(i => i.exname).join(', ') : 'None'}
-//                             </span>
-//                         </div>
-//                     </div>
-//                 </Card>
-
-//                 {/* Navigation / Action row */}
-//                 <div className="w-full flex items-center justify-between mt-2 p-1">
-//                     <Button
-//                         variant="ghost"
-//                         onClick={() => navigate('/interests')}
-//                         className="flex items-center gap-1.5 text-[#A1A1AA] hover:text-white transition-colors font-[Manrope] text-sm cursor-pointer"
-//                     >
-//                         <ArrowBackIcon fontSize="small" />
-//                         Back
-//                     </Button>
-
-//                     <Button
-//                         variant="primary"
-//                         onClick={handleSubmit}
-//                         className="h-9 px-5 bg-[#6366F1] hover:bg-[#4F46E5] text-white font-bold rounded-2xl tracking-wide transition-all duration-200 shadow-lg shadow-[#6366F1]/20 font-[Poppins] text-xs"
-//                     >
-//                         Confirm & Submit Profile
-//                     </Button>
-//                 </div>
-//             </div>
-//         </div>
-//     );
-// }
-
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { toast } from "react-toastify";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
-import { updateUser } from "../../features/auth/authSlice";
-import {
-    getCurrentUser,
-    saveCurrentUser,
-    upsertUser,
-} from "../../utils/storage";
+import { completeOnboarding } from "../../features/profile/profileThunks";
 
 export default function Review() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const { loading, profile } = useSelector((state) => state.profile);
+    const { user: authUser } = useSelector((state) => state.auth);
 
-    const [user] = useState(() => getCurrentUser());
+    // All data comes from the backend profile stored in Redux —
+    // no localStorage reads needed.
+    const user = profile ?? {};
 
-    const handleSubmit = () => {
-        const updatedUser = {
-            ...user,
-            onboardingCompleted: true,
-        };
+    const handleSubmit = async () => {
+        try {
+            await dispatch(completeOnboarding()).unwrap();
 
-        // Persist to localStorage["user"] and sessionStorage["current_user"]
-        saveCurrentUser(updatedUser);
-
-        // Upsert into the persistent users[] array so mergeLocalOnboardingData()
-        // can restore onboardingCompleted: true on the next login, even though
-        // the backend has no onboarding API yet. upsertUser() inserts the record
-        // if it doesn't exist yet (e.g. fresh email signup) rather than silently
-        // skipping it like the old getUsers().map() approach did.
-        upsertUser(updatedUser);
-
-        // Sync Redux state so route guards allow /dashboard access immediately
-        dispatch(updateUser({ onboardingCompleted: true }));
-
-        toast.success(
-            "Onboarding profile submitted successfully! Welcome aboard 🎉"
-        );
-        navigate("/dashboard");
+            // profileSlice.completeOnboarding.fulfilled sets isOnboarded: true in Redux.
+            // The router guard (RequireCompletedOnboarding) will then allow /dashboard.
+            toast.success("Onboarding profile submitted successfully! Welcome aboard 🎉");
+            navigate("/dashboard");
+        } catch (err) {
+            toast.error(err || "Failed to complete onboarding. Please try again.");
+        }
     };
 
     const profileFields = [
-        {
-            label: "Name",
-            value: user.name,
-        },
-        {
-            label: "Email",
-            value: user.email,
-        },
-        {
-            label: "Location",
-            value: user.location,
-        },
+        { label: "Name",     value: user.fullName || user.name || authUser?.name || authUser?.fullName },
+        { label: "Email",    value: user.email || authUser?.email },
+        { label: "Location", value: user.location },
     ];
 
     return (
@@ -287,10 +163,11 @@ export default function Review() {
 
                     <Button
                         variant="primary"
+                        disabled={loading}
                         onClick={handleSubmit}
-                        className="px-6 h-10 bg-indigo-500 hover:bg-indigo-600 rounded-xl font-semibold"
+                        className="px-6 h-10 bg-indigo-500 hover:bg-indigo-600 rounded-xl font-semibold disabled:opacity-50"
                     >
-                        Confirm & Submit Profile
+                        {loading ? "Submitting..." : "Confirm & Submit Profile"}
                     </Button>
 
                 </div>

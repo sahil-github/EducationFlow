@@ -1,103 +1,135 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { profileApi } from "../../api/profileApi";
+import profileApi from "../../api/profileApi";
 
+// ---------------------------------------------------------------------------
+// Error normaliser — converts Axios errors into readable strings.
+// ---------------------------------------------------------------------------
+const extractMsg = (error, fallback) =>
+    error.response?.data?.message || error.message || fallback;
 
+// ---------------------------------------------------------------------------
+// GET /api/profile/me
+// Fetches the full profile on app load / after login.
+// Returns the profile object which includes isOnboarded, onboardingStep, etc.
+// ---------------------------------------------------------------------------
+export const getProfile = createAsyncThunk(
+    "profile/getProfile",
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await profileApi.getProfile();
+            const resData = response.data;
+            if (resData && typeof resData === "object" && resData.data) {
+                return resData.data;
+            }
+            return resData;
+        } catch (error) {
+            return rejectWithValue(extractMsg(error, "Failed to fetch profile."));
+        }
+    }
+);
 
-// export const updatePersonalInfo = createAsyncThunk(
-//     'profile/updatePersonalInfo',
-//     async (data, { rejectWithValue }) => {
-//         try {
-//             const response = await profileApi.updatePersonalInfo(data);
-//             return response.data;
-//         } catch (error) {
-//             return rejectWithValue(error.response.data);
-//         }
-//     }
-// );
+// ---------------------------------------------------------------------------
+// PUT /api/profile/personal-info  (Step 1)
+// ---------------------------------------------------------------------------
 export const updatePersonalInfo = createAsyncThunk(
     "profile/updatePersonalInfo",
     async (data, { rejectWithValue }) => {
         try {
             const response = await profileApi.updatePersonalInfo(data);
-            return response.data.data;
+            return response.data?.data ?? response.data;
         } catch (error) {
-            return rejectWithValue(
-                error.response?.data?.message || "Failed to update personal info"
-            );
+            return rejectWithValue(extractMsg(error, "Failed to update personal info."));
         }
     }
 );
 
-export const updateSkills = createAsyncThunk(
-    'profile/updateSkills',
+// ---------------------------------------------------------------------------
+// POST /api/profile/avatar
+// ---------------------------------------------------------------------------
+export const uploadAvatar = createAsyncThunk(
+    "profile/uploadAvatar",
     async (data, { rejectWithValue }) => {
         try {
-            const response = await profileApi.updateSkills(data);
-            return response.data.data;
+            const response = await profileApi.uploadAvatar(data);
+            return response.data?.data ?? response.data;
         } catch (error) {
-            return rejectWithValue( error.response?.data?.message);
+            return rejectWithValue(extractMsg(error, "Failed to upload avatar."));
         }
     }
 );
 
+// ---------------------------------------------------------------------------
+// PUT /api/profile/goals  (Step 2)
+// ---------------------------------------------------------------------------
 export const updateGoals = createAsyncThunk(
-    'profile/updateGoals',
+    "profile/updateGoals",
     async (data, { rejectWithValue }) => {
         try {
             const response = await profileApi.updateGoals(data);
-            return response.data.data;
+            return response.data?.data ?? response.data;
         } catch (error) {
-            return rejectWithValue( error.response?.data?.message);
+            return rejectWithValue(extractMsg(error, "Failed to save learning goals."));
         }
     }
 );
 
+// ---------------------------------------------------------------------------
+// GET /api/profile/interests-options  (Step 3 — load options)
+// ---------------------------------------------------------------------------
+export const getInterestOptions = createAsyncThunk(
+    "profile/getInterestOptions",
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await profileApi.getInterestOptions();
+            return response.data?.data ?? response.data;
+        } catch (error) {
+            return rejectWithValue(extractMsg(error, "Failed to load interest options."));
+        }
+    }
+);
+
+// ---------------------------------------------------------------------------
+// PUT /api/profile/interests  (Step 3 — save selection)
+// ---------------------------------------------------------------------------
 export const updateInterests = createAsyncThunk(
-    'profile/updateInterests',
+    "profile/updateInterests",
     async (data, { rejectWithValue }) => {
         try {
             const response = await profileApi.updateInterests(data);
-            return response.data.data;
+            return response.data?.data ?? response.data;
         } catch (error) {
-            return rejectWithValue( error.response?.data?.message);
+            return rejectWithValue(extractMsg(error, "Failed to save interests."));
         }
     }
 );
 
-export const updateAvatar = createAsyncThunk(
-    'profile/updateAvatar',
+// ---------------------------------------------------------------------------
+// PUT /api/profile/skills  (Step 4)
+// ---------------------------------------------------------------------------
+export const updateSkills = createAsyncThunk(
+    "profile/updateSkills",
     async (data, { rejectWithValue }) => {
         try {
-            const response = await profileApi.updateAvatar(data);
-            return {
-                avatarUrl: response.data.avatarUrl
-            }
+            const response = await profileApi.updateSkills(data);
+            return response.data?.data ?? response.data;
         } catch (error) {
-            return rejectWithValue( error.response?.data?.message);
+            return rejectWithValue(extractMsg(error, "Failed to save skills."));
         }
     }
 );
 
+// ---------------------------------------------------------------------------
+// POST /api/profile/complete  (Step 5)
+// Sets isOnboarded = true on the backend.
+// ---------------------------------------------------------------------------
 export const completeOnboarding = createAsyncThunk(
-    'profile/completeOnboarding',
+    "profile/completeOnboarding",
     async (_, { rejectWithValue }) => {
         try {
             const response = await profileApi.completeOnboarding();
-            return response.data.data;
+            return response.data?.data ?? response.data;
         } catch (error) {
-            return rejectWithValue( error.response?.data?.message);
-        }
-    }
-);
-
-export const getProfile = createAsyncThunk(
-    'profile/getProfile',
-    async (_, { rejectWithValue }) => {
-        try {
-            const response = await profileApi.getProfile();
-            return response.data.data;
-        } catch (error) {
-            return rejectWithValue( error.response?.data?.message);
+            return rejectWithValue(extractMsg(error, "Failed to complete onboarding."));
         }
     }
 );

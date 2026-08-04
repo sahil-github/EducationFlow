@@ -13,6 +13,34 @@ import { toast } from 'react-toastify';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser, socialLoginUser } from '../../features/auth/authThunks';
 import { clearError } from '../../features/auth/authSlice';
+import { getProfile } from '../../features/profile/profileThunks';
+
+// ---------------------------------------------------------------------------
+// Resolve the post-login destination using backend profile fields.
+//   isOnboarded   → true  : go to Dashboard
+//   isOnboarded   → false : resume from onboardingStep
+// ---------------------------------------------------------------------------
+function resolvePostLoginRoute(profileData) {
+    const profile = profileData?.data ?? profileData;
+    if (!profile) return "/personal-info";
+    if (profile.isOnboarded === true || profile.isOnboarded === "true") return "/dashboard";
+
+    const step = profile.onboardingStep;
+    switch (step) {
+        case 1:
+            return "/personal-info";
+        case 2:
+            return "/learning-goals";
+        case 3:
+            return "/interests";
+        case 4:
+            return "/skill-assessment";
+        case 5:
+            return "/review";
+        default:
+            return "/personal-info";
+    }
+}
 
 function Login() {
     const navigate = useNavigate();
@@ -21,20 +49,16 @@ function Login() {
 
     const handleSocialLogin = async (provider, providerToken = "oauth_token_from_google_sdk") => {
         try {
-            // TODO: Replace default providerToken with actual SDK token from Google/Apple/LinkedIn
-            const res = await dispatch(socialLoginUser({
-                provider: provider,
-                providerToken: providerToken
-            })).unwrap();
+            // TODO: Replace providerToken with real SDK token from Google/Apple/LinkedIn
+            await dispatch(socialLoginUser({ provider, providerToken })).unwrap();
 
+            // Fetch profile to determine onboarding status
+            const profileResult = await dispatch(getProfile()).unwrap();
             toast.success(`${provider} Login successful!`);
-            if (res?.user?.onboardingCompleted) {
-                navigate("/dashboard");
-            } else {
-                navigate("/personal-info");
-            }
+            navigate(resolvePostLoginRoute(profileResult));
         } catch (err) {
-            toast.error(err || `${provider} login failed`);
+            const msg = typeof err === "string" ? err : err?.message || `${provider} login failed`;
+            toast.error(msg);
         }
     };
 
@@ -46,55 +70,54 @@ function Login() {
         initialValues: {
             email: '',
             password: '',
-            rememberMe: false
+            rememberMe: false,
         },
         validate: (values) => {
             const errors = {};
-
             if (!values.email) {
                 errors.email = 'Email is required';
             } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values.email)) {
                 errors.email = 'Please enter a valid email address';
             }
-
             if (!values.password) {
                 errors.password = 'Password is required';
             } else if (values.password.length < 8) {
                 errors.password = 'Password must be at least 8 characters';
             }
-
             return errors;
         },
         onSubmit: async (values) => {
             try {
-                const res = await dispatch(loginUser({
+                await dispatch(loginUser({
                     email: values.email,
                     password: values.password,
-                    rememberMe: values.rememberMe
+                    rememberMe: values.rememberMe,
                 })).unwrap();
 
+                // Use backend profile as the single source of truth for onboarding status
+                const profileResult = await dispatch(getProfile()).unwrap();
                 toast.success("Login successful!");
-                if (res?.user?.onboardingCompleted) {
-                    navigate("/dashboard");
-                } else {
-                    navigate("/personal-info");
-                }
+                navigate(resolvePostLoginRoute(profileResult));
             } catch (err) {
-                const errorMsg = typeof err === 'string' ? err : err?.message || "Login failed";
+                // err may be a plain string or a typed object { type, message }
+                const errorMsg = typeof err === "string"
+                    ? err
+                    : err?.message || "Login failed";
+
                 toast.error(errorMsg);
-                if (errorMsg.toLowerCase().includes("not found") || errorMsg.toLowerCase().includes("sign up")) {
-                    setTimeout(() => {
-                        navigate("/signup");
-                    }, 1200);
+
+                // USER_NOT_FOUND → redirect to signup after a brief delay
+                if (err?.type === "USER_NOT_FOUND" ||
+                    errorMsg.toLowerCase().includes("not found") ||
+                    errorMsg.toLowerCase().includes("sign up")) {
+                    setTimeout(() => navigate("/signup"), 1200);
                 }
             }
         },
     });
 
     return (
-        <div
-            className="min-h-screen bg-cover bg-center text-white flex flex-col justify-between"
-        >
+        <div className="min-h-screen bg-cover bg-center text-white flex flex-col justify-between">
 
             <nav className="sticky top-0 shadow-md z-50  bg-[#18181C]">
                 {/* Header */}
@@ -108,7 +131,15 @@ function Login() {
             <main className="flex-1 flex items-center justify-center p-6">
                 <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 items-center justify-items-center">
 
-                    <div className="w-full max-w-full md:max-w-sm bg-[#1E1E24]/90 backdrop-blur-md border border-white/10 rounded-4xl p-6 md:p-6 h-96 shadow-2xl flex flex-col justify-start gap-4">
+                    <div
+                        className="w-full max-w-sm mx-auto bg-[#1E1E24]/90 backdrop-blur-md border border-white/10
+                        rounded-3xl
+                        p-4 sm:p-6
+                        min-h-[24rem]
+                        shadow-2xl
+                        flex flex-col
+                        gap-4
+                        "  >
 
                         <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center mb-3 border border-white/10">
                             <AutoAwesomeIcon sx={{ fontSize: 20, color: '#CBD5E1' }} />
