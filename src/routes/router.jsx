@@ -9,6 +9,7 @@ import LearningGoals from '../pages/onboarding/learning goals/LearningGoals'
 import Interests from '../pages/onboarding/Interest/Interest'
 import SkillAssessment from '../pages/onboarding/SkillAssessment/SkillAssesment'
 import Review from '../pages/onboarding/Review'
+import Setting from '../components/Setting/Setting'
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import Mainlayout from '../layout/Mainlayout';
@@ -153,6 +154,7 @@ function AppRoutes() {
                                 <Route path="/dashboard" element={<Dashboard />} />
                                 <Route path='/catalog' element={<Catalog />}></Route>
                                 <Route path='/my-learning' element={<MyLearning />}></Route>
+                                <Route path='/setting' element={<Setting />}></Route>
                             </Route>
 
                             <Route element={<OnboardingGuard />}>

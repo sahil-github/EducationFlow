@@ -115,7 +115,9 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                                 <IconButton sx={{ color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#fff' } }}>
                                     <NotificationsOutlined />
                                 </IconButton>
-                                <IconButton sx={{ color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#fff' } }}>
+                                <IconButton sx={{ color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#fff' } }}
+                                    onClick={() => navigate('/setting')}
+                                >
                                     <SettingsOutlined />
                                 </IconButton>
                             </>
