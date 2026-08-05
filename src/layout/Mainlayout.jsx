@@ -5,6 +5,8 @@ import { Outlet } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getProfile } from '../features/profile/profileThunks';
 
+import { updateUser } from '../features/auth/authSlice';
+
 function Mainlayout() {
     const dispatch = useDispatch();
     const { token } = useSelector((state) => state.auth);
@@ -19,7 +21,11 @@ function Mainlayout() {
     // always have up-to-date isOnboarded / onboardingStep values.
     useEffect(() => {
         if (token) {
-            dispatch(getProfile());
+            dispatch(getProfile()).unwrap().then((profileData) => {
+                if (profileData) {
+                    dispatch(updateUser(profileData));
+                }
+            }).catch(() => {});
         }
     }, [dispatch, token]);
 

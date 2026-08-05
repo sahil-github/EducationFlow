@@ -18,7 +18,7 @@ const extractErrorMessage = (error, fallback) => {
     if (status === 400) return serverMsg || "Invalid request. Please check your input.";
     if (status === 401) return serverMsg || "Invalid email or password.";
     if (status === 403) return serverMsg || "You do not have permission to perform this action.";
-    if (status === 404) return serverMsg || "Resource not found.";
+    if (status === 404) return serverMsg || "Account not found. Please sign up first.";
     if (status === 409) return serverMsg || "An account with this email already exists.";
     if (status >= 500) return "Server error. Please try again later.";
     return serverMsg || error.message || fallback;
@@ -60,7 +60,7 @@ export const loginUser = createAsyncThunk(
                     type: "USER_NOT_FOUND",
                     message:
                         error.response.data?.message ||
-                        "No account exists with this email. Please sign up first.",
+                        "Account not found. Please sign up first.",
                 });
             }
             return rejectWithValue(extractErrorMessage(error, "Login failed."));

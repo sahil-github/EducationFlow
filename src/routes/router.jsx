@@ -33,16 +33,26 @@ export const ROUTES = {
 // page refreshes without guards ever reading localStorage directly.
 // ---------------------------------------------------------------------------
 
+const checkIsOnboarded = (user, profile) =>
+    Boolean(
+        user?.isOnboarded ||
+        user?.onboardingCompleted ||
+        profile?.isOnboarded ||
+        profile?.onboardingCompleted
+    );
+
 /**
  * Prevents already-authenticated users from accessing public auth pages.
  * Redirects to /dashboard (onboarded) or /personal-info (not onboarded).
  */
 const PublicOnlyGuard = () => {
     const { token, user } = useSelector((state) => state.auth);
-    const authenticated = !!(token && user?.email);
+    const { profile } = useSelector((state) => state.profile);
+    const authenticated = !!(token && (user?.email || profile?.email));
+    const isOnboarded = checkIsOnboarded(user, profile);
 
     if (authenticated) {
-        return user?.onboardingCompleted
+        return isOnboarded
             ? <Navigate to="/dashboard" replace />
             : <Navigate to="/personal-info" replace />;
     }
@@ -54,8 +64,10 @@ const PublicOnlyGuard = () => {
  */
 const RequireAuth = () => {
     const { token, user } = useSelector((state) => state.auth);
+    const { profile } = useSelector((state) => state.profile);
+    const authenticated = !!(token && (user?.email || profile?.email));
 
-    if (!token || !user?.email) {
+    if (!authenticated) {
         return <Navigate to="/login" replace />;
     }
     return <Outlet />;
@@ -66,58 +78,15 @@ const RequireAuth = () => {
  */
 const RequireCompletedOnboarding = () => {
     const { user } = useSelector((state) => state.auth);
+    const { profile } = useSelector((state) => state.profile);
+    const isOnboarded = checkIsOnboarded(user, profile);
 
-    if (!user?.onboardingCompleted) {
+    if (!isOnboarded) {
         return <Navigate to="/personal-info" replace />;
     }
     return <Outlet />;
 };
 
-/**
- * Guards the onboarding step routes.
- *
- * - Fully-onboarded users are redirected to /dashboard.
- * - Step prerequisites are checked via getCurrentUser() because each step
- *   saves data to localStorage via saveCurrentUser() without yet dispatching
- *   updateUser() to Redux. This is the only remaining localStorage read in
- *   the guard layer and should be removed once onboarding steps dispatch
- *   updateUser() after saving their data.
- *
- * TODO: dispatch updateUser() from each onboarding step, then replace
- *       getCurrentUser() below with the Redux `user` object.
- */
-// const OnboardingGuard = () => {
-//     const { user } = useSelector((state) => state.auth);
-//     const location = useLocation();
-//     console.log("Current User:", currentUser);
-//     console.log("Current Path:", path);
-//     if (user?.onboardingCompleted) {
-//         return <Navigate to="/dashboard" replace />;
-//     }
-
-//     const currentUser = { ...getCurrentUser(), ...user };
-//     const path = location.pathname;
-
-//     if (
-//         path === "/interests" &&
-//         (!(currentUser.fullName || currentUser.name) || !currentUser.location)
-//     ) {
-//         return <Navigate to="/personal-info" replace />;
-//     }
-//     console.log("Updated User:", updatedUser);
-//     console.log("Current Path:", window.location.pathname);
-//     if (path === '/learning-goals' && (!currentUser.interests || currentUser.interests.length === 0)) {
-//         return <Navigate to="/interests" replace />;
-//     }
-//     if (path === '/skill-assessment' && (!currentUser.learningGoal || (Array.isArray(currentUser.learningGoal) && currentUser.learningGoal.length === 0))) {
-//         return <Navigate to="/learning-goals" replace />;
-//     }
-//     if (path === '/review' && (!currentUser.skills || currentUser.skills.length === 0)) {
-//         return <Navigate to="/skill-assessment" replace />;
-//     }
-
-//     return <Outlet />;
-// };
 const OnboardingGuard = () => {
     const { user } = useSelector((state) => state.auth);
     const { profile } = useSelector((state) => state.profile);
@@ -125,11 +94,9 @@ const OnboardingGuard = () => {
 
     const currentUser = { ...getCurrentUser(), ...user, ...profile };
     const path = location.pathname;
+    const isOnboarded = checkIsOnboarded(user, profile);
 
-    console.log("Current User:", currentUser);
-    console.log("Current Path:", path);
-
-    if (user?.onboardingCompleted) {
+    if (isOnboarded) {
         return <Navigate to="/dashboard" replace />;
     }
 
