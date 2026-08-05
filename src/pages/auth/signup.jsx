@@ -79,6 +79,15 @@ function Signup() {
                     password: values.password
                 })).unwrap();
 
+                try {
+                    const profileResult = await dispatch(getProfile()).unwrap();
+                    if (profileResult) {
+                        dispatch(updateUser(profileResult));
+                    }
+                } catch {
+                    // Profile fetch optional on initial registration fallback
+                }
+
                 toast.success("Registration successful! Let's set up your profile.");
                 navigate("/personal-info");
             } catch (err) {

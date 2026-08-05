@@ -1,9 +1,10 @@
 import Card from "../Card";
-
-
+import AddAPhotoOutlinedIcon from '@mui/icons-material/AddAPhotoOutlined';
+import EditIcon from '@mui/icons-material/Edit';
 
 
 function Setting() {
+
 
     return (
         <div>

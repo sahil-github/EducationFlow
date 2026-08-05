@@ -30,9 +30,9 @@ function resolvePostLoginRoute(profileData) {
         case 1:
             return "/personal-info";
         case 2:
-            return "/learning-goals";
-        case 3:
             return "/interests";
+        case 3:
+            return "/learning-goals";
         case 4:
             return "/skill-assessment";
         case 5:
@@ -54,6 +54,9 @@ function Login() {
 
             // Fetch profile to determine onboarding status
             const profileResult = await dispatch(getProfile()).unwrap();
+            if (profileResult) {
+                dispatch(updateUser(profileResult));
+            }
             toast.success(`${provider} Login successful!`);
             navigate(resolvePostLoginRoute(profileResult));
         } catch (err) {
@@ -96,6 +99,9 @@ function Login() {
 
                 // Use backend profile as the single source of truth for onboarding status
                 const profileResult = await dispatch(getProfile()).unwrap();
+                if (profileResult) {
+                    dispatch(updateUser(profileResult));
+                }
                 toast.success("Login successful!");
                 navigate(resolvePostLoginRoute(profileResult));
             } catch (err) {

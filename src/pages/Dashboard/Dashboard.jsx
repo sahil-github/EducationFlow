@@ -1,8 +1,11 @@
+import { useSelector } from 'react-redux';
 import Card from "../../components/Card";
 import { LocalFireDepartment, AccessTime, WorkspacePremium, SettingsOutlined, BarChartOutlined, DescriptionOutlined, CalendarToday, Star, MenuBook } from '@mui/icons-material';
 
 export const Dashboard = () => {
-
+    const { user: authUser } = useSelector((state) => state.auth);
+    const { profile } = useSelector((state) => state.profile);
+    const displayName = profile?.fullName || profile?.name || authUser?.fullName || authUser?.name || "Learner";
 
     const aboutUser = [
         { title: "Current Streak", value: "12 Days", icon: <LocalFireDepartment sx={{ color: '#f97316' }} /> },
@@ -36,8 +39,7 @@ export const Dashboard = () => {
                 {/* Welcome Section */}
                 <Card className="p-8 bg-gradient-to-br from-[#1c1f28]/80 to-[#1c1f28]/40 border-t-blue-500/20">
                     <h1 className="text-white text-4xl font-bold mb-4">
-                        Welcome back,
-                        {/* {user?.name || 'Alex'}! */}
+                        Welcome back, {displayName}!
                     </h1>
                     <p className="text-gray-400 text-lg max-w-2xl leading-relaxed mb-8">
                         You're doing great! You completed 4 lessons this week. Keep the momentum going to finish <span className="text-white font-semibold">Project Management</span> by Friday.

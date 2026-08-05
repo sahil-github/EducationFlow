@@ -30,18 +30,32 @@ const navItems = [
     { text: 'Review', icon: <CommentIcon />, route: '/review' },
 ];
 
+const ONBOARDING_ROUTES = [
+    '/personal-info',
+    '/interests',
+    '/learning-goals',
+    '/skill-assessment',
+    '/review',
+];
+
 export default function Sidebar({ children, open, setOpen }) {
     const navigate = useNavigate();
     const location = useLocation();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-    // Show the onboarding sidebar ONLY while the user hasn't completed onboarding.
-    // Once onboarding is done (dashboard + all app pages), the Drawer is fully
-    // removed from the DOM — not just hidden — so it takes no space and
-    // imposes no layout offset on the main content area.
     const { user } = useSelector((state) => state.auth);
-    const showSidebar = !user?.onboardingCompleted;
+    const { profile } = useSelector((state) => state.profile);
+
+    const isOnboarded = Boolean(
+        user?.isOnboarded ||
+        user?.onboardingCompleted ||
+        profile?.isOnboarded ||
+        profile?.onboardingCompleted
+    );
+
+    const isOnboardingRoute = ONBOARDING_ROUTES.includes(location.pathname);
+    const showSidebar = isOnboardingRoute && !isOnboarded;
 
     return (
         <Box sx={{ display: 'flex', minHeight: '100vh' }}>
