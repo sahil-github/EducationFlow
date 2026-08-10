@@ -1,5 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import profileApi from "../../api/profileApi";
+import { getCurrentUser } from "../../utils/storage";
 
 // ---------------------------------------------------------------------------
 // Error normaliser — converts Axios errors into readable strings.
@@ -23,14 +24,16 @@ export const getProfile = createAsyncThunk(
             }
             return resData;
         } catch (error) {
+            const localUser = getCurrentUser();
+            if (localUser && (localUser.email || localUser.id)) {
+                return localUser;
+            }
             return rejectWithValue(extractMsg(error, "Failed to fetch profile."));
         }
     }
 );
 
-// ---------------------------------------------------------------------------
-// PUT /api/profile/personal-info  (Step 1)
-// ---------------------------------------------------------------------------
+
 export const updatePersonalInfo = createAsyncThunk(
     "profile/updatePersonalInfo",
     async (data, { rejectWithValue }) => {
@@ -43,9 +46,6 @@ export const updatePersonalInfo = createAsyncThunk(
     }
 );
 
-// ---------------------------------------------------------------------------
-// POST /api/profile/avatar
-// ---------------------------------------------------------------------------
 export const uploadAvatar = createAsyncThunk(
     "profile/uploadAvatar",
     async (data, { rejectWithValue }) => {
@@ -58,9 +58,7 @@ export const uploadAvatar = createAsyncThunk(
     }
 );
 
-// ---------------------------------------------------------------------------
-// PUT /api/profile/goals  (Step 2)
-// ---------------------------------------------------------------------------
+
 export const updateGoals = createAsyncThunk(
     "profile/updateGoals",
     async (data, { rejectWithValue }) => {
@@ -73,9 +71,7 @@ export const updateGoals = createAsyncThunk(
     }
 );
 
-// ---------------------------------------------------------------------------
-// GET /api/profile/interests-options  (Step 3 — load options)
-// ---------------------------------------------------------------------------
+
 export const getInterestOptions = createAsyncThunk(
     "profile/getInterestOptions",
     async (_, { rejectWithValue }) => {
@@ -88,9 +84,7 @@ export const getInterestOptions = createAsyncThunk(
     }
 );
 
-// ---------------------------------------------------------------------------
-// PUT /api/profile/interests  (Step 3 — save selection)
-// ---------------------------------------------------------------------------
+
 export const updateInterests = createAsyncThunk(
     "profile/updateInterests",
     async (data, { rejectWithValue }) => {
@@ -103,9 +97,7 @@ export const updateInterests = createAsyncThunk(
     }
 );
 
-// ---------------------------------------------------------------------------
-// PUT /api/profile/skills  (Step 4)
-// ---------------------------------------------------------------------------
+
 export const updateSkills = createAsyncThunk(
     "profile/updateSkills",
     async (data, { rejectWithValue }) => {
@@ -118,10 +110,6 @@ export const updateSkills = createAsyncThunk(
     }
 );
 
-// ---------------------------------------------------------------------------
-// POST /api/profile/complete  (Step 5)
-// Sets isOnboarded = true on the backend.
-// ---------------------------------------------------------------------------
 export const completeOnboarding = createAsyncThunk(
     "profile/completeOnboarding",
     async (_, { rejectWithValue }) => {
