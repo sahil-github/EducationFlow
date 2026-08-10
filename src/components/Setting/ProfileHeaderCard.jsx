@@ -2,7 +2,7 @@ import React from 'react';
 import EditIcon from '@mui/icons-material/Edit';
 
 export default function ProfileHeaderCard({ user, onEditAvatar, onViewPublicProfile }) {
-    const avatarUrl = user?.avatarUrl || "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=300&auto=format&fit=crop";
+    const avatarUrl = user?.avatarUrl;
     const displayName = user?.fullName || user?.name || "Alex Rivera";
     const roleTitle = user?.bio || user?.role || "Senior Product Designer & Lifelong Learner";
     const joinedDate = user?.joinedDate || "June 2023";
