@@ -8,10 +8,13 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import BookIcon from "@mui/icons-material/Book";
 import PeopleIcon from "@mui/icons-material/People";
 import LayersIcon from "@mui/icons-material/Layers";
+import BookmarkIcon from "@mui/icons-material/Bookmark";
+import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
 import { fetchCourseById, enrollInCourse } from "../../features/courses/coursesThunks";
 import { clearCurrentCourse } from "../../features/courses/coursesSlice";
+import { saveCourseThunk } from "../../features/myLearning/myLearningThunks";
 
 export default function CourseDetails() {
     const { id } = useParams();
@@ -25,6 +28,16 @@ export default function CourseDetails() {
         enrollLoading,
         enrollError,
     } = useSelector((state) => state.courses);
+
+    const { saveLoading } = useSelector((state) => state.myLearning);
+    const [isSavedLocally, setIsSavedLocally] = React.useState(false);
+
+    useEffect(() => {
+        if (course) {
+            setIsSavedLocally(Boolean(course.isSaved));
+        }
+    }, [course]);
+
 
     useEffect(() => {
         if (id) {
@@ -50,6 +63,18 @@ export default function CourseDetails() {
             // Error toast handled by useEffect above
         }
     };
+
+    const handleSave = async () => {
+        try {
+            const res = await dispatch(saveCourseThunk(id)).unwrap();
+            const newStatus = res.isSaved ?? !isSavedLocally;
+            setIsSavedLocally(newStatus);
+            toast.success(newStatus ? "Course saved for later!" : "Course removed from saved!");
+        } catch (err) {
+            toast.error(err || "Failed to update saved status.");
+        }
+    };
+
 
     if (loading) {
         return (
@@ -225,7 +250,26 @@ export default function CourseDetails() {
                                 {enrollLoading ? "Enrolling..." : "Enroll in Course"}
                             </button>
                         )}
+
+                        <button
+                            onClick={handleSave}
+                            disabled={saveLoading}
+                            className="w-full py-2.5 bg-transparent hover:bg-white/5 text-gray-300 hover:text-white rounded-xl text-sm font-medium transition-colors border border-gray-700 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                        >
+                            {isSavedLocally ? (
+                                <>
+                                    <BookmarkIcon fontSize="small" className="text-blue-400" />
+                                    Saved
+                                </>
+                            ) : (
+                                <>
+                                    <BookmarkBorderIcon fontSize="small" />
+                                    Save for Later
+                                </>
+                            )}
+                        </button>
                     </Card>
+
                 </div>
             </div>
         </div>

@@ -2,12 +2,14 @@ import Card from '../../components/Card'
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
     Box,
     ToggleButton,
     ToggleButtonGroup,
 } from "@mui/material";
-import { fetchMyLearning } from "../../features/courses/coursesThunks";
+import { fetchMyLearning } from "../../features/myLearning/myLearningThunks";
 
 const courseFilters = [
     { value: "all", label: "All Courses" },
@@ -16,7 +18,6 @@ const courseFilters = [
 ];
 
 function MyLearning() {
-
     const [filter, setFilter] = useState("all");
     const dispatch = useDispatch();
 
@@ -33,13 +34,13 @@ function MyLearning() {
         }
     };
 
-    // Map API shapes to UI shapes expected by each section
-    const learningCourses = (myLearning.inProgress ?? []).map((course) => ({
-        id: course.id || course._id,
-        category: course.category || course.categoryName || "",
+    // Map API array to UI structure expected by cards
+    const learningCourses = (myLearning?.inProgress ?? []).map((course, idx) => ({
+        id: course.id || course.courseId || idx,
+        category: course.category || course.categoryName || "Course",
         title: course.title || course.courseName || course.name || "",
-        progress: course.progress ?? course.progressPercent ?? course.completionPercent ?? 0,
-        timeLeft: course.timeLeft || course.estimatedTimeLeft || "",
+        progress: course.progress ?? course.progressPercent ?? 0,
+        timeLeft: course.timeLeft || (course.totalLessons && course.completedLessons ? `${course.totalLessons - course.completedLessons} lessons left` : ""),
         buttonText: (course.progress ?? 0) >= 90 ? "Finish Module" : (course.progress ?? 0) > 0 ? "Continue Lesson" : "Start Course",
     }));
 
@@ -226,6 +227,22 @@ function MyLearning() {
                                 ))}
                             </div>
                         )}
+                        {loading ? (
+                            <p className="text-gray-500 text-sm">Loading...</p>
+                        ) : completedCategories.length === 0 ? (
+                            <p className="text-gray-500 text-sm">No completed courses yet.</p>
+                        ) : (
+                            <div className="flex flex-col gap-4">
+                                {completedCategories.map((complete) => (
+                                    <Card className="p-5 rounded-xl border border-gray-800 bg-[#1A1D24] flex flex-col gap-2" key={complete.id}>
+                                        <h3 className="text-white font-bold text-base">{complete.course}</h3>
+                                        <span className="text-xs text-[#0759d9] bg-[#0759d9]/10 border border-[#0759d9]/20 self-start px-2 py-0.5 rounded-md font-medium uppercase tracking-wider">
+                                            {complete.certificateDate}
+                                        </span>
+                                    </Card>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
@@ -252,6 +269,7 @@ function MyLearning() {
                     )}
                 </div>
             )}
+
         </div>
     );
 }
