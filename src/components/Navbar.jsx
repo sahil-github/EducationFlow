@@ -23,7 +23,9 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
     const { profile } = useSelector((state) => state.profile);
 
     // Show full app nav only when authenticated AND onboarding is complete
-    const showAppNav = !!(token && profile?.isOnboarded);
+    const isOnboarded = user?.isOnboarded === true || String(user?.isOnboarded) === "true" ||
+                        profile?.isOnboarded === true || String(profile?.isOnboarded) === "true";
+    const showAppNav = !!(token && isOnboarded);
 
     const profileOpen = Boolean(anchorEl);
 
@@ -315,6 +317,24 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                             }}
                         >
                             <ListItemText primary="My Learning" primaryTypographyProps={{ fontFamily: 'Poppins', fontWeight: 500 }} />
+                        </ListItemButton>
+                    </ListItem>
+                    <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)', my: 1 }} />
+                    <ListItem disablePadding>
+                        <ListItemButton
+                            component={NavLink}
+                            to="/setting"
+                            onClick={() => setMobileNavOpen(false)}
+                            sx={{
+                                borderRadius: '8px',
+                                mb: 1,
+                                '&.active': { backgroundColor: 'rgba(99, 102, 241, 0.1)', color: '#6366F1' }
+                            }}
+                        >
+                            <ListItemIcon sx={{ minWidth: 36, color: 'rgba(255,255,255,0.7)' }}>
+                                <SettingsOutlined fontSize="small" />
+                            </ListItemIcon>
+                            <ListItemText primary="Settings" primaryTypographyProps={{ fontFamily: 'Poppins', fontWeight: 500 }} />
                         </ListItemButton>
                     </ListItem>
                 </List>

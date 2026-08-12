@@ -51,6 +51,8 @@ const dashSlice = createSlice({
 
     extraReducers: (builder) => {
         builder
+            // Reset dashboard state when user logs out
+            .addCase('auth/logout', () => initialState)
 
             
             .addCase(fetchDashboard.pending, (state) => {

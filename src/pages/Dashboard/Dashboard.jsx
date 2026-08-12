@@ -72,10 +72,19 @@ export const Dashboard = () => {
     // Learning stats cards
     // API may return an array or an object; normalise to array of { title, value, icon }
     const aboutUser = (() => {
+        const isLoading = status.summary === 'pending' || status.summary === 'idle';
+        if (isLoading) {
+            return [
+                { title: "Current Streak", value: "...", icon: <LocalFireDepartment sx={{ color: '#f97316' }} /> },
+                { title: "Time Learned", value: "...", icon: <AccessTime sx={{ color: '#60a5fa' }} /> },
+                { title: "Courses Completed", value: "...", icon: <WorkspacePremium sx={{ color: '#facc15' }} /> },
+            ];
+        }
+
         const rawStats = learningStats?.data ?? learningStats ?? summaryData?.stats;
 
         // If learningStats has a structured array
-        if (Array.isArray(rawStats)) {
+        if (Array.isArray(rawStats) && rawStats.length > 0) {
             return rawStats.map((stat) => ({
                 title: stat.title || stat.label || stat.name || "",
                 value: stat.value || stat.count || "",
@@ -96,11 +105,11 @@ export const Dashboard = () => {
             if (result.length > 0) return result;
         }
 
-        // Fallback: static mock (unchanged from original design)
+        // Fallback for real user without stats yet
         return [
-            { title: "Current Streak", value: "12 Days", icon: <LocalFireDepartment sx={{ color: '#f97316' }} /> },
-            { title: "Time Learned", value: "24.5 hrs", icon: <AccessTime sx={{ color: '#60a5fa' }} /> },
-            { title: "Courses Completed", value: "8", icon: <WorkspacePremium sx={{ color: '#facc15' }} /> },
+            { title: "Current Streak", value: "0 Days", icon: <LocalFireDepartment sx={{ color: '#f97316' }} /> },
+            { title: "Time Learned", value: "0 hrs", icon: <AccessTime sx={{ color: '#60a5fa' }} /> },
+            { title: "Courses Completed", value: "0", icon: <WorkspacePremium sx={{ color: '#facc15' }} /> },
         ];
     })();
 
