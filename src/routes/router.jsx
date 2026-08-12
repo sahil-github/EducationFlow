@@ -3,6 +3,7 @@ import SignUp from '../pages/auth/signup'
 import ForgotPassword from '../pages/auth/forgotPassword'
 import Dashboard from '../pages/Dashboard/Dashboard'
 import Catalog from '../pages/Catalog/Catalog'
+import CourseDetails from '../pages/Catalog/CourseDetails'
 import MyLearning from '../pages/MyLearning/MyLearning'
 import PersonalInfo from '../pages/onboarding/PersonalInfo/PersonalInfo'
 import LearningGoals from '../pages/onboarding/learning goals/LearningGoals'
@@ -153,6 +154,7 @@ function AppRoutes() {
                             <Route element={<RequireCompletedOnboarding />}>
                                 <Route path="/dashboard" element={<Dashboard />} />
                                 <Route path='/catalog' element={<Catalog />}></Route>
+                                <Route path="/courses/:id" element={<CourseDetails />} />
                                 <Route path='/my-learning' element={<MyLearning />}></Route>
                                 <Route path='/setting' element={<Setting />}></Route>
                             </Route>

@@ -86,12 +86,10 @@ export const authApi = {
 };
 
 // ---------------------------------------------------------------------------
-// Course API
+// Course API (re-exported from standalone courseApi.js)
 // ---------------------------------------------------------------------------
-// export const courseApi = {
-//     getAll: () => api.get("/api/courses"),
-//     getById: (id) => api.get(`/api/courses/${id}`),
-// };
+export { courseApi, default as CourseApi } from "./courseApi";
+
 
 // ---------------------------------------------------------------------------
 // Named exports — imported directly by authThunks.js
