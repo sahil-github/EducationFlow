@@ -19,7 +19,10 @@ function MyLearning() {
     const [filter, setFilter] = useState("all");
     const dispatch = useDispatch();
 
-    const { myLearning, myLearningLoading } = useSelector((state) => state.courses);
+    const myLearningState = useSelector((state) => state.myLearning || state.courses);
+    const myLearning = myLearningState?.myLearning || {};
+    const loading = Boolean(myLearningState?.loading || myLearningState?.myLearningLoading);
+    const myLearningLoading = loading;
 
     useEffect(() => {
         dispatch(fetchMyLearning());
@@ -42,20 +45,21 @@ function MyLearning() {
         buttonText: (course.progress ?? 0) >= 90 ? "Finish Module" : (course.progress ?? 0) > 0 ? "Continue Lesson" : "Start Course",
     }));
 
-    const courseSavedCategories = (myLearning.savedForLater ?? []).map((course) => ({
-        id: course.id || course._id,
-        category: course.category || course.categoryName || "",
+    const courseSavedCategories = (myLearning?.savedForLater ?? []).map((course, idx) => ({
+        id: course.id || course._id || course.courseId || idx,
+        category: course.category || course.categoryName || "Saved",
         title: course.title || course.courseName || course.name || "",
-        duration: course.duration || course.totalDuration || "",
+        duration: course.duration || course.totalDuration || "Self-paced",
     }));
 
-    const completedCategories = (myLearning.completed ?? []).map((course) => ({
-        id: course.id || course._id,
+    const completedCategories = (myLearning?.completed ?? []).map((course, idx) => ({
+        id: course.id || course._id || course.courseId || idx,
         course: course.title || course.courseName || course.name || "",
-        certificateDate: course.certificateDate || course.completedAt
-            ? `certified ${new Date(course.completedAt || course.certificateDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-            : "Completed",
+        certificateDate: course.certificateDate || (course.completedAt
+            ? `certified ${new Date(course.completedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+            : "Completed"),
     }));
+
     return (
         <div className="w-full max-w-7xl mx-auto p-4 md:p-10 pb-20">
             <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6 mb-10">
@@ -209,22 +213,6 @@ function MyLearning() {
 
                     <div className="w-full lg:w-80 flex flex-col gap-4">
                         <h2 className="text-white text-xl font-semibold mb-4">Completed</h2>
-                        {myLearningLoading ? (
-                            <p className="text-gray-500 text-sm">Loading...</p>
-                        ) : completedCategories.length === 0 ? (
-                            <p className="text-gray-500 text-sm">No completed courses yet.</p>
-                        ) : (
-                            <div className="flex flex-col gap-4">
-                                {completedCategories.map((complete) => (
-                                    <Card className="p-5 rounded-xl border border-gray-800 bg-[#1A1D24] flex flex-col gap-2" key={complete.id}>
-                                        <h3 className="text-white font-bold text-base">{complete.course}</h3>
-                                        <span className="text-xs text-[#0759d9] bg-[#0759d9]/10 border border-[#0759d9]/20 self-start px-2 py-0.5 rounded-md font-medium uppercase tracking-wider">
-                                            {complete.certificateDate}
-                                        </span>
-                                    </Card>
-                                ))}
-                            </div>
-                        )}
                         {loading ? (
                             <p className="text-gray-500 text-sm">Loading...</p>
                         ) : completedCategories.length === 0 ? (
@@ -249,7 +237,7 @@ function MyLearning() {
             {filter === "completed" && (
                 <div className="mt-6">
                     <h2 className="text-white text-xl font-semibold mb-4">Completed</h2>
-                    {myLearningLoading ? (
+                    {loading ? (
                         <p className="text-gray-500 text-sm">Loading...</p>
                     ) : completedCategories.length === 0 ? (
                         <p className="text-gray-500 text-sm">No completed courses yet.</p>
@@ -267,6 +255,7 @@ function MyLearning() {
                     )}
                 </div>
             )}
+
 
         </div>
     );
