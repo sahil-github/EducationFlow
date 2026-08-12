@@ -1,6 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import profileApi from "../../api/profileApi";
-import { getCurrentUser } from "../../utils/storage";
 
 // ---------------------------------------------------------------------------
 // Error normaliser — converts Axios errors into readable strings.
@@ -24,11 +23,25 @@ export const getProfile = createAsyncThunk(
             }
             return resData;
         } catch (error) {
-            const localUser = getCurrentUser();
-            if (localUser && (localUser.email || localUser.id)) {
-                return localUser;
-            }
+            // Do NOT fall back to localStorage — the backend is the single
+            // source of truth for the authenticated user's profile.
             return rejectWithValue(extractMsg(error, "Failed to fetch profile."));
+        }
+    }
+);
+
+// ---------------------------------------------------------------------------
+// GET /api/profile/locations
+// Returns the list of city/country options for the Personal Info step.
+// ---------------------------------------------------------------------------
+export const getLocations = createAsyncThunk(
+    "profile/getLocations",
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await profileApi.getLocations();
+            return response.data?.data ?? response.data;
+        } catch (error) {
+            return rejectWithValue(extractMsg(error, "Failed to load locations."));
         }
     }
 );

@@ -71,12 +71,31 @@ export const authApi = {
     register: (data) =>
         api.post("/api/auth/register", {
             name: data.name || data.fullName || "",
+            fullName: data.fullName || data.name || "",
             email: data.email,
             password: data.password,
         }),
 
     forgotPassword: (email) =>
         api.post("/api/auth/forgot-password", { email }),
+
+    resetPassword: (data) =>
+        api.post("/api/auth/reset-password", data),
+
+    sendOtp: (email) =>
+        api.post("/api/auth/send-otp", { email }),
+
+    verifyOtp: (data) =>
+        api.post("/api/auth/verify-otp", data),
+
+    verifyEmail: (data) =>
+        api.post("/api/auth/verify-email", data),
+
+    refreshToken: (refreshToken) =>
+        api.post("/api/auth/refresh-token", { refreshToken }),
+
+    logout: () =>
+        api.post("/api/auth/logout"),
 
     socialLogin: (data) =>
         api.post("/api/auth/social-login", {
@@ -94,6 +113,17 @@ export { courseApi, default as CourseApi } from "./courseApi";
 // ---------------------------------------------------------------------------
 // Named exports — imported directly by authThunks.js
 // ---------------------------------------------------------------------------
-export const { login, register, forgotPassword, socialLogin } = authApi;
+export const {
+    login,
+    register,
+    forgotPassword,
+    resetPassword,
+    sendOtp,
+    verifyOtp,
+    verifyEmail,
+    refreshToken,
+    logout,
+    socialLogin,
+} = authApi;
 
-export default api;
+export default api;

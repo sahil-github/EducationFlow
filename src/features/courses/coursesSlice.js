@@ -4,6 +4,9 @@ import {
     fetchCategories,
     fetchCourseById,
     enrollInCourse,
+    fetchMyLearning,
+    saveCourseThunk,
+    completeLessonInCourse,
 } from "./coursesThunks";
 
 const initialState = {
@@ -22,6 +25,16 @@ const initialState = {
     categoriesError: null,
     courseDetailsError: null,
     enrollError: null,
+    // My Learning state – populated by GET /api/courses/my-learning
+    myLearning: {
+        all: [],
+        inProgress: [],
+        savedForLater: [],
+        completed: [],
+        totalEnrolled: 0,
+    },
+    myLearningLoading: false,
+    myLearningError: null,
 };
 
 const coursesSlice = createSlice({
@@ -97,6 +110,44 @@ const coursesSlice = createSlice({
             .addCase(enrollInCourse.rejected, (state, action) => {
                 state.enrollLoading = false;
                 state.enrollError = action.payload ?? "Failed to enroll in course";
+            })
+
+            // fetchMyLearning
+            .addCase(fetchMyLearning.pending, (state) => {
+                state.myLearningLoading = true;
+                state.myLearningError = null;
+            })
+            .addCase(fetchMyLearning.fulfilled, (state, action) => {
+                state.myLearningLoading = false;
+                const payload = action.payload ?? {};
+                // Backend returns: { inProgress, savedForLater, completed, all, totalEnrolled }
+                state.myLearning = {
+                    all: payload.all ?? [],
+                    inProgress: payload.inProgress ?? [],
+                    savedForLater: payload.savedForLater ?? [],
+                    completed: payload.completed ?? [],
+                    totalEnrolled: payload.totalEnrolled ?? 0,
+                };
+            })
+            .addCase(fetchMyLearning.rejected, (state, action) => {
+                state.myLearningLoading = false;
+                state.myLearningError = action.payload ?? "Failed to fetch my learning";
+            })
+
+            // saveCourseThunk
+            .addCase(saveCourseThunk.fulfilled, (state, action) => {
+                // If the backend echoes back updated course data, refresh currentCourse
+                if (state.currentCourse && state.currentCourse.id === action.payload?.id) {
+                    state.currentCourse = { ...state.currentCourse, ...action.payload };
+                }
+            })
+
+            // completeLessonInCourse
+            .addCase(completeLessonInCourse.fulfilled, (state, action) => {
+                // Merge updated lesson progress into currentCourse if available
+                if (state.currentCourse && action.payload) {
+                    state.currentCourse = { ...state.currentCourse, ...action.payload };
+                }
             });
     },
 });

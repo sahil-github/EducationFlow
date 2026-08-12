@@ -60,3 +60,45 @@ export const enrollInCourse = createAsyncThunk(
         }
     }
 );
+
+export const fetchMyLearning = createAsyncThunk(
+    "courses/fetchMyLearning",
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await courseApi.getMyLearning();
+            return response.data?.data ?? response.data;
+        } catch (err) {
+            return rejectWithValue(
+                extractMsg(err, "Failed to fetch my learning")
+            );
+        }
+    }
+);
+
+export const saveCourseThunk = createAsyncThunk(
+    "courses/saveCourse",
+    async (id, { rejectWithValue }) => {
+        try {
+            const response = await courseApi.saveCourse(id);
+            return { id, ...(response.data?.data ?? response.data) };
+        } catch (err) {
+            return rejectWithValue(
+                extractMsg(err, "Failed to save course")
+            );
+        }
+    }
+);
+
+export const completeLessonInCourse = createAsyncThunk(
+    "courses/completeLesson",
+    async ({ courseId, lessonId }, { rejectWithValue }) => {
+        try {
+            const response = await courseApi.completeLesson(courseId, lessonId);
+            return response.data?.data ?? response.data;
+        } catch (err) {
+            return rejectWithValue(
+                extractMsg(err, "Failed to mark lesson complete")
+            );
+        }
+    }
+);
