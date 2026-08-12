@@ -319,7 +319,7 @@ export const Dashboard = () => {
                         {liveClasses.map((liveClass, index) => (
                             <div key={liveClass.id || index} className={`relative pl-4 border-l-2 ${liveClass.active ? 'border-blue-500' : 'border-gray-700'}`}>
                                 <div className={`text-[10px] font-bold tracking-wider uppercase mb-1 ${liveClass.active ? 'text-blue-400' : 'text-gray-400'}`}>
-                                    {liveClass.day}, {liveClass.time}
+                                    {liveClass.day} {liveClass.time}
                                 </div>
                                 <div className="text-white font-medium mb-1">{liveClass.title}</div>
                                 <div className="text-xs text-gray-500 mb-4">with {liveClass.with}</div>
