@@ -2,8 +2,6 @@ import Card from '../../components/Card'
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import {
     Box,
     ToggleButton,
