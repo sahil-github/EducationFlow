@@ -7,6 +7,13 @@ import { clearCurrentUser } from "../utils/storage"; // canonical path (not the 
 // ---------------------------------------------------------------------------
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+if (!API_BASE_URL) {
+    throw new Error(
+        "[EducationFlow] VITE_API_BASE_URL is not set.\n" +
+        "• Local dev: add it to your .env file (e.g. VITE_API_BASE_URL=http://localhost:5000)\n" +
+        "• Render deployment: set it in the Render dashboard → Service → Environment tab."
+    );
+}
 
 const api = axios.create({
     baseURL: API_BASE_URL,
