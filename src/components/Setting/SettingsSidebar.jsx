@@ -22,8 +22,8 @@ export default function SettingsSidebar({ activeTab, setActiveTab }) {
                 </div>
             </div>
 
-            {/* Vertical Navigation Menu */}
-            <nav className="flex flex-col gap-2">
+            {/* Navigation Menu (Horizontal scroll on mobile, vertical list on desktop) */}
+            <nav className="flex flex-row lg:flex-col overflow-x-auto lg:overflow-visible gap-2 pb-3 lg:pb-0 scrollbar-hide -mx-4 px-4 lg:mx-0 lg:px-0">
                 {menuItems.map((item) => {
                     const Icon = item.icon;
                     const isActive = activeTab === item.id;
@@ -32,7 +32,7 @@ export default function SettingsSidebar({ activeTab, setActiveTab }) {
                             key={item.id}
                             type="button"
                             onClick={() => setActiveTab(item.id)}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold font-[Poppins] transition-all duration-200 cursor-pointer ${
+                            className={`flex-none lg:w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold font-[Poppins] transition-all duration-200 cursor-pointer whitespace-nowrap ${
                                 isActive
                                     ? 'bg-[#1D61E7] text-white shadow-lg shadow-blue-500/20'
                                     : 'text-[#94A3B8] hover:text-white hover:bg-white/5'

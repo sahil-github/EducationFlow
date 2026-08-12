@@ -8,12 +8,11 @@ function Catalog() {
 
     return (
         <div className="w-full max-w-7xl mx-auto p-4 md:p-10 pb-20">
-            {/* Header Section */}
             <div className="mb-8">
-                <h1 className="text-white text-2xl md:text-4xl font-bold mb-4">
+                <h1 className="text-white text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
                     Course Catalog
                 </h1>
-                <p className="text-gray-400 text-lg max-w-2xl leading-relaxed">
+                <p className="text-gray-400 text-sm sm:text-base md:text-lg max-w-2xl leading-relaxed">
                     Explore a curated library of high-impact courses designed for professionals who want to master the future of work.
                 </p>
             </div>

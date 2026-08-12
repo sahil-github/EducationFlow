@@ -305,9 +305,9 @@ function Login() {
                         </div>
 
                         {/* Footer directly below the Right Card */}
-                        <footer className="w-full flex flex-row justify-between items-center px-1 text-[11px] font-[Manrope] text-[#52525B]">
+                        <footer className="w-full flex flex-col sm:flex-row justify-between items-center gap-3 px-1 text-[11px] font-[Manrope] text-[#52525B] text-center sm:text-left">
                             <span>© 2024 EduFlow Inc.</span>
-                            <div className="flex gap-4">
+                            <div className="flex flex-wrap justify-center gap-4">
                                 <span className="cursor-pointer hover:text-[#A1A1AA] transition-colors">Privacy Policy</span>
                                 <span className="cursor-pointer hover:text-[#A1A1AA] transition-colors">Terms of Service</span>
                                 <span className="cursor-pointer hover:text-[#A1A1AA] transition-colors">Cookie Settings</span>

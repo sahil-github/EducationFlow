@@ -203,11 +203,11 @@ export const Dashboard = () => {
             <div className="col-span-1 lg:col-span-8 flex flex-col gap-12">
 
                 {/* Welcome Section */}
-                <Card className="p-8 bg-gradient-to-br from-[#1c1f28]/80 to-[#1c1f28]/40 border-t-blue-500/20">
-                    <h1 className="text-white text-4xl font-bold mb-4">
+                <Card className="p-5 sm:p-8 bg-gradient-to-br from-[#1c1f28]/80 to-[#1c1f28]/40 border-t-blue-500/20">
+                    <h1 className="text-white text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
                         Welcome back, {displayName}!
                     </h1>
-                    <p className="text-gray-400 text-lg max-w-2xl leading-relaxed mb-8">
+                    <p className="text-gray-400 text-sm sm:text-base md:text-lg max-w-2xl leading-relaxed mb-6 sm:mb-8">
                         {bannerMessage
                             ? <>{bannerMessage} <span className="text-white font-semibold">{bannerHighlight}</span></>
                             : <>You're doing great! You completed 4 lessons this week. Keep the momentum going to finish <span className="text-white font-semibold">Project Management</span> by Friday.</>
@@ -230,21 +230,23 @@ export const Dashboard = () => {
                 {/* Continue Learning */}
                 <div>
                     <div className="flex justify-between items-end mb-6">
-                        <h2 className="text-white text-2xl font-bold tracking-wide">Continue Learning</h2>
+                        <h2 className="text-white text-xl sm:text-2xl font-bold tracking-wide">Continue Learning</h2>
                         <button className="text-blue-500 hover:text-blue-400 text-sm font-semibold tracking-wide transition-colors cursor-pointer">
                             View all
                         </button>
                     </div>
 
-                    <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
+                    <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 scrollbar-hide">
                         {coursesPending.map((course, index) => (
-                            <Card key={index} className="min-w-[320px] max-w-[320px] bg-[#1c1f28]/60 overflow-hidden group cursor-pointer border-transparent hover:border-blue-500/50 transition-colors p-6">
-                                <div className="text-blue-400 text-[10px] font-bold tracking-wider uppercase mb-3">
-                                    {course.module}
+                            <Card key={index} className="min-w-[260px] max-w-[260px] sm:min-w-[320px] sm:max-w-[320px] bg-[#1c1f28]/60 overflow-hidden group cursor-pointer border-transparent hover:border-blue-500/50 transition-colors p-5 sm:p-6 flex flex-col justify-between">
+                                <div>
+                                    <div className="text-blue-400 text-[10px] font-bold tracking-wider uppercase mb-3">
+                                        {course.module}
+                                    </div>
+                                    <h3 className="text-white font-semibold text-lg sm:text-xl mb-6 group-hover:text-blue-400 transition-colors line-clamp-2">
+                                        {course.title}
+                                    </h3>
                                 </div>
-                                <h3 className="text-white font-semibold text-xl mb-8 group-hover:text-blue-400 transition-colors line-clamp-2">
-                                    {course.title}
-                                </h3>
 
                                 <div className="mt-auto">
                                     <div className="flex justify-between items-end mb-3 text-xs font-medium text-gray-400">
