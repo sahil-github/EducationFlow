@@ -2,6 +2,7 @@ import Card from '../../components/Card'
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import {
     Box,
     ToggleButton,
@@ -16,8 +17,10 @@ const courseFilters = [
 ];
 
 function MyLearning() {
+    const navigate = useNavigate();
     const [filter, setFilter] = useState("all");
     const dispatch = useDispatch();
+
 
     const myLearningState = useSelector((state) => state.myLearning || state.courses);
     const myLearning = myLearningState?.myLearning || {};
@@ -170,7 +173,10 @@ function MyLearning() {
                                                 />
                                             </div>
                                         </div>
-                                        <button className="w-full py-2.5 bg-[#0759d9] hover:bg-[#054dbb] text-white rounded-lg text-sm font-semibold transition-colors cursor-pointer">
+                                        <button
+                                            onClick={() => navigate(`/courses/${course.id || 1}/learn`)}
+                                            className="w-full py-2.5 bg-[#0759d9] hover:bg-[#054dbb] text-white rounded-lg text-sm font-semibold transition-colors cursor-pointer"
+                                        >
                                             {course.buttonText}
                                         </button>
                                     </div>
