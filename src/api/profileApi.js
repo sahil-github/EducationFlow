@@ -37,8 +37,12 @@ const profileApi = {
     updateSkills: (data) =>
         api.put("/api/profile/skills", Array.isArray(data) ? { skills: data } : data),
 
+    /** GET /api/profile/locations */
+    getLocations: () => api.get("/api/profile/locations"),
+
     /** POST /api/profile/complete */
     completeOnboarding: () => api.post("/api/profile/complete"),
 };
+
 
 export default profileApi;

@@ -8,6 +8,7 @@ import {
     updateInterests,
     updateSkills,
     completeOnboarding,
+    getLocations,
 } from "./profileThunks";
 
 // ---------------------------------------------------------------------------
@@ -36,6 +37,7 @@ const fulfilled = (state, action) => {
 const initialState = {
     profile: null,       // Full profile from GET /api/profile/me
     interestOptions: [], // From GET /api/profile/interests-options
+    locationOptions: [], // From GET /api/profile/locations
     loading: false,
     error: null,
 };
@@ -94,6 +96,17 @@ const profileSlice = createSlice({
             .addCase(updateSkills.pending, pending)
             .addCase(updateSkills.fulfilled, fulfilled)
             .addCase(updateSkills.rejected, rejected)
+
+            // ── getLocations ─────────────────────────────────────────────────────────
+            .addCase(getLocations.pending, pending)
+            .addCase(getLocations.fulfilled, (state, action) => {
+                state.loading = false;
+                state.locationOptions = action.payload ?? [];
+            })
+            .addCase(getLocations.rejected, (state) => {
+                state.loading = false;
+                // Non-critical: leave locationOptions as empty array on failure
+            })
 
             // ── completeOnboarding ──────────────────────────────────────────
             .addCase(completeOnboarding.pending, pending)

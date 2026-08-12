@@ -64,13 +64,15 @@ const dashSlice = createSlice({
                 state.status.summary = "succeeded";
                 state.summary = action.payload;
 
-                // If composite summary contains detailed sections, populate state fallbacks
+                // Populate other sections from the composite response ONLY when
+                // their dedicated endpoints haven't returned data yet.
+                // NOTE: learningStats is intentionally NOT set here — the composite
+                // /api/dashboard endpoint returns DB-column default values that differ
+                // from the user's real stats. Only fetchLearningStats (which calls
+                // /api/dashboard/stats) may write to state.learningStats.
                 if (action.payload && typeof action.payload === "object") {
                     const data = action.payload;
 
-                    if (data.stats && !state.learningStats) {
-                        state.learningStats = data.stats;
-                    }
                     if (data.liveClasses && (!state.liveClasses || state.liveClasses.length === 0)) {
                         state.liveClasses = data.liveClasses;
                     }

@@ -72,8 +72,16 @@ export const Dashboard = () => {
     // Learning stats cards
     // API may return an array or an object; normalise to array of { title, value, icon }
     const aboutUser = (() => {
-        const isLoading = status.summary === 'pending' || status.summary === 'idle';
-        if (isLoading) {
+        // Show loading placeholder until BOTH summary AND learningStats have resolved.
+        // This prevents the stale DB-column default values (e.g. 12 Days, 24.5 hrs, 8 courses)
+        // that the composite /api/dashboard endpoint returns from ever flashing onscreen.
+        const statsLoading =
+            status.learningStats === 'idle' ||
+            status.learningStats === 'pending' ||
+            status.summary === 'idle' ||
+            status.summary === 'pending';
+
+        if (statsLoading) {
             return [
                 { title: "Current Streak", value: "...", icon: <LocalFireDepartment sx={{ color: '#f97316' }} /> },
                 { title: "Time Learned", value: "...", icon: <AccessTime sx={{ color: '#60a5fa' }} /> },
@@ -105,13 +113,14 @@ export const Dashboard = () => {
             if (result.length > 0) return result;
         }
 
-        // Fallback for real user without stats yet
+        // fetchLearningStats succeeded but returned no usable data — real user with 0 activity
         return [
             { title: "Current Streak", value: "0 Days", icon: <LocalFireDepartment sx={{ color: '#f97316' }} /> },
             { title: "Time Learned", value: "0 hrs", icon: <AccessTime sx={{ color: '#60a5fa' }} /> },
             { title: "Courses Completed", value: "0", icon: <WorkspacePremium sx={{ color: '#facc15' }} /> },
         ];
     })();
+
 
     // Continue learning — map API shape to UI shape: { module, title, progress, lessonsLeft }
     const coursesPending = (() => {

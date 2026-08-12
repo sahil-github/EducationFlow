@@ -14,21 +14,22 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import {
     updatePersonalInfo,
     getProfile,
+    getLocations,
 } from "../../../features/profile/profileThunks";
 import { updateUser } from "../../../features/auth/authSlice";
 import { saveCurrentUser } from "../../../utils/storage";
-import { locations } from '../../../constants/constants';
 
 function PersonalInfo() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
-    const { profile, loading } = useSelector(state => state.profile);
+    const { profile, loading, locationOptions } = useSelector(state => state.profile);
     const { user: authUser } = useSelector(state => state.auth);
     const user = profile; // alias for readability
 
     useEffect(() => {
         dispatch(getProfile());
+        dispatch(getLocations());
     }, [dispatch]);
 
     const [formData, setFormData] = useState({
@@ -167,7 +168,11 @@ function PersonalInfo() {
                                 }}
                             >
                                 <option value="" disabled className="text-gray-900">Select your location</option>
-                                {locations.map(location => <option key={location} value={location} className="bg-[#1E1E2A] text-white">{location}</option>)}
+                                {locationOptions.map(location => {
+                                    const label = typeof location === 'string' ? location : (location.name || location.label || location.city || "");
+                                    const value = typeof location === 'string' ? location : (location.value || label);
+                                    return <option key={value} value={value} className="bg-[#1E1E2A] text-white">{label}</option>;
+                                })}
                             </select>
                         </div>
 
