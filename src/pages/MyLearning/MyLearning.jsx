@@ -67,17 +67,17 @@ function MyLearning() {
         <div className="w-full max-w-7xl mx-auto p-4 md:p-10 pb-20">
             <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6 mb-10">
                 <div>
-                    <h1 className="text-white text-3xl md:text-4xl font-bold mb-2">
+                    <h1 className="text-white text-2xl md:text-3xl font-bold mb-2">
                         My Learning
                     </h1>
-                    <p className="text-gray-400 text-sm md:text-base max-w-2xl leading-relaxed">
+                    <p className="text-gray-400 text-sm sm:text-base md:text-md max-w-2xl leading-relaxed">
                         Track your progress and continue where you left off in your learning journey.
                     </p>
                 </div>
                 <Box
                     sx={{
                         width: "100%",
-                        maxWidth: { xs: "100%", lg: 410 },
+                        maxWidth: { xs: "100%", lg: 340 },
                     }}
                 >
                     <ToggleButtonGroup
@@ -87,7 +87,7 @@ function MyLearning() {
                         aria-label="course filter"
                         sx={{
                             width: "100%",
-                            height: { xs: 44, sm: 48, md: 50 },
+                            height: { xs: 35, sm: 40, md: 45 },
                             padding: "4px",
                             border: "2px solid",
                             borderColor: "#343942",
@@ -110,7 +110,7 @@ function MyLearning() {
                                     height: "100%",
                                     color: "#ffffff",
                                     textTransform: "none",
-                                    fontSize: { xs: "12px", sm: "14px", md: "15px" },
+                                    fontSize: { xs: "10px", sm: "12px", md: "14px" },
                                     fontWeight: 500,
                                     letterSpacing: "0.2px",
                                     "&:hover": {

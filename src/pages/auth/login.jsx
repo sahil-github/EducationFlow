@@ -125,13 +125,15 @@ function Login() {
     return (
         <div className="min-h-screen bg-cover bg-center text-white flex flex-col justify-between">
 
-            <nav className="sticky top-0 shadow-md z-50  bg-[#18181C]">
-                {/* Header */}
-                <header className=" px-6 md:px-10 py-3 flex items-center gap-2">
-                    <img src={Logo} alt='Logo' className='w-10 h-10' />
-                    <span className="font-bold text-lg tracking-wide font-[Poppins] text-[#6366F1]">EduFlow</span>
-                </header>
-            </nav>
+            {/* <nav className="sticky top-0 shadow-md z-50  bg-[#18181C]"> */}
+            {/* Header */}
+            {/* <header className=" px-6 md:px-10 py-3 flex items-center gap-2"> */}
+            <div className="absolute top-6 left-6 md:top-8 md:left-10 flex items-center gap-3 z-10">
+                <img src={Logo} alt='Logo' className='w-10 h-10' />
+                <span className="font-bold text-lg tracking-wide font-[Poppins] text-[#6366F1]">EduFlow</span>
+            </div>
+            {/* </header>
+            </nav> */}
 
             {/* Main Content Area */}
             <main className="flex-1 flex items-center justify-center p-6">
@@ -174,13 +176,13 @@ function Login() {
                     </div>
 
                     {/* Right Column (Card + Footer) */}
-                    <div className="w-full max-w-[390px] flex flex-col gap-5">
+                    <div className="w-full max-w-[390px] flex flex-col gap-2">
                         {/* Right Card - Login Form */}
                         <div className="w-full bg-[#18181C] border border-white/5 rounded-[24px] p-6 md:p-6 shadow-2xl">
                             <h2 className="text-white font-semibold text-xl md:text-2xl font-[Poppins] tracking-tight mb-1.5">
                                 Welcome Back
                             </h2>
-                            <p className="text-[#71717A] text-xs font-[Manrope] mb-6">
+                            <p className="text-[#71717A] text-xs font-[Manrope] mb-3">
                                 Please enter your details to sign in.
                             </p>
 
@@ -191,7 +193,7 @@ function Login() {
                                     type="button"
                                     onClick={() => handleSocialLogin('Google')}
                                     disabled={loading}
-                                    className="w-full h-10 flex items-center justify-center gap-2.5 bg-[#22222A] hover:bg-[#2A2A34] text-white text-xs font-semibold font-[Manrope] rounded-full border border-white/10 transition-all duration-200 cursor-pointer disabled:opacity-50"
+                                    className="w-full h-8 flex items-center justify-center gap-2.5 bg-[#22222A] hover:bg-[#2A2A34] text-white text-xs font-semibold font-[Manrope] rounded-full border border-white/10 transition-all duration-200 cursor-pointer disabled:opacity-50"
                                 >
                                     <img src={GoogleIcon} alt="Google" className="w-3.5 h-3.5" />
                                     Log in with Google
@@ -202,7 +204,7 @@ function Login() {
                                     type="button"
                                     onClick={() => handleSocialLogin('Apple')}
                                     disabled={loading}
-                                    className="w-full h-10 flex items-center justify-center gap-2.5 bg-white hover:bg-gray-100 text-black text-xs font-semibold font-[Manrope] rounded-full transition-all duration-200 cursor-pointer disabled:opacity-50"
+                                    className="w-full h-8 flex items-center justify-center gap-2.5 bg-white hover:bg-gray-100 text-black text-xs font-semibold font-[Manrope] rounded-full transition-all duration-200 cursor-pointer disabled:opacity-50"
                                 >
                                     <img src={AppleIcon} alt="Apple" className="w-3.5 h-3.5" />
                                     Log in with Apple
@@ -213,7 +215,7 @@ function Login() {
                                     type="button"
                                     onClick={() => handleSocialLogin('LinkedIn')}
                                     disabled={loading}
-                                    className="w-full h-10 flex items-center justify-center gap-2.5 bg-[#0077B5] hover:bg-[#00669C] text-white text-xs font-semibold font-[Manrope] rounded-full transition-all duration-200 cursor-pointer disabled:opacity-50"
+                                    className="w-full h-8 flex items-center justify-center gap-2.5 bg-[#0077B5] hover:bg-[#00669C] text-white text-xs font-semibold font-[Manrope] rounded-full transition-all duration-200 cursor-pointer disabled:opacity-50"
                                 >
                                     <img src={LinkedInIcon} alt="LinkedIn" className="w-3.5 h-3.5" />
                                     Log in with LinkedIn
@@ -221,7 +223,7 @@ function Login() {
                             </div>
 
                             {/* OR Divider */}
-                            <div className="flex items-center gap-2.5 mb-2">
+                            <div className="flex items-center gap-2 mb-2">
                                 <div className="flex-1 h-px bg-white/10" />
                                 <span className="text-[#52525B] text-[10px] font-[Manrope] tracking-widest">OR</span>
                                 <div className="flex-1 h-px bg-white/10" />
@@ -245,7 +247,7 @@ function Login() {
                                 {/* Password */}
                                 <Input
                                     label="Password"
-                                   rightElement={
+                                    rightElement={
                                         <NavLink to="/forgot-password">
                                             <span className="text-[#6366F1] text-[11px] font-[Manrope] font-medium cursor-pointer hover:text-[#4F46E5] transition-colors">
                                                 Forgot password?
@@ -263,7 +265,7 @@ function Login() {
                                 />
 
                                 {/* Remember Checkbox */}
-                                <div className="flex items-center gap-1.5 -ml-2">
+                                {/* <div className="flex items-center gap-1 -ml-2">
                                     <Checkbox
                                         size="small"
                                         checked={formik.values.rememberMe}
@@ -271,20 +273,20 @@ function Login() {
                                         sx={{
                                             color: 'rgba(255,255,255,0.2)',
                                             '&.Mui-checked': { color: '#6366F1' },
-                                            padding: '4px',
+                                            padding: '2px',
                                         }}
                                     />
                                     <span className="text-[#A1A1AA] text-xs font-[Manrope]">
                                         Remember for 30 days
                                     </span>
-                                </div>
+                                </div> */}
 
                                 {/* Sign In Button */}
                                 <Button
                                     type="submit"
                                     variant="primary"
                                     disabled={loading}
-                                    className="w-full h-10 bg-[#6366F1] hover:bg-[#4F46E5] text-white font-bold rounded-2xl tracking-wide transition-all duration-200 shadow-lg shadow-[#6366F1]/20 font-[Poppins] !py-2 text-xs"
+                                    className="w-full h-8 bg-[#6366F1] hover:bg-[#4F46E5] text-white font-bold rounded-2xl tracking-wide transition-all duration-200 shadow-lg shadow-[#6366F1]/20 font-[Poppins] !py-2 text-xs"
                                 >
                                     {loading ? "Logging In..." : "Log In"}
                                 </Button>
@@ -302,7 +304,7 @@ function Login() {
                         </div>
 
                         {/* Footer directly below the Right Card */}
-                        <footer className="w-full flex flex-col sm:flex-row justify-between items-center gap-3 px-1 text-[11px] font-[Manrope] text-[#52525B] text-center sm:text-left">
+                        <footer className="w-full flex flex-col sm:flex-row justify-between items-center gap-2 px-1 text-[10px] font-[Manrope] text-[#52525B] text-center sm:text-left">
                             <span>© 2024 EduFlow Inc.</span>
                             <div className="flex flex-wrap justify-center gap-4">
                                 <span className="cursor-pointer hover:text-[#A1A1AA] transition-colors">Privacy Policy</span>

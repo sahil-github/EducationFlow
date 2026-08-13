@@ -116,14 +116,14 @@ export default function CourseDetails() {
     }
 
     return (
-        <div className="w-full max-w-5xl mx-auto p-4 md:p-10 pb-20 text-start text-white">
+        <div className="w-full max-w-7xl mx-auto p-2 md:p-5 pb-20 text-start text-white">
             {/* Back Button */}
             <button
                 onClick={() => navigate("/catalog")}
-                className="flex items-center gap-2 text-gray-400 hover:text-white mb-6 text-sm font-semibold transition-colors cursor-pointer"
+                className="flex items-center gap-2 text-gray-400 hover:text-white mt-2 mb-4 text-sm font-semibold transition-colors cursor-pointer"
             >
                 <ArrowBackIcon fontSize="small" />
-                Back to Catalog
+                Catalog
             </button>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -138,41 +138,41 @@ export default function CourseDetails() {
                                 {course.level}
                             </span>
                         </div>
-                        <h1 className="text-white text-3xl md:text-4xl font-extrabold tracking-tight leading-tight mb-4">
+                        <h1 className="text-white text-2xl md:text-3xl font-extrabold tracking-tight leading-tight mb-4">
                             {course.title}
                         </h1>
-                        <p className="text-gray-400 text-sm md:text-base leading-relaxed">
+                        <p className="text-gray-400 text-xs md:text-sm leading-relaxed">
                             {course.description}
                         </p>
                     </div>
 
-                    <div className="border-t border-b border-white/5 py-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div className="border-t border-b border-white/5 py-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
                         <div className="space-y-1">
-                            <span className="text-xs text-gray-500 font-semibold block uppercase">Rating</span>
+                            <span className="text-xs text-gray-500 font-semibold block uppercase">Rating<StarIcon sx={{ fontSize: 16, color: "#facc15" }} /></span>
                             <div className="flex items-center gap-1">
                                 <span className="font-bold text-white text-lg">{course.rating || "N/A"}</span>
-                                <StarIcon sx={{ fontSize: 16, color: "#facc15" }} />
+
                             </div>
                         </div>
                         <div className="space-y-1">
-                            <span className="text-xs text-gray-500 font-semibold block uppercase">Students</span>
+                            <span className="text-xs text-gray-500 font-semibold block uppercase">Students<PeopleIcon sx={{ fontSize: 16, color: "#60a5fa" }} /></span>
                             <div className="flex items-center gap-1">
                                 <span className="font-bold text-white text-lg">{course.studentsCount || course.students || 0}</span>
-                                <PeopleIcon sx={{ fontSize: 16, color: "#60a5fa" }} />
+
                             </div>
                         </div>
                         <div className="space-y-1">
-                            <span className="text-xs text-gray-500 font-semibold block uppercase">Duration</span>
+                            <span className="text-xs text-gray-500 font-semibold block uppercase">Duration<AccessTimeIcon sx={{ fontSize: 16, color: "#34d399" }} /></span>
                             <div className="flex items-center gap-1">
                                 <span className="font-bold text-white text-lg">{course.duration}</span>
-                                <AccessTimeIcon sx={{ fontSize: 16, color: "#34d399" }} />
+
                             </div>
                         </div>
                         <div className="space-y-1">
-                            <span className="text-xs text-gray-500 font-semibold block uppercase">Modules</span>
+                            <span className="text-xs text-gray-500 font-semibold block uppercase">Modules<LayersIcon sx={{ fontSize: 16, color: "#a78bfa" }} /></span>
                             <div className="flex items-center gap-1">
                                 <span className="font-bold text-white text-lg">{course.totalModules || course.modules || 0}</span>
-                                <LayersIcon sx={{ fontSize: 16, color: "#a78bfa" }} />
+
                             </div>
                         </div>
                     </div>
@@ -204,18 +204,18 @@ export default function CourseDetails() {
 
                 {/* Right Column: Instructor & CTA Card */}
                 <div className="lg:col-span-4 space-y-6">
-                    <Card className="p-6 border border-gray-800 bg-[#1A1D24] space-y-6 shadow-2xl">
+                    <Card className="p-6 border border-gray-800 bg-[#1A1D24] space-y-4 shadow-2xl">
                         {/* Course Thumbnail or Placeholder */}
                         <div className="aspect-video w-full rounded-lg bg-gradient-to-tr from-blue-900 to-indigo-800 flex items-center justify-center text-3xl shadow-inner border border-white/10 relative overflow-hidden">
-                            <span className="text-4xl">📚</span>
+                            <span className="text-3xl"></span>
                         </div>
 
                         <div className="space-y-4">
-                            <div className="flex justify-between items-center text-sm border-b border-white/5 pb-3">
+                            <div className="flex justify-between items-center text-sm border-b border-white/5 pb-2">
                                 <span className="text-gray-400">Instructor</span>
                                 <span className="text-white font-semibold">{course.instructor}</span>
                             </div>
-                            <div className="flex justify-between items-center text-sm border-b border-white/5 pb-3">
+                            <div className="flex justify-between items-center text-sm border-b border-white/5 pb-2">
                                 <span className="text-gray-400">Difficulty</span>
                                 <span className="text-white font-semibold">{course.level}</span>
                             </div>

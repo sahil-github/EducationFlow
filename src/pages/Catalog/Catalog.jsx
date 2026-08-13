@@ -75,10 +75,10 @@ function Catalog() {
         <div className="w-full max-w-7xl mx-auto p-4 md:p-10 pb-20 text-start">
             {/* Header Section */}
             <div className="mb-8">
-                <h1 className="text-white text-2xl sm:text-3xl md:text-4xl font-bold mb-3">
+                <h1 className="text-white text-xl sm:text-2xl md:text-3xl font-bold mb-3">
                     Course Catalog
                 </h1>
-                <p className="text-gray-400 text-sm sm:text-base md:text-lg max-w-2xl leading-relaxed">
+                <p className="text-gray-400 text-sm sm:text-base md:text-md max-w-2xl leading-relaxed">
                     Explore a curated library of high-impact courses designed for professionals who want to master the future of work.
                 </p>
             </div>
@@ -91,8 +91,8 @@ function Catalog() {
                         <button
                             onClick={() => handleCategoryChange("All")}
                             className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${category === "All"
-                                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                                    : "bg-white/5 hover:bg-white/10 text-gray-300"
+                                ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+                                : "bg-white/5 hover:bg-white/10 text-gray-300"
                                 }`}
                         >
                             All
@@ -102,8 +102,8 @@ function Catalog() {
                                 key={cat}
                                 onClick={() => handleCategoryChange(cat)}
                                 className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${category === cat
-                                        ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                                        : "bg-white/5 hover:bg-white/10 text-gray-300"
+                                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+                                    : "bg-white/5 hover:bg-white/10 text-gray-300"
                                     }`}
                             >
                                 {cat}
@@ -118,7 +118,7 @@ function Catalog() {
                         <select
                             value={level}
                             onChange={(e) => handleLevelChange(e.target.value)}
-                            className="bg-[#1c1f28] border border-white/10 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500 cursor-pointer"
+                            className="bg-[#1c1f28] border border-white/10 text-white text-xs rounded-lg px-2 py-1 focus:outline-none focus:border-blue-500 cursor-pointer"
                         >
                             <option value="All Levels">All Levels</option>
                             <option value="Beginner">Beginner</option>
@@ -131,7 +131,7 @@ function Catalog() {
                         <select
                             value={sort}
                             onChange={(e) => handleSortChange(e.target.value)}
-                            className="bg-[#1c1f28] border border-white/10 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500 cursor-pointer"
+                            className="bg-[#1c1f28] border border-white/10 text-white text-xs rounded-lg px-2 py-1 focus:outline-none focus:border-blue-500 cursor-pointer"
                         >
                             <option value="Popularity">Popularity</option>
                             <option value="Newest">Newest</option>
@@ -166,7 +166,7 @@ function Catalog() {
                             <p className="text-sm text-gray-500">Try adjusting your filters or search terms.</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
+                        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 mb-10">
                             {courses.map((course) => (
                                 <Card
                                     key={course.id}
@@ -177,7 +177,7 @@ function Catalog() {
                                     <div className="h-48 w-full relative overflow-hidden flex items-center justify-center bg-gradient-to-br from-indigo-950 via-slate-900 to-blue-950 border-b border-white/5">
                                         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/10 to-transparent"></div>
                                         <h2 className="text-white/10 text-5xl font-extrabold select-none absolute">EduFlow</h2>
-                                        
+
                                         {course.thumbnail && (
                                             <img
                                                 src={course.thumbnail}
@@ -196,22 +196,22 @@ function Catalog() {
                                     </div>
 
                                     {/* Content */}
-                                    <div className="p-6 flex flex-col flex-1 text-start">
-                                        <div className="flex justify-between items-center mb-3">
+                                    <div className="p-4 flex flex-col flex-1 text-start">
+                                        <div className="flex justify-between items-center mb-2">
                                             <span className="text-blue-400 text-[10px] font-bold tracking-wider uppercase bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/15">
                                                 {course.category}
                                             </span>
                                             <span className="text-gray-400 text-xs font-medium">{course.totalModules || course.modules || 0} Modules</span>
                                         </div>
 
-                                        <h3 className="text-white text-lg font-semibold mb-2 group-hover:text-blue-400 transition-colors line-clamp-2 min-h-[3.5rem] leading-snug">
+                                        <h3 className="text-white text-lg font-semibold  group-hover:text-blue-400 transition-colors line-clamp-2 min-h-[3.5rem] leading-snug">
                                             {course.title}
                                         </h3>
-                                        <p className="text-gray-400 text-sm mb-6 flex-1 line-clamp-2">
+                                        <p className="text-gray-400 text-sm mb-2 flex-1 line-clamp-2">
                                             by {course.instructor}
                                         </p>
 
-                                        <div className="flex items-center justify-between mt-auto pt-4 border-t border-white/5">
+                                        <div className="flex items-center justify-between mt-auto pt-1 border-t border-white/5">
                                             <div className="flex items-center gap-1.5 text-gray-400 text-xs font-medium">
                                                 <AccessTime sx={{ fontSize: 16, color: '#34d399' }} />
                                                 <span>{course.duration}</span>
@@ -221,7 +221,7 @@ function Catalog() {
                                                     e.stopPropagation();
                                                     navigate(`/courses/${course.id}`);
                                                 }}
-                                                className="px-5 py-2 bg-[#bfdbfe] hover:bg-blue-300 text-blue-900 text-xs font-bold rounded-lg transition-colors cursor-pointer uppercase"
+                                                className="px-3 py-1 bg-[#bfdbfe] hover:bg-blue-300 text-blue-900 text-xs font-bold rounded-lg transition-colors cursor-pointer uppercase"
                                             >
                                                 View Course
                                             </Button>

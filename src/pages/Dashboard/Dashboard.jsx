@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import Card from "../../components/Card";
 import { LocalFireDepartment, AccessTime, WorkspacePremium, SettingsOutlined, BarChartOutlined, DescriptionOutlined, CalendarToday, Star, MenuBook } from '@mui/icons-material';
@@ -12,6 +12,10 @@ import {
     fetchDownloadResources,
     toggleLiveClassReminder,
 } from '../../features/dashboard/dashThunks';
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 
 // Icon map for module explorer items
 const MODULE_ICON_MAP = {
@@ -44,6 +48,23 @@ export const Dashboard = () => {
         moduleExplorer: reduxModuleExplorer,
         status,
     } = useSelector((state) => state.dashboard);
+    
+    const [showCalendar, setShowCalendar] = useState(false);
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (
+                showCalendar &&
+                !event.target.closest(".calendar-container")
+            ) {
+                setShowCalendar(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [showCalendar]);
 
     const displayName = profile?.fullName || profile?.name || authUser?.fullName || authUser?.name || summary?.user?.name || summary?.user?.fullName || "Learner";
 
@@ -222,7 +243,7 @@ export const Dashboard = () => {
 
                 {/* Welcome Section */}
                 <Card className="p-5 sm:p-8 bg-gradient-to-br from-[#1c1f28]/80 to-[#1c1f28]/40 border-t-blue-500/20">
-                    <h1 className="text-white text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
+                    <h1 className="text-white text-xl sm:text-2xl md:text-3xl font-bold mb-4">
                         Welcome back, {displayName}!
                     </h1>
                     <p className="text-gray-400 text-sm sm:text-base md:text-lg max-w-2xl leading-relaxed mb-6 sm:mb-8">
@@ -232,9 +253,9 @@ export const Dashboard = () => {
                         }
                     </p>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-6">
                         {aboutUser.map((item, index) => (
-                            <div key={index} className="bg-[#13151a]/60 border border-white/5 rounded-2xl p-6 flex flex-col justify-between h-32">
+                            <div key={index} className="bg-[#13151a]/60 border border-white/30 rounded-2xl p-6 flex flex-col justify-between h-25">
                                 <div className="text-gray-400 text-xs font-semibold tracking-wider uppercase mb-2">{item.title}</div>
                                 <div className="flex items-center gap-3">
                                     {item.icon}
@@ -248,10 +269,11 @@ export const Dashboard = () => {
                 {/* Continue Learning */}
                 <div>
                     <div className="flex justify-between items-end mb-6">
-                        <h2 className="text-white text-xl sm:text-2xl font-bold tracking-wide">Continue Learning</h2>
-                        <button className="text-blue-500 hover:text-blue-400 text-sm font-semibold tracking-wide transition-colors cursor-pointer">
+                        <h2 className="text-white text-xl  font-bold tracking-wide">Continue Learning</h2>
+                        {/* <button className="text-blue-500 hover:text-blue-400 text-sm font-semibold tracking-wide transition-colors cursor-pointer">
                             View all
-                        </button>
+                        </button> */}
+                        {/*  dusra kuch dalna hai idhar */}
                     </div>
 
                     <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 scrollbar-hide">
@@ -286,7 +308,7 @@ export const Dashboard = () => {
 
                 {/* Recommended for You */}
                 <div>
-                    <h2 className="text-white text-2xl font-bold tracking-wide mb-6">Recommended for You</h2>
+                    <h2 className="text-white text-xl  font-bold tracking-wide mb-6bacl">Recommended for You</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         {recommendations.map((course, index) => (
                             <Card key={index} className="bg-[#1c1f28]/60 border-transparent hover:border-blue-500/50 transition-colors cursor-pointer flex p-5 items-center gap-6">
@@ -321,7 +343,42 @@ export const Dashboard = () => {
                 <Card className="p-6 bg-[#1c1f28]/60">
                     <div className="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
                         <h3 className="text-white text-lg font-semibold">Live Classes</h3>
-                        <CalendarToday sx={{ color: '#9ca3af', fontSize: 20 }} />
+                        <button
+                            type="button"
+                            onClick={() => setShowCalendar((prev) => !prev)}
+                            className="text-gray-400 hover:text-white transition-colors"
+                            aria-label="Open calendar"
+                        >
+                            <CalendarMonthIcon sx={{ fontSize: 20 }} />
+                        </button>
+                        {showCalendar && (
+                            <div className="absolute right-0 top-8 z-50 rounded-xl bg-[#1c1f28] shadow-xl">
+                                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                    <DateCalendar
+                                        value={selectedDate}
+                                        onChange={(newDate) => {
+                                            setSelectedDate(newDate);
+                                            setShowCalendar(false);
+                                        }}
+                                        sx={{
+                                            color: "white",
+                                            "& .MuiPickersCalendarHeader-label": {
+                                                color: "white",
+                                            },
+                                            "& .MuiDayCalendar-weekDayLabel": {
+                                                color: "white",
+                                            },
+                                            "& .MuiPickersDay-root": {
+                                                color: "white",
+                                            },
+                                            "& .MuiPickersArrowSwitcher-button": {
+                                                color: "white",
+                                            },
+                                        }}
+                                    />
+                                </LocalizationProvider>
+                            </div>
+                        )}
                     </div>
 
                     <div className="space-y-6 mt-6">
