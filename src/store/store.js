@@ -4,6 +4,7 @@ import profileReducer from '../features/profile/profileSlice';
 import dashboardReducer from '../features/dashboard/dashSlice';
 import coursesReducer from '../features/courses/coursesSlice';
 import myLearningReducer from '../features/myLearning/myLearningSlice';
+import settingsReducer from '../features/settings/settingsSlice';
 
 export const store = configureStore({
     reducer: {
@@ -12,6 +13,8 @@ export const store = configureStore({
         dashboard: dashboardReducer,
         courses: coursesReducer,
         myLearning: myLearningReducer,
+        settings: settingsReducer,
     }
 });
+
 

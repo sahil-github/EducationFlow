@@ -4,8 +4,10 @@ import EditIcon from '@mui/icons-material/Edit';
 export default function ProfileHeaderCard({ user, onEditAvatar, onViewPublicProfile }) {
     const avatarUrl = user?.avatarUrl;
     const displayName = user?.fullName || user?.name || "Alex Rivera";
-    const roleTitle = user?.bio || user?.role || "Senior Product Designer & Lifelong Learner";
-    const joinedDate = user?.joinedDate || "June 2023";
+    const roleTitle = user?.headline || user?.bio || user?.role || "Senior Product Designer & Lifelong Learner";
+    const memberStatus = user?.memberStatus || "Pro Member";
+    const rawJoinedDate = user?.joinedDate || "June 2023";
+    const joinedDate = rawJoinedDate.startsWith("Joined") ? rawJoinedDate : `Joined ${rawJoinedDate}`;
 
     return (
         <div className="w-full bg-[#16171D]/90 border border-white/10 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
@@ -38,10 +40,10 @@ export default function ProfileHeaderCard({ user, onEditAvatar, onViewPublicProf
 
                     <div className="flex flex-wrap items-center gap-2 mt-2">
                         <span className="bg-[#1E202B] text-[#93C5FD] text-[11px] font-semibold px-3 py-1 rounded-full border border-blue-500/20 font-[Manrope]">
-                            Pro Member
+                            {memberStatus}
                         </span>
                         <span className="bg-[#1E202B] text-[#94A3B8] text-[11px] font-medium px-3 py-1 rounded-full border border-white/5 font-[Manrope]">
-                            Joined {joinedDate}
+                            {joinedDate}
                         </span>
                     </div>
                 </div>

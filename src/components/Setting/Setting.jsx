@@ -9,12 +9,18 @@ import AccountSecurityCard from './AccountSecurityCard';
 import NotificationPreferencesCard from './NotificationPreferencesCard';
 import SubscriptionPlanCard from './SubscriptionPlanCard';
 import SettingsActionBar from './SettingsActionBar';
-import { getProfile, updatePersonalInfo } from '../../features/profile/profileThunks';
+import {
+    fetchSettings,
+    updateSettingsThunk,
+    updateNotificationPreferencesThunk,
+} from '../../features/settings/settingsThunks';
 import { updateUser } from '../../features/auth/authSlice';
 
 function Setting() {
     const dispatch = useDispatch();
-    const { profile, loading: profileLoading } = useSelector((state) => state.profile);
+
+    const { settingsData, loading: settingsLoading, saving: settingsSaving } = useSelector((state) => state.settings);
+    const { profile } = useSelector((state) => state.profile);
     const { user: authUser } = useSelector((state) => state.auth);
 
     const currentUser = { ...authUser, ...profile };
@@ -22,10 +28,11 @@ function Setting() {
     const [activeTab, setActiveTab] = useState('personal');
 
     const [formData, setFormData] = useState({
-        fullName: 'Alex Rivera',
-        email: 'alex.rivera@edu-flow.com',
-        timezone: 'Central European Time (CET) - UTC+1',
-        phoneNumber: '+1 (555) 000-0000',
+        fullName: '',
+        email: '',
+        headline: '',
+        timezone: '',
+        phoneNumber: '',
     });
 
     const [notificationPreferences, setNotificationPreferences] = useState({
@@ -34,54 +41,92 @@ function Setting() {
         newsletter: false,
     });
 
-    const [saving, setSaving] = useState(false);
-
-    // Sync Redux user state into form state when available
+    // Fetch settings data on mount
     useEffect(() => {
-        if (currentUser?.fullName || currentUser?.name || currentUser?.email) {
+        dispatch(fetchSettings());
+    }, [dispatch]);
+
+    // Populate state whenever settingsData changes
+    useEffect(() => {
+        if (settingsData) {
+            const identity = settingsData.identity || {};
+            const contactRegion = settingsData.contactRegion || {};
+            const notifs = settingsData.notifications || {};
+
+            setFormData({
+                fullName: identity.fullName || currentUser.fullName || currentUser.name || '',
+                email: identity.email || currentUser.email || '',
+                headline: identity.headline || currentUser.headline || currentUser.bio || '',
+                timezone: contactRegion.timezone || currentUser.timezone || '',
+                phoneNumber: contactRegion.phoneNumber || currentUser.phoneNumber || currentUser.phone || '',
+            });
+
+            setNotificationPreferences({
+                courseActivity: notifs.courseActivity ?? true,
+                liveSessions: notifs.liveSessions ?? true,
+                newsletter: notifs.newsletter ?? false,
+            });
+        } else if (currentUser?.fullName || currentUser?.name || currentUser?.email) {
             setFormData((prev) => ({
-                ...prev,
                 fullName: currentUser.fullName || currentUser.name || prev.fullName,
                 email: currentUser.email || prev.email,
+                headline: currentUser.headline || currentUser.bio || prev.headline,
                 phoneNumber: currentUser.phoneNumber || currentUser.phone || prev.phoneNumber,
                 timezone: currentUser.timezone || prev.timezone,
             }));
         }
-    }, [profile, authUser]);
+    }, [settingsData, authUser, profile]);
 
     const handleFormChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleNotificationToggle = (key, checked) => {
-        setNotificationPreferences((prev) => ({ ...prev, [key]: checked }));
+    const handleNotificationToggle = async (key, checked) => {
+        const updatedNotifs = { ...notificationPreferences, [key]: checked };
+        setNotificationPreferences(updatedNotifs);
+
+        try {
+            const res = await dispatch(updateNotificationPreferencesThunk(updatedNotifs)).unwrap();
+            toast.success(res.message || 'Notification preferences updated');
+        } catch (err) {
+            // Revert state on error
+            setNotificationPreferences(notificationPreferences);
+            toast.error(err || 'Failed to update notification preferences');
+        }
     };
 
     const handleDiscard = () => {
-        setFormData({
-            fullName: currentUser.fullName || currentUser.name || 'Alex Rivera',
-            email: currentUser.email || 'alex.rivera@edu-flow.com',
-            timezone: currentUser.timezone || 'Central European Time (CET) - UTC+1',
-            phoneNumber: currentUser.phoneNumber || currentUser.phone || '+1 (555) 000-0000',
-        });
-        setNotificationPreferences({
-            courseActivity: true,
-            liveSessions: true,
-            newsletter: false,
-        });
+        if (settingsData) {
+            const identity = settingsData.identity || {};
+            const contactRegion = settingsData.contactRegion || {};
+            const notifs = settingsData.notifications || {};
+
+            setFormData({
+                fullName: identity.fullName || '',
+                email: identity.email || '',
+                headline: identity.headline || '',
+                timezone: contactRegion.timezone || '',
+                phoneNumber: contactRegion.phoneNumber || '',
+            });
+
+            setNotificationPreferences({
+                courseActivity: notifs.courseActivity ?? true,
+                liveSessions: notifs.liveSessions ?? true,
+                newsletter: notifs.newsletter ?? false,
+            });
+        }
         toast.info('Changes discarded.');
     };
 
     const handleSaveAll = async () => {
-        setSaving(true);
         try {
-            await dispatch(
-                updatePersonalInfo({
+            const res = await dispatch(
+                updateSettingsThunk({
                     fullName: formData.fullName,
-                    location: currentUser.location || '',
-                    bio: currentUser.bio || '',
-                    avatarUrl: currentUser.avatarUrl || '',
+                    headline: formData.headline,
+                    timezone: formData.timezone,
+                    phoneNumber: formData.phoneNumber,
                 })
             ).unwrap();
 
@@ -89,18 +134,23 @@ function Setting() {
                 ...currentUser,
                 fullName: formData.fullName,
                 name: formData.fullName,
-                email: formData.email,
+                headline: formData.headline,
                 phoneNumber: formData.phoneNumber,
                 timezone: formData.timezone,
             };
 
             dispatch(updateUser(updatedUser));
-            toast.success('Settings updated successfully!');
+            toast.success(res.message || 'Profile & Settings updated successfully');
         } catch (err) {
             toast.error(err || 'Failed to save settings updates.');
-        } finally {
-            setSaving(false);
         }
+    };
+
+    // Combine user & API identity for header card
+    const headerUser = {
+        ...currentUser,
+        ...(settingsData?.identity || {}),
+        fullName: formData.fullName || settingsData?.identity?.fullName || currentUser.fullName,
     };
 
     return (
@@ -113,7 +163,7 @@ function Setting() {
                 <div className="flex-1 flex flex-col gap-6">
                     {/* Top Profile Header Card */}
                     <ProfileHeaderCard
-                        user={currentUser}
+                        user={headerUser}
                         onEditAvatar={() => toast.info('Avatar upload modal opened')}
                         onViewPublicProfile={() => toast.info('Navigating to public profile')}
                     />
@@ -126,6 +176,7 @@ function Setting() {
 
                     {/* Account Security Card */}
                     <AccountSecurityCard
+                        security={settingsData?.security}
                         onUpdatePassword={() => toast.info('Password update requested')}
                         onManage2FA={() => toast.info('Opening 2FA management')}
                     />
@@ -138,6 +189,7 @@ function Setting() {
 
                     {/* Subscription Plan Card */}
                     <SubscriptionPlanCard
+                        subscription={settingsData?.subscription}
                         onChangePlan={() => toast.info('Change plan modal opened')}
                         onCancelSubscription={() => toast.warning('Cancel subscription requested')}
                     />
@@ -146,7 +198,7 @@ function Setting() {
                     <SettingsActionBar
                         onDiscard={handleDiscard}
                         onSave={handleSaveAll}
-                        loading={saving || profileLoading}
+                        loading={settingsLoading || settingsSaving}
                     />
                 </div>
             </div>

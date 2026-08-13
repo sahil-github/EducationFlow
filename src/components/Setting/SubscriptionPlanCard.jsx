@@ -2,23 +2,32 @@ import React from 'react';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import VerifiedUserOutlinedIcon from '@mui/icons-material/VerifiedUserOutlined';
 
-export default function SubscriptionPlanCard({ onChangePlan, onCancelSubscription }) {
+export default function SubscriptionPlanCard({ subscription, onChangePlan, onCancelSubscription }) {
+    const planName = subscription?.planName || "EduFlow Pro Plan";
+    const nextBillingDate = subscription?.nextBillingDate || "July 12, 2024";
+    const priceText = subscription?.price || "$19.99 per month";
+    const paymentMethod = subscription?.paymentMethod || "Visa ending in 4242";
+
+    // Split priceText if it contains "per month" or similar format
+    const priceAmount = priceText.includes(" per ") ? priceText.split(" per ")[0] : priceText;
+    const pricePeriod = priceText.includes(" per ") ? `per ${priceText.split(" per ")[1]}` : "per month";
+
     return (
         <div className="w-full bg-[#16171D]/90 border border-white/10 rounded-2xl p-6 shadow-xl flex flex-col gap-5">
             {/* Plan Info & Pricing Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex flex-col gap-1">
                     <h3 className="text-white font-bold text-base font-[Poppins]">
-                        EduFlow Pro Plan
+                        {planName}
                     </h3>
                     <p className="text-[#94A3B8] text-xs font-[Manrope]">
-                        Next billing date: <span className="text-white font-medium">July 12, 2024</span>
+                        Next billing date: <span className="text-white font-medium">{nextBillingDate}</span>
                     </p>
                 </div>
 
                 <div className="self-start sm:self-auto bg-[#1D61E7] text-white px-4 py-2 rounded-xl shadow-lg shadow-blue-500/20 flex flex-col items-center justify-center">
-                    <span className="font-bold text-sm font-[Poppins]">$19.99</span>
-                    <span className="text-[10px] text-blue-200 font-[Manrope]">per month</span>
+                    <span className="font-bold text-sm font-[Poppins]">{priceAmount}</span>
+                    <span className="text-[10px] text-blue-200 font-[Manrope]">{pricePeriod}</span>
                 </div>
             </div>
 
@@ -29,7 +38,7 @@ export default function SubscriptionPlanCard({ onChangePlan, onCancelSubscriptio
                 <div className="flex flex-wrap items-center gap-4 text-[#94A3B8]">
                     <div className="flex items-center gap-1.5">
                         <CreditCardIcon sx={{ fontSize: 16, color: '#94A3B8' }} />
-                        <span>Visa ending in 4242</span>
+                        <span>{paymentMethod}</span>
                     </div>
 
                     <div className="flex items-center gap-1.5">

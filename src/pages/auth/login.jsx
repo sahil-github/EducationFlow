@@ -244,13 +244,10 @@ function Login() {
 
                                 {/* Password */}
                                 <Input
-
                                     label="Password"
-                                    rightElement={
+                                   rightElement={
                                         <NavLink to="/forgot-password">
-                                            <span
-                                                className="text-[#6366F1] text-[11px] font-[Manrope] font-medium cursor-pointer hover:text-[#4F46E5] transition-colors"
-                                            >
+                                            <span className="text-[#6366F1] text-[11px] font-[Manrope] font-medium cursor-pointer hover:text-[#4F46E5] transition-colors">
                                                 Forgot password?
                                             </span>
                                         </NavLink>

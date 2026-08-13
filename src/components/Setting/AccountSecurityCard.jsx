@@ -2,7 +2,12 @@ import React from 'react';
 import VpnKeyOutlinedIcon from '@mui/icons-material/VpnKeyOutlined';
 import PhoneAndroidOutlinedIcon from '@mui/icons-material/PhoneAndroidOutlined';
 
-export default function AccountSecurityCard({ onUpdatePassword, onManage2FA }) {
+export default function AccountSecurityCard({ security, onUpdatePassword, onManage2FA }) {
+    const passwordText = security?.passwordLastChanged || "Last changed 4 months ago";
+    const twoFactorText = security?.twoFactorEnabled
+        ? `Active via ${security?.twoFactorMethod || 'Authenticator App'}`
+        : "Disabled";
+
     return (
         <div className="w-full bg-[#16171D]/90 border border-white/10 rounded-2xl p-6 shadow-xl flex flex-col gap-4">
             {/* Header with Secure Badge */}
@@ -25,7 +30,7 @@ export default function AccountSecurityCard({ onUpdatePassword, onManage2FA }) {
                     <div className="flex flex-col gap-0.5">
                         <h4 className="text-white text-xs font-semibold font-[Poppins]">Password</h4>
                         <p className="text-[#94A3B8] text-[11px] font-[Manrope]">
-                            Last changed 4 months ago
+                            {passwordText}
                         </p>
                         <button
                             type="button"
@@ -45,7 +50,7 @@ export default function AccountSecurityCard({ onUpdatePassword, onManage2FA }) {
                     <div className="flex flex-col gap-0.5">
                         <h4 className="text-white text-xs font-semibold font-[Poppins]">Two-Factor Authentication</h4>
                         <p className="text-[#94A3B8] text-[11px] font-[Manrope]">
-                            Active via Authenticator App
+                            {twoFactorText}
                         </p>
                         <button
                             type="button"

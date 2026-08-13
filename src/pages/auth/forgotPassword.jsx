@@ -103,19 +103,6 @@ function ForgotPassword() {
                             />
 
                             <Input
-                                label="Re-type password"
-                                type="password"
-                                placeholder="Re-type password"
-                                name="retypePassword"
-                                value={formik.values.retypePassword}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
-                                error={formik.touched.retypePassword && formik.errors.retypePassword}
-                                size="small"
-
-                            />
-
-                            <Input
                                 label="New password"
                                 type="password"
                                 placeholder="New password"
@@ -124,6 +111,18 @@ function ForgotPassword() {
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
                                 error={formik.touched.newPassword && formik.errors.newPassword}
+                                size="small"
+
+                            />
+                            <Input
+                                label="Re-type password"
+                                type="password"
+                                placeholder="Re-type password"
+                                name="retypePassword"
+                                value={formik.values.retypePassword}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                error={formik.touched.retypePassword && formik.errors.retypePassword}
                                 size="small"
 
                             />
