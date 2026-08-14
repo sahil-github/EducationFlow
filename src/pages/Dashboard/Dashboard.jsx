@@ -48,7 +48,7 @@ export const Dashboard = () => {
         moduleExplorer: reduxModuleExplorer,
         status,
     } = useSelector((state) => state.dashboard);
-    
+
     const [showCalendar, setShowCalendar] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date());
     useEffect(() => {
@@ -253,7 +253,7 @@ export const Dashboard = () => {
                         }
                     </p>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 sm:gap-6">
                         {aboutUser.map((item, index) => (
                             <div key={index} className="bg-[#13151a]/60 border border-white/30 rounded-2xl p-6 flex flex-col justify-between h-25">
                                 <div className="text-gray-400 text-xs font-semibold tracking-wider uppercase mb-2">{item.title}</div>
