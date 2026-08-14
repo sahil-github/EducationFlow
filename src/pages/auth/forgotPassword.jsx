@@ -4,14 +4,16 @@ import Logo from '../../assets/logo/Logo.png';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import Input from "../../components/Inputs";
 import { useFormik } from "formik";
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useDispatch, useSelector } from 'react-redux';
 import { sendPasswordReset } from '../../features/auth/authThunks';
 import { clearResetError } from '../../features/auth/authSlice';
+import { resetPassword } from '../../api/api';
 
 function ForgotPassword() {
     const navigate = useNavigate();
+    const location = useLocation();
     const dispatch = useDispatch();
     const { resetLoading } = useSelector((state) => state.auth);
 
@@ -21,7 +23,7 @@ function ForgotPassword() {
 
     const formik = useFormik({
         initialValues: {
-            email: '',
+            email: location.state?.email || '',
             retypePassword: '',
             newPassword: ''
         },
@@ -45,18 +47,33 @@ function ForgotPassword() {
         },
         onSubmit: async (values) => {
             try {
-                await dispatch(sendPasswordReset(values.email)).unwrap();
-                toast.success("Password reset link sent to your email!");
+                // First get the reset token
+                const resetResponse = await dispatch(sendPasswordReset(values.email)).unwrap();
+                const resetToken = resetResponse.resetToken || resetResponse.otp;
+
+                if (!resetToken) {
+                    throw new Error("Did not receive reset token from server");
+                }
+
+                // Then immediately reset the password
+                await resetPassword({
+                    email: values.email,
+                    token: resetToken,
+                    newPassword: values.newPassword
+                });
+
+                toast.success("Password changed successfully");
                 navigate("/login");
             } catch (err) {
-                toast.error(err || "Failed to send reset email");
+                const msg = err?.response?.data?.message || err?.message || typeof err === 'string' ? err : "Failed to reset password";
+                toast.error(msg);
             }
         },
     });
 
     return (
-        <div className="min-h-screen bg-cover bg-center text-white flex flex-col justify-between">
-            <nav className="sticky top-0 shadow-md z-50 bg-[#18181C]">
+        <div className="min-h-screen lg:h-screen lg:overflow-hidden overflow-y-auto bg-cover bg-center text-white flex flex-col justify-between">
+            <nav className="w-full bg-transparent">
                 {/* Header */}
                 <header className="px-6 md:px-10 py-3 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
@@ -73,8 +90,8 @@ function ForgotPassword() {
             </nav>
 
             {/* Main Content Area */}
-            <main className="flex-1 flex items-center justify-center p-6">
-                <div className="w-full max-w-[420px] flex flex-col gap-5">
+            <main className="flex-1 flex items-center justify-center p-2 sm:p-4">
+                <div className="w-full max-w-[420px] flex flex-col gap-3">
                     {/* Forgot Password Form */}
                     <div className="w-full bg-[#18181C] border border-white/5 rounded-[24px] p-6 md:p-8 shadow-2xl">
                         {/* <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center mb-6 border border-white/10 mx-auto">
@@ -88,7 +105,7 @@ function ForgotPassword() {
                             Enter the email address associated with your account and we'll send you a link to reset your password.
                         </p>
 
-                        <form onSubmit={formik.handleSubmit} noValidate className="flex flex-col gap-5">
+                        <form onSubmit={formik.handleSubmit} noValidate className="flex flex-col gap-4">
                             {/* Email */}
                             <Input
                                 label="Email Address"

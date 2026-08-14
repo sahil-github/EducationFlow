@@ -123,26 +123,35 @@ function Login() {
     });
 
     return (
-        <div className="min-h-screen bg-cover bg-center text-white flex flex-col justify-between">
+        <div className="min-h-screen lg:h-screen lg:overflow-hidden overflow-y-auto bg-cover bg-center text-white flex flex-col justify-between">
 
-            {/* <nav className="sticky top-0 shadow-md z-50  bg-[#18181C]"> */}
-            {/* Header */}
-            {/* <header className=" px-6 md:px-10 py-3 flex items-center gap-2"> */}
-            <div className="absolute top-6 left-6 md:top-8 md:left-10 flex items-center gap-3 z-10">
-                <img src={Logo} alt='Logo' className='w-10 h-10' />
-                <span className="font-bold text-lg tracking-wide font-[Poppins] text-[#6366F1]">EduFlow</span>
-            </div>
-            {/* </header>
-            </nav> */}
+            <nav className="w-full bg-transparent">
+                {/* Header */}
+                <header className="px-8 md:px-12 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
+                    <div className="flex items-center gap-2">
+                        <NavLink to="/" className="flex items-center gap-2">
+                            <img src={Logo} alt='Logo' className='w-10 h-10' />
+                            <span className="font-bold text-xl tracking-wide font-[Poppins] text-[#6366F1]">EduFlow</span>
+                        </NavLink>
+                    </div>
+
+                    <span className="text-[#A1A1AA] text-xs font-[Manrope]">
+                        Don't have an account?{' '}
+                        <NavLink to="/signup" className="text-[#6366F1] font-semibold hover:text-[#4F46E5] transition-colors ml-1">
+                            Sign up for free
+                        </NavLink>
+                    </span>
+                </header>
+            </nav>
 
             {/* Main Content Area */}
-            <main className="flex-1 flex items-center justify-center p-6">
+            <main className="flex-1 flex items-center justify-center p-2 sm:p-4">
                 <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 items-center justify-items-center">
 
                     <div
                         className="w-full max-w-sm mx-auto bg-[#1E1E24]/90 backdrop-blur-md border border-white/10
                         rounded-3xl
-                        p-4 sm:p-6
+                        p-3 sm:p-6
                         min-h-[24rem]
                         shadow-2xl
                         flex flex-col
@@ -153,7 +162,7 @@ function Login() {
                             <AutoAwesomeIcon sx={{ fontSize: 20, color: '#CBD5E1' }} />
                         </div>
 
-                        <h1 className="text-white font-bold text-2xl md:text-3xl sm:text-xl font-[Poppins] leading-tight tracking-tight mb-3">
+                        <h1 className="text-white font-bold text-xl md:text-2xl sm:text-xl font-[Poppins] leading-tight tracking-tight mb-2">
                             Unleash your <br />visionary potential.
                         </h1>
 
@@ -178,7 +187,7 @@ function Login() {
                     {/* Right Column (Card + Footer) */}
                     <div className="w-full max-w-[390px] flex flex-col gap-2">
                         {/* Right Card - Login Form */}
-                        <div className="w-full bg-[#18181C] border border-white/5 rounded-[24px] p-6 md:p-6 shadow-2xl">
+                        <div className="w-full bg-[#18181C] border border-white/5 rounded-[24px] p-4 md:p-6 shadow-2xl min-h-[24rem] flex flex-col justify-center">
                             <h2 className="text-white font-semibold text-xl md:text-2xl font-[Poppins] tracking-tight mb-1.5">
                                 Welcome Back
                             </h2>
@@ -230,7 +239,7 @@ function Login() {
                             </div>
 
                             {/* Form */}
-                            <form onSubmit={formik.handleSubmit} noValidate className="flex flex-col gap-4">
+                            <form onSubmit={formik.handleSubmit} noValidate className="flex flex-col gap-5">
                                 {/* Email */}
                                 <Input
                                     label="Email Address"
@@ -248,11 +257,20 @@ function Login() {
                                 <Input
                                     label="Password"
                                     rightElement={
-                                        <NavLink to="/forgot-password">
-                                            <span className="text-[#6366F1] text-[11px] font-[Manrope] font-medium cursor-pointer hover:text-[#4F46E5] transition-colors">
-                                                Forgot password?
-                                            </span>
-                                        </NavLink>
+                                        <span
+                                            onClick={() => {
+                                                if (!formik.values.email) {
+                                                    toast.error("Please enter your email first");
+                                                } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formik.values.email)) {
+                                                    toast.error("Please enter a valid email address");
+                                                } else {
+                                                    navigate('/forgot-password', { state: { email: formik.values.email } });
+                                                }
+                                            }}
+                                            className="text-[#6366F1] text-[11px] font-[Manrope] font-medium cursor-pointer hover:text-[#4F46E5] transition-colors"
+                                        >
+                                            Forgot password?
+                                        </span>
                                     }
                                     type="password"
                                     placeholder="••••••••"
@@ -290,16 +308,6 @@ function Login() {
                                 >
                                     {loading ? "Logging In..." : "Log In"}
                                 </Button>
-
-                                {/* Sign Up Link */}
-                                <p className="text-center text-[#A1A1AA] text-xs font-[Manrope]">
-                                    Don't have an account?{' '}
-                                    <NavLink to="/signup">
-                                        <span className="text-[#6366F1] font-medium cursor-pointer hover:text-[#4F46E5] transition-colors">
-                                            Sign up for free
-                                        </span>
-                                    </NavLink>
-                                </p>
                             </form>
                         </div>
 

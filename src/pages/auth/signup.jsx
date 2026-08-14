@@ -103,12 +103,11 @@ function Signup() {
     });
 
 
-
-    return (
+  return (
         <div
             className="min-h-screen bg-cover bg-center text-white flex flex-col justify-between"
         >
-            <nav className="sticky top-0 shadow-md  z-50 bg-[#18181C]">
+            <nav className="w-full bg-transparent">
                 {/* Header */}
                 <header className="px-8 md:px-12 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
                     <div className="flex items-center gap-2">

@@ -84,7 +84,7 @@ function Catalog() {
             </div>
 
             {/* Filter Bar */}
-            <Card className="p-4 mb-8 bg-[#13151a]/80 border-white/5 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+            <Card className="p-6 mb-8 bg-[#13151a]/80 border-white/5 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
                 <div className="flex flex-col md:flex-row md:items-center gap-3 w-full lg:w-auto">
                     <span className="text-gray-400 text-sm font-medium">Categories:</span>
                     <div className="flex flex-wrap gap-2">
@@ -112,8 +112,8 @@ function Catalog() {
                     </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 w-full lg:w-auto">
-                    <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
+                <div className="flex flex-row  sm:flex-row items-start sm:items-center gap- sm:gap-6 w-full lg:w-auto">
+                    <div className="flex items-center  gap-2 w-full sm:w-auto">
                         <span className="text-gray-400 text-sm">Difficulty:</span>
                         <select
                             value={level}
@@ -126,7 +126,7 @@ function Catalog() {
                             <option value="Advanced">Advanced</option>
                         </select>
                     </div>
-                    <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
+                    <div className="flex items-center gap-2  w-full sm:w-auto">
                         <span className="text-gray-400 text-sm">Sort:</span>
                         <select
                             value={sort}
@@ -166,7 +166,7 @@ function Catalog() {
                             <p className="text-sm text-gray-500">Try adjusting your filters or search terms.</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 mb-10">
+                        <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-6 mb-10">
                             {courses.map((course) => (
                                 <Card
                                     key={course.id}
