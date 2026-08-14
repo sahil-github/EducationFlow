@@ -24,9 +24,8 @@ function Catalog() {
     const [category, setCategory] = useState("All");
     const [level, setLevel] = useState("All Levels");
     const [sort, setSort] = useState("Popularity");
-    const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
-    const limit = 6;
+    const limit = 8;
 
     // Fetch categories on mount
     useEffect(() => {
@@ -41,7 +40,6 @@ function Catalog() {
                     category,
                     level,
                     sort,
-                    search,
                     page,
                     limit,
                 })
@@ -49,7 +47,7 @@ function Catalog() {
         }, 300);
 
         return () => clearTimeout(delayDebounceFn);
-    }, [dispatch, category, level, sort, search, page]);
+    }, [dispatch, category, level, sort, page]);
 
     const handleCategoryChange = (cat) => {
         setCategory(cat);
@@ -63,11 +61,6 @@ function Catalog() {
 
     const handleSortChange = (srt) => {
         setSort(srt);
-        setPage(1);
-    };
-
-    const handleSearchChange = (val) => {
-        setSearch(val);
         setPage(1);
     };
 
@@ -112,7 +105,7 @@ function Catalog() {
                     </div>
                 </div>
 
-                <div className="flex flex-row  sm:flex-row items-start sm:items-center gap- sm:gap-6 w-full lg:w-auto">
+                <div className="flex flex-row flex-wrap items-center gap-3 sm:gap-6 w-full lg:w-auto">
                     <div className="flex items-center  gap-2 w-full sm:w-auto">
                         <span className="text-gray-400 text-sm">Difficulty:</span>
                         <select
