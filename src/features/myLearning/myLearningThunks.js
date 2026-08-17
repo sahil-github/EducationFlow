@@ -24,7 +24,7 @@ export const fetchMyLearning = createAsyncThunk(
 );
 
 // ---------------------------------------------------------------------------
-// POST /api/courses/:id/save
+// POST /api/courses/save/:id
 // Toggles the saved-for-later status for a course
 // ---------------------------------------------------------------------------
 export const saveCourseThunk = createAsyncThunk(
@@ -42,7 +42,7 @@ export const saveCourseThunk = createAsyncThunk(
 );
 
 // ---------------------------------------------------------------------------
-// POST /api/courses/:id/complete-lesson
+// POST /api/courses/complete-lesson/:id
 // Marks a specific lesson as complete for a course
 // ---------------------------------------------------------------------------
 export const completeLessonInCourse = createAsyncThunk(

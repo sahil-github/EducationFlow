@@ -6,8 +6,8 @@ import api from "./api";
 // interceptor in api.js — never attach it manually here.
 // ---------------------------------------------------------------------------
 const profileApi = {
-    /** GET /api/profile/me — fetch the full profile for the logged-in user */
-    getProfile: () => api.get("/api/profile/me"),
+    /** GET /api/profile/my-profile — fetch the full profile for the logged-in user */
+    getProfile: () => api.get("/api/profile/my-profile"),
 
     /** PUT /api/profile/personal-info */
     updatePersonalInfo: (data) =>

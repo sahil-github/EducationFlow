@@ -19,6 +19,20 @@ export const fetchCourses = createAsyncThunk(
     }
 );
 
+export const createCourseThunk = createAsyncThunk(
+    "courses/createCourse",
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await courseApi.createCourse(data);
+            return response.data?.data ?? response.data;
+        } catch (err) {
+            return rejectWithValue(
+                extractMsg(err, "Failed to create course")
+            );
+        }
+    }
+);
+
 export const fetchCategories = createAsyncThunk(
     "courses/fetchCategories",
     async (_, { rejectWithValue }) => {

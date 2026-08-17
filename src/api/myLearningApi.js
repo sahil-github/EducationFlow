@@ -4,12 +4,12 @@ export const myLearningApi = {
     /** GET /api/courses/my-learning */
     getMyLearning: () => api.get("/api/courses/my-learning"),
 
-    /** POST /api/courses/:id/save */
-    saveCourse: (id) => api.post(`/api/courses/${id}/save`),
+    /** POST /api/courses/save/:id */
+    saveCourse: (id) => api.post(`/api/courses/save/${id}`),
 
-    /** POST /api/courses/:id/complete-lesson */
+    /** POST /api/courses/complete-lesson/:id */
     completeLesson: (id, lessonId) =>
-        api.post(`/api/courses/${id}/complete-lesson`, { lessonId }),
+        api.post(`/api/courses/complete-lesson/${id}`, { lessonId }),
 };
 
 export default myLearningApi;

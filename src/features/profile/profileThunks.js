@@ -8,7 +8,7 @@ const extractMsg = (error, fallback) =>
     error.response?.data?.message || error.message || fallback;
 
 // ---------------------------------------------------------------------------
-// GET /api/profile/me
+// GET /api/profile/my-profile
 // Fetches the full profile on app load / after login.
 // Returns the profile object which includes isOnboarded, onboardingStep, etc.
 // ---------------------------------------------------------------------------

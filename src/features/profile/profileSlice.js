@@ -35,7 +35,7 @@ const fulfilled = (state, action) => {
 };
 
 const initialState = {
-    profile: null,       // Full profile from GET /api/profile/me
+    profile: null,       // Full profile from GET /api/profile/my-profile
     interestOptions: [], // From GET /api/profile/interests-options
     locationOptions: [], // From GET /api/profile/locations
     loading: false,
