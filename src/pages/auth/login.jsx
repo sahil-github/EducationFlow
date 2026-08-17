@@ -12,7 +12,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser, socialLoginUser } from '../../features/auth/authThunks';
-import { clearError } from '../../features/auth/authSlice';
+import { clearError, updateUser } from '../../features/auth/authSlice';
 import { getProfile } from '../../features/profile/profileThunks';
 
 // ---------------------------------------------------------------------------
