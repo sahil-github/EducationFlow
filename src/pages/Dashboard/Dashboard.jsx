@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import Card from "../../components/Card";
 import { LocalFireDepartment, AccessTime, WorkspacePremium, SettingsOutlined, BarChartOutlined, DescriptionOutlined, CalendarToday, Star, MenuBook } from '@mui/icons-material';
@@ -51,6 +51,31 @@ export const Dashboard = () => {
 
     const [showCalendar, setShowCalendar] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date());
+
+    // Continue Learning carousel
+    const carouselRef = useRef(null);
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(true);
+
+    const updateScrollButtons = () => {
+        const el = carouselRef.current;
+        if (!el) return;
+        setCanScrollLeft(el.scrollLeft > 0);
+        setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+    };
+
+    const scrollCarousel = (direction) => {
+        const el = carouselRef.current;
+        if (!el) return;
+        const scrollAmount = el.clientWidth * 0.75;
+        el.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+    };
+
+    // Seed initial arrow state once carousel content renders
+    useEffect(() => {
+        updateScrollButtons();
+    });
+
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (
@@ -270,45 +295,88 @@ export const Dashboard = () => {
                 <div>
                     <div className="flex justify-between items-end mb-6">
                         <h2 className="text-white text-xl  font-bold tracking-wide">Continue Learning</h2>
-                        {/* <button className="text-blue-500 hover:text-blue-400 text-sm font-semibold tracking-wide transition-colors cursor-pointer">
-                            View all
-                        </button> */}
                         {/*  dusra kuch dalna hai idhar */}
                     </div>
 
-                    <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 scrollbar-hide">
-                        {coursesPending.map((course, index) => (
-                            <Card key={index} className="min-w-[260px] max-w-[260px] sm:min-w-[320px] sm:max-w-[320px] bg-[#1c1f28]/60 overflow-hidden group cursor-pointer border-transparent hover:border-blue-500/50 transition-colors p-5 sm:p-6 flex flex-col justify-between">
-                                <div>
-                                    <div className="text-blue-400 text-[10px] font-bold tracking-wider uppercase mb-3">
-                                        {course.module}
-                                    </div>
-                                    <h3 className="text-white font-semibold text-lg sm:text-xl mb-6 group-hover:text-blue-400 transition-colors line-clamp-2">
-                                        {course.title}
-                                    </h3>
-                                </div>
+                    {/* Carousel wrapper — arrows sit outside the scroll container */}
+                    <div className="flex items-center gap-2">
 
-                                <div className="mt-auto">
-                                    <div className="flex justify-between items-end mb-3 text-xs font-medium text-gray-400">
-                                        <span>{course.progress}% Complete</span>
-                                        <span>{course.lessonsLeft} lessons left</span>
+                        {/* Left arrow */}
+                        <button
+                            aria-label="Scroll left"
+                            onClick={() => scrollCarousel('left')}
+                            disabled={!canScrollLeft}
+                            className={[
+                                "shrink-0 w-9 h-9 rounded-full flex items-center justify-center",
+                                "border transition-all duration-200",
+                                canScrollLeft
+                                    ? "border-white/20 bg-[#1c1f28] text-white hover:bg-blue-600 hover:border-blue-500 cursor-pointer"
+                                    : "border-white/5 bg-[#1c1f28]/40 text-white/20 cursor-not-allowed",
+                            ].join(' ')}
+                        >
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                        </button>
+
+                        {/* Scrollable cards container */}
+                        <div
+                            ref={carouselRef}
+                            onScroll={updateScrollButtons}
+                            className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 mb-2 scrollbar-hide flex-nowrap scroll-smooth"
+                        >
+                            {coursesPending.map((course, index) => (
+                                <Card key={index} className="min-w-[260px] max-w-[260px] sm:min-w-[320px] sm:max-w-[320px] bg-[#1c1f28]/60 overflow-hidden group cursor-pointer border-transparent hover:border-blue-500/50 transition-colors p-5 sm:p-6 flex flex-col justify-between">
+                                    <div>
+                                        <div className="text-blue-400 text-[10px] font-bold tracking-wider uppercase mb-3">
+                                            {course.module}
+                                        </div>
+                                        <h3 className="text-white font-semibold text-lg sm:text-xl mb-6 group-hover:text-blue-400 transition-colors line-clamp-2">
+                                            {course.title}
+                                        </h3>
                                     </div>
 
-                                    <div className="w-full bg-[#13151a] rounded-full h-1.5 overflow-hidden">
-                                        <div
-                                            className="bg-blue-500 h-1.5 rounded-full"
-                                            style={{ width: `${course.progress}%` }}
-                                        ></div>
+                                    <div className="mt-auto">
+                                        <div className="flex justify-between items-end mb-3 text-xs font-medium text-gray-400">
+                                            <span>{course.progress}% Complete</span>
+                                            <span>{course.lessonsLeft} lessons left</span>
+                                        </div>
+
+                                        <div className="w-full bg-[#13151a] rounded-full h-1.5 overflow-hidden">
+                                            <div
+                                                className="bg-blue-500 h-1.5 rounded-full"
+                                                style={{ width: `${course.progress}%` }}
+                                            ></div>
+                                        </div>
                                     </div>
-                                </div>
-                            </Card>
-                        ))}
+                                </Card>
+                            ))}
+                        </div>
+
+                        {/* Right arrow */}
+                        <button
+                            aria-label="Scroll right"
+                            onClick={() => scrollCarousel('right')}
+                            disabled={!canScrollRight}
+                            className={[
+                                "shrink-0 w-9 h-9 rounded-full flex items-center justify-center",
+                                "border transition-all duration-200",
+                                canScrollRight
+                                    ? "border-white/20 bg-[#1c1f28] text-white hover:bg-blue-600 hover:border-blue-500 cursor-pointer"
+                                    : "border-white/5 bg-[#1c1f28]/40 text-white/20 cursor-not-allowed",
+                            ].join(' ')}
+                        >
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                        </button>
+
                     </div>
                 </div>
 
                 {/* Recommended for You */}
                 <div>
-                    <h2 className="text-white text-xl  font-bold tracking-wide mb-6bacl">Recommended for You</h2>
+                    <h2 className="text-white text-xl  font-bold tracking-wide mb-6">Recommended for You</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         {recommendations.map((course, index) => (
                             <Card key={index} className="bg-[#1c1f28]/60 border-transparent hover:border-blue-500/50 transition-colors cursor-pointer flex p-5 items-center gap-6">

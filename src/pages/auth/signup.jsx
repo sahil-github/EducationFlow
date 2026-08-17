@@ -12,6 +12,7 @@ import AppleIcon from '../../assets/icons/applelogo.png';
 import LinkedInIcon from '../../assets/icons/LinkedIn.png';
 import { useDispatch, useSelector } from 'react-redux';
 import { registerUser, socialLoginUser } from '../../features/auth/authThunks';
+import { updateUser } from '../../features/auth/authSlice';
 import { getProfile } from '../../features/profile/profileThunks';
 
 function Signup() {
