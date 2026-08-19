@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -12,13 +12,33 @@ import LightbulbOutlinedIcon from "@mui/icons-material/LightbulbOutlined";
 import TaskAltIcon from "@mui/icons-material/TaskAlt";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import ThumbUpOutlinedIcon from "@mui/icons-material/ThumbUpOutlined";
+import ThumbUpIcon from "@mui/icons-material/ThumbUp";
+import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
+import SendIcon from "@mui/icons-material/Send";
+
 import Card from "../../components/Card";
 import Button from "../../components/Button";
 import { clearCoursePlayer } from "../../features/courses/coursesSlice";
-import { fetchCourseById, fetchCoursePlayer, completeLessonInCourse, getCourseNotes, addCourseNote } from "../../features/courses/coursesThunks";
-// Default fallback lesson structure
+import {
+    fetchCourseById,
+    fetchCoursePlayer,
+    completeLessonInCourse,
+    getCourseNotes,
+    addCourseNote,
+    deleteCourseNote,
+    getCourseQnA,
+    addCourseQuestion,
+    replyToQuestion,
+    upvoteQuestion,
+    getCourseResources,
+    downloadCourseResource,
+    fetchLessonById,
+    saveLessonProgress,
+} from "../../features/courses/coursesThunks";
 
+// Default fallback lesson structure
 const DEFAULT_LESSONS = [
     {
         id: "l_1",
@@ -62,27 +82,45 @@ export default function CoursePlayer() {
         coursePlayerData,
         coursePlayerLoading: loading,
         coursePlayerError: error,
+        notesList,
+        notesLoading,
+        addingNote,
+        deletingNoteId,
+        qnaList,
+        qnaLoading,
+        addingQuestion,
+        replyingQuestionId,
+        upvotingQuestionId,
+        resourcesList,
+        resourcesLoading,
+        downloadingResourceId,
+        activeLessonData,
     } = useSelector((state) => state.courses);
-
-    const { notesList } = useSelector((state) => state.courses);
-
-    useEffect(() => {
-        dispatch(
-            getCourseNotes(id),
-        );
-    }, [dispatch, id]);
 
     const [activeTab, setActiveTab] = useState("about");
     const [isPlaying, setIsPlaying] = useState(false);
     const [selectedLessonId, setSelectedLessonId] = useState(null);
     const [completedLessonIds, setCompletedLessonIds] = useState(new Set());
     const [noteContent, setNoteContent] = useState("");
-    const [addingNote, setAddingNote] = useState(false);
     const [videoTime, setVideoTime] = useState(0);
+
+    // Q&A form states
+    const [questionInput, setQuestionInput] = useState("");
+    const [activeReplyId, setActiveReplyId] = useState(null);
+    const [replyInputs, setReplyInputs] = useState({});
+
+    const [completingLesson, setCompletingLesson] = useState(false);
+    const lastProgressSavedRef = useRef(0);
+    const videoRef = useRef(null);
+
+    // Load initial data on mount or course id change
     useEffect(() => {
         if (id) {
             dispatch(fetchCoursePlayer(id));
             dispatch(fetchCourseById(id));
+            dispatch(getCourseNotes(id));
+            dispatch(getCourseQnA(id));
+            dispatch(getCourseResources(id));
         }
         return () => {
             dispatch(clearCoursePlayer());
@@ -92,124 +130,140 @@ export default function CoursePlayer() {
     // Normalize potential backend response nesting shapes
     const playerData = coursePlayerData?.data ?? coursePlayerData?.course ?? coursePlayerData;
 
-    // Derive lessons list from API response (playlist or modules)
+    // Derive lessons list from API response (playlist, lessons, modules, curriculum, or activeLesson)
     const lessonsList = (() => {
-        const playlist = playerData?.playlist || playerData?.lessons;
-        if (playlist && Array.isArray(playlist) && playlist.length > 0) {
-            return playlist.map((les, index) => ({
-                id: les.id || les._id || les.lessonId || `l_${index + 1}`,
-                title: les.title || les.name || `Lesson ${index + 1}`,
-                duration: les.duration || "10:00",
-                videoUrl: les.videoUrl || les.url || "",
-                description: les.description || "",
-                keyObjectives: les.keyObjectives || [],
-                proTips: les.proTips || "",
-                status: completedLessonIds.has(les.id || les._id || les.lessonId || `l_${index + 1}`)
-                    ? "completed"
-                    : les.status || (les.isCompleted ? "completed" : index === 0 ? "active" : "upcoming"),
-            }));
+        const rawPlaylist = playerData?.playlist || playerData?.lessons || playerData?.curriculum || playerData?.syllabus || currentCourse?.playlist || currentCourse?.lessons || currentCourse?.curriculum;
+        if (rawPlaylist && Array.isArray(rawPlaylist) && rawPlaylist.length > 0) {
+            return rawPlaylist.map((les, index) => {
+                const lid = les.id || les._id || les.lessonId || `l_${index + 1}`;
+                return {
+                    id: lid,
+                    title: les.title || les.name || les.topic || `Lesson ${index + 1}`,
+                    duration: les.duration || les.time || "10:00",
+                    videoUrl: les.videoUrl || les.url || les.streamUrl || "",
+                    description: les.description || "",
+                    keyObjectives: les.keyObjectives || les.objectives || [],
+                    proTips: les.proTips || les.tips || "",
+                    status: completedLessonIds.has(lid)
+                        ? "completed"
+                        : les.status || (les.isCompleted ? "completed" : index === 0 ? "active" : "upcoming"),
+                };
+            });
         }
 
-        const modules = playerData?.modules || currentCourse?.modules;
-        if (modules && Array.isArray(modules) && modules.length > 0) {
+        const rawModules = playerData?.modules || currentCourse?.modules;
+        if (rawModules && Array.isArray(rawModules) && rawModules.length > 0) {
             const allLessons = [];
-            modules.forEach((mod, modIdx) => {
-                if (Array.isArray(mod.lessons)) {
-                    mod.lessons.forEach((les, lesIdx) => {
+            rawModules.forEach((mod, modIdx) => {
+                const modLessons = mod.lessons || mod.items || mod.topics || mod.lectures || mod.content;
+                if (Array.isArray(modLessons) && modLessons.length > 0) {
+                    modLessons.forEach((les, lesIdx) => {
+                        const lid = (typeof les === "object") ? (les.id || les._id || les.lessonId || `l_${modIdx + 1}_${lesIdx + 1}`) : `l_${modIdx + 1}_${lesIdx + 1}`;
+                        const title = (typeof les === "object") ? (les.title || les.name || les.topic || `Lesson ${lesIdx + 1}`) : String(les);
                         allLessons.push({
-                            id: les.id || les._id || les.lessonId || `l_${modIdx + 1}_${lesIdx + 1}`,
-                            title: les.title || les.name || `Lesson ${lesIdx + 1}`,
-                            duration: les.duration || "10:00",
-                            videoUrl: les.videoUrl || les.url || "",
-                            description: les.description || "",
-                            keyObjectives: les.keyObjectives || [],
-                            proTips: les.proTips || "",
-                            status: completedLessonIds.has(les.id || les._id || les.lessonId || `l_${modIdx + 1}_${lesIdx + 1}`)
+                            id: lid,
+                            title: title,
+                            duration: (typeof les === "object" ? (les.duration || les.time) : null) || "10:00",
+                            videoUrl: (typeof les === "object" ? (les.videoUrl || les.url || les.streamUrl) : "") || "",
+                            description: (typeof les === "object" ? les.description : "") || "",
+                            keyObjectives: (typeof les === "object" ? (les.keyObjectives || les.objectives) : []) || [],
+                            proTips: (typeof les === "object" ? (les.proTips || les.tips) : "") || "",
+                            status: completedLessonIds.has(lid)
                                 ? "completed"
-                                : les.status || (les.isCompleted ? "completed" : allLessons.length === 0 ? "active" : "upcoming"),
+                                : (typeof les === "object" ? (les.status || (les.isCompleted ? "completed" : null)) : null) || (allLessons.length === 0 ? "active" : "upcoming"),
                         });
+                    });
+                } else if (typeof mod === "object" && (mod.title || mod.name)) {
+                    const lid = mod.id || mod._id || `l_${modIdx + 1}`;
+                    allLessons.push({
+                        id: lid,
+                        title: mod.title || mod.name,
+                        duration: mod.duration || "10:00",
+                        videoUrl: mod.videoUrl || mod.url || "",
+                        description: mod.description || "",
+                        keyObjectives: mod.keyObjectives || [],
+                        proTips: mod.proTips || "",
+                        status: completedLessonIds.has(lid)
+                            ? "completed"
+                            : mod.status || (mod.isCompleted ? "completed" : allLessons.length === 0 ? "active" : "upcoming"),
                     });
                 }
             });
             if (allLessons.length > 0) return allLessons;
         }
 
+        // If backend returned single activeLesson
+        if (playerData?.activeLesson && typeof playerData.activeLesson === "object") {
+            const al = playerData.activeLesson;
+            const alId = al.id || al._id || al.lessonId || "l_active";
+            return [{
+                id: alId,
+                title: al.title || al.name || "Active Lesson",
+                duration: al.duration || "10:00",
+                videoUrl: al.videoUrl || al.url || al.streamUrl || "",
+                description: al.description || "",
+                keyObjectives: al.keyObjectives || [],
+                proTips: al.proTips || "",
+                status: completedLessonIds.has(alId) ? "completed" : "active",
+            }];
+        }
+
         return DEFAULT_LESSONS;
     })();
-    const handleAddNote = async () => {
-        if (!noteContent.trim()) {
-            toast.info("Please enter a note.");
-            return;
-        }
 
-        if (!id || !activeLessonId) {
-            toast.error("Course or lesson information is missing.");
-            return;
-        }
-
-        setAddingNote(true);
-
-        try {
-            await dispatch(
-                addCourseNote({
-                    id,
-                    data: {
-                        lessonId: activeLessonId,
-                        timestamp: "02:45",
-                        content: noteContent.trim(),
-                    },
-                })
-            ).unwrap();
-
-            setNoteContent("");
-
-            toast.success("Note added successfully!");
-        } catch (err) {
-            toast.error(
-                typeof err === "string"
-                    ? err
-                    : "Failed to add note"
-            );
-        } finally {
-            setAddingNote(false);
-        }
-    };
-
-    const formatTimestamp = (seconds) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-
-        return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-    };
     // Active lesson resolution
     const activeLessonObj = playerData?.activeLesson || (lessonsList.length > 0 ? lessonsList[0] : null);
     const activeLessonId = selectedLessonId || activeLessonObj?.id || activeLessonObj?._id || activeLessonObj?.lessonId || lessonsList[0]?.id || "l_1";
-    const currentLesson = lessonsList.find((l) => l.id === activeLessonId) || activeLessonObj || lessonsList[0];
-    const currentLessonNotes = notesList?.[activeLessonId] || [];
+    
+    // Combine base lesson info with activeLessonData from fetchLessonById
+    const currentLesson = {
+        ...(lessonsList.find((l) => l.id === activeLessonId) || {}),
+        ...(activeLessonObj || {}),
+        ...(activeLessonData?.data ?? activeLessonData ?? {}),
+    };
 
     const courseTitle = playerData?.title || playerData?.courseTitle || currentCourse?.title || "Design Thinking";
     const moduleName = playerData?.moduleName || playerData?.activeModule || currentCourse?.moduleName || "Module 1 of 12";
     const progressPercent = playerData?.progressPercentage ?? playerData?.progress ?? currentCourse?.progress ?? 25;
 
-    // Active lesson details from API response
-    const lessonDescription = currentLesson?.description || activeLessonObj?.description || "Welcome to the core module of our series. In this lesson, we explore foundational principles and how they integrate into modern agile workflows.";
+    // Active lesson details
+    const lessonDescription = currentLesson?.description || "Welcome to this module. In this lesson, we explore foundational principles and practical applications.";
     const keyObjectives = (Array.isArray(currentLesson?.keyObjectives) && currentLesson.keyObjectives.length > 0)
         ? currentLesson.keyObjectives
-        : (Array.isArray(activeLessonObj?.keyObjectives) && activeLessonObj.keyObjectives.length > 0)
-            ? activeLessonObj.keyObjectives
-            : [
-                "Define customer pain points through empathy mapping",
-                "Integrate design sprints into product roadmaps",
-                "Validate early prototypes with real user testing",
-            ];
-    const proTips = currentLesson?.proTips || activeLessonObj?.proTips || "Always start with 'How Might We' questions before jumping into mental models. It opens up creative problem spaces without premature constraints.";
-    const resourcesList = playerData?.resources || [
-        { title: "Lesson 02 - Design Thinking Framework (PDF)", type: "pdf" },
-        { title: "Empathy Mapping Template (Figma / XLSX)", type: "template" },
-    ];
+        : [
+            "Define customer pain points through empathy mapping",
+            "Integrate design sprints into product roadmaps",
+            "Validate early prototypes with real user testing",
+        ];
+    const proTips = currentLesson?.proTips || "Always start with 'How Might We' questions before jumping into mental models. It opens up creative problem spaces without premature constraints.";
 
-    const [completingLesson, setCompletingLesson] = useState(false);
+    // Derived resources list
+    const combinedResources = (Array.isArray(resourcesList) && resourcesList.length > 0)
+        ? resourcesList
+        : (playerData?.resources || [
+            { id: "r_1", title: "Lesson Framework & Guide (PDF)", type: "pdf", size: "2.4 MB" },
+            { id: "r_2", title: "Empathy Mapping Template (Figma)", type: "template", size: "1.1 MB" },
+        ]);
 
+    // Format seconds to MM:SS
+    const formatTimestamp = (seconds) => {
+        if (!seconds || isNaN(seconds)) return "00:00";
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+    };
+
+    // Filter notes for the active lesson
+    const currentLessonNotes = Array.isArray(notesList)
+        ? notesList.filter((n) => {
+            const lid = n.lessonId || n.lesson_id || n.lesson;
+            return lid === activeLessonId || !lid;
+        })
+        : (notesList?.[activeLessonId] || []);
+
+    // ── Handlers ─────────────────────────────────────────────────────────────
+
+    // Select lesson
     const handleSelectLesson = (lesson) => {
         if (lesson.status === "locked") {
             toast.info("This lesson is locked. Complete previous lessons to unlock.");
@@ -217,8 +271,12 @@ export default function CoursePlayer() {
         }
         setSelectedLessonId(lesson.id);
         setIsPlaying(true);
+        if (id && lesson.id) {
+            dispatch(fetchLessonById({ courseId: id, lessonId: lesson.id }));
+        }
     };
 
+    // Complete lesson
     const handleCompleteLesson = async (targetLessonId) => {
         const lid = targetLessonId || activeLessonId;
         if (!id || !lid) return;
@@ -238,7 +296,7 @@ export default function CoursePlayer() {
             if (currentIndex !== -1 && currentIndex + 1 < lessonsList.length) {
                 const nextLesson = lessonsList[currentIndex + 1];
                 if (nextLesson && nextLesson.status !== "locked") {
-                    setSelectedLessonId(nextLesson.id);
+                    handleSelectLesson(nextLesson);
                 }
             }
         } catch (err) {
@@ -248,6 +306,207 @@ export default function CoursePlayer() {
         }
     };
 
+    // Video Progress Events
+    const handleVideoTimeUpdate = (e) => {
+        const currentTime = e.target.currentTime;
+        setVideoTime(currentTime);
+        const duration = e.target.duration || 1;
+
+        // Save progress every ~12 seconds
+        if (Math.abs(currentTime - lastProgressSavedRef.current) >= 12 && activeLessonId && id) {
+            lastProgressSavedRef.current = currentTime;
+            const percentage = Math.min(100, Math.round((currentTime / duration) * 100));
+            dispatch(
+                saveLessonProgress({
+                    courseId: id,
+                    lessonId: activeLessonId,
+                    data: {
+                        timestamp: formatTimestamp(currentTime),
+                        percentage,
+                        isCompleted: false,
+                    },
+                })
+            );
+        }
+    };
+
+    const handleVideoPause = (e) => {
+        const currentTime = e.target.currentTime;
+        const duration = e.target.duration || 1;
+        if (activeLessonId && id) {
+            const percentage = Math.min(100, Math.round((currentTime / duration) * 100));
+            dispatch(
+                saveLessonProgress({
+                    courseId: id,
+                    lessonId: activeLessonId,
+                    data: {
+                        timestamp: formatTimestamp(currentTime),
+                        percentage,
+                        isCompleted: false,
+                    },
+                })
+            );
+        }
+    };
+
+    const handleVideoEnded = (e) => {
+        const duration = e.target.duration || e.target.currentTime;
+        if (activeLessonId && id) {
+            dispatch(
+                saveLessonProgress({
+                    courseId: id,
+                    lessonId: activeLessonId,
+                    data: {
+                        timestamp: formatTimestamp(duration),
+                        percentage: 100,
+                        isCompleted: true,
+                    },
+                })
+            );
+        }
+        handleCompleteLesson(activeLessonId);
+    };
+
+    // Notes Handlers
+    const handleAddNote = async () => {
+        if (!noteContent.trim()) {
+            toast.info("Please enter a note.");
+            return;
+        }
+        if (!id || !activeLessonId) {
+            toast.error("Course or lesson information is missing.");
+            return;
+        }
+
+        try {
+            await dispatch(
+                addCourseNote({
+                    id,
+                    data: {
+                        lessonId: activeLessonId,
+                        timestamp: formatTimestamp(videoTime),
+                        content: noteContent.trim(),
+                    },
+                })
+            ).unwrap();
+
+            setNoteContent("");
+            toast.success("Note added successfully!");
+        } catch (err) {
+            toast.error(typeof err === "string" ? err : "Failed to add note");
+        }
+    };
+
+    const handleDeleteNote = async (noteId) => {
+        if (!id || !noteId) return;
+        try {
+            await dispatch(deleteCourseNote({ id, noteId })).unwrap();
+            toast.success("Note deleted.");
+        } catch (err) {
+            toast.error(typeof err === "string" ? err : "Failed to delete note");
+        }
+    };
+
+    // Q&A Handlers
+    const handleAddQuestion = async () => {
+        if (!questionInput.trim()) {
+            toast.info("Please enter your question.");
+            return;
+        }
+        if (!id) return;
+
+        try {
+            await dispatch(
+                addCourseQuestion({
+                    id,
+                    data: {
+                        question: questionInput.trim(),
+                        lessonId: activeLessonId,
+                    },
+                })
+            ).unwrap();
+
+            setQuestionInput("");
+            toast.success("Question submitted!");
+        } catch (err) {
+            toast.error(typeof err === "string" ? err : "Failed to submit question");
+        }
+    };
+
+    const handleReplyToQuestion = async (questionId) => {
+        const text = replyInputs[questionId]?.trim();
+        if (!text) {
+            toast.info("Please type a reply.");
+            return;
+        }
+        if (!id || !questionId) return;
+
+        try {
+            await dispatch(
+                replyToQuestion({
+                    id,
+                    questionId,
+                    data: { text },
+                })
+            ).unwrap();
+
+            setReplyInputs((prev) => ({ ...prev, [questionId]: "" }));
+            setActiveReplyId(null);
+            toast.success("Reply posted!");
+        } catch (err) {
+            toast.error(typeof err === "string" ? err : "Failed to post reply");
+        }
+    };
+
+    const handleUpvoteQuestion = async (questionId) => {
+        if (!id || !questionId) return;
+        try {
+            await dispatch(upvoteQuestion({ id, questionId })).unwrap();
+            toast.success("Upvoted!");
+        } catch (err) {
+            toast.error(typeof err === "string" ? err : "Failed to upvote");
+        }
+    };
+
+    // Resource Download Handler
+    const handleDownloadResource = async (res) => {
+        const resId = res.id || res._id || res.resourceId;
+        if (!resId) {
+            if (res.url) {
+                window.open(res.url, "_blank");
+            } else {
+                toast.info(`Resource: ${res.title || res.name || "Download initiated"}`);
+            }
+            return;
+        }
+
+        try {
+            const blobData = await dispatch(
+                downloadCourseResource({
+                    id,
+                    resourceId: resId,
+                    fileName: res.title || res.name || "resource",
+                })
+            ).unwrap();
+
+            if (blobData) {
+                const blob = blobData instanceof Blob ? blobData : new Blob([blobData]);
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = res.fileName || res.title || res.name || `resource_${resId}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                toast.success("Download started!");
+            }
+        } catch (err) {
+            toast.error(typeof err === "string" ? err : "Failed to download resource");
+        }
+    };
+
+    // ── Render States ────────────────────────────────────────────────────────
     if (loading && !coursePlayerData) {
         return (
             <div className="w-full min-h-screen flex items-center justify-center text-white">
@@ -388,11 +647,13 @@ export default function CoursePlayer() {
                     <div className="aspect-video w-full rounded-2xl bg-gradient-to-tr from-[#0b0e14] via-[#121722] to-[#1a2130] border border-white/10 relative overflow-hidden flex items-center justify-center shadow-2xl group">
                         {currentLesson?.videoUrl && isPlaying ? (
                             <video
+                                ref={videoRef}
                                 src={currentLesson.videoUrl}
                                 controls
                                 autoPlay
-                                onTimeUpdate={(e) => setVideoTime(e.target.currentTime)}
-                                onEnded={() => handleCompleteLesson(currentLesson?.id)}
+                                onTimeUpdate={handleVideoTimeUpdate}
+                                onPause={handleVideoPause}
+                                onEnded={handleVideoEnded}
                                 className="w-full h-full object-cover rounded-2xl"
                             />
                         ) : (
@@ -408,15 +669,11 @@ export default function CoursePlayer() {
 
                                 {/* Centered Circular Play Button Overlay */}
                                 <button
-                                    onClick={() => setIsPlaying(!isPlaying)}
+                                    onClick={() => setIsPlaying(true)}
                                     className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-blue-600/20 backdrop-blur-md border border-blue-400/40 flex items-center justify-center shadow-2xl hover:scale-105 hover:bg-blue-600/30 transition-all cursor-pointer group/btn"
                                 >
                                     <div className="w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-lg group-hover/btn:bg-blue-500 transition-colors">
-                                        {isPlaying ? (
-                                            <PauseIcon sx={{ fontSize: 32 }} />
-                                        ) : (
-                                            <PlayArrowIcon sx={{ fontSize: 36, ml: "2px" }} />
-                                        )}
+                                        <PlayArrowIcon sx={{ fontSize: 36, ml: "2px" }} />
                                     </div>
                                 </button>
                             </>
@@ -484,7 +741,7 @@ export default function CoursePlayer() {
                                 : "text-gray-400 hover:text-white"
                                 }`}
                         >
-                            Resources
+                            Resources ({combinedResources.length})
                         </button>
                         <button
                             onClick={() => setActiveTab("notes")}
@@ -493,7 +750,7 @@ export default function CoursePlayer() {
                                 : "text-gray-400 hover:text-white"
                                 }`}
                         >
-                            Notes
+                            Notes ({currentLessonNotes.length})
                         </button>
                         <button
                             onClick={() => setActiveTab("qna")}
@@ -502,7 +759,7 @@ export default function CoursePlayer() {
                                 : "text-gray-400 hover:text-white"
                                 }`}
                         >
-                            Q&A
+                            Q&A ({Array.isArray(qnaList) ? qnaList.length : 0})
                         </button>
                     </div>
 
@@ -553,32 +810,63 @@ export default function CoursePlayer() {
                         </div>
                     )}
 
+                    {/* Tab Contents: Resources Section */}
                     {activeTab === "resources" && (
-                        <div className="py-6 text-gray-400 text-sm">
-                            <p className="mb-4">Downloadable lesson materials and resources:</p>
-                            <ul className="space-y-2 text-blue-400 text-xs font-semibold">
-                                {resourcesList.map((res, idx) => (
-                                    <li
-                                        key={idx}
-                                        onClick={() => {
-                                            if (res.url) window.open(res.url, "_blank");
-                                            else toast.info(`Resource: ${res.title || res.name || "Download initiated"}`);
-                                        }}
-                                        className="cursor-pointer hover:underline flex items-center gap-2"
-                                    >
-                                        <span>📄 {res.title || res.name || `Resource ${idx + 1}`}</span>
-                                        {res.size && <span className="text-gray-500 font-normal">({res.size})</span>}
-                                    </li>
-                                ))}
-                            </ul>
+                        <div className="py-6 space-y-4">
+                            <p className="text-gray-400 text-sm">Downloadable lesson materials and supplemental resources:</p>
+
+                            {resourcesLoading && combinedResources.length === 0 ? (
+                                <div className="p-8 text-center text-gray-400">Loading resources...</div>
+                            ) : combinedResources.length === 0 ? (
+                                <p className="text-gray-500 text-sm py-4">No resources available for this course.</p>
+                            ) : (
+                                <div className="space-y-3">
+                                    {combinedResources.map((res, idx) => {
+                                        const resId = res.id || res._id || res.resourceId || `res_${idx}`;
+                                        const isDownloading = downloadingResourceId === resId;
+
+                                        return (
+                                            <div
+                                                key={resId}
+                                                className="p-4 rounded-xl bg-[#13161F] border border-white/10 flex items-center justify-between gap-4"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-9 h-9 rounded-lg bg-blue-600/10 text-blue-400 border border-blue-500/20 flex items-center justify-center font-bold text-sm shrink-0">
+                                                        📄
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="text-white text-sm font-semibold">
+                                                            {res.title || res.name || `Resource ${idx + 1}`}
+                                                        </h4>
+                                                        <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
+                                                            <span className="uppercase">{res.type || "file"}</span>
+                                                            {res.size && <span>• {res.size}</span>}
+                                                            {res.description && <span>• {res.description}</span>}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <button
+                                                    onClick={() => handleDownloadResource(res)}
+                                                    disabled={isDownloading}
+                                                    className="px-3.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                                                >
+                                                    <DownloadOutlinedIcon sx={{ fontSize: 15 }} />
+                                                    {isDownloading ? "Downloading..." : "Download"}
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
                     )}
 
+                    {/* Tab Contents: Notes Section */}
                     {activeTab === "notes" && (
                         <div className="py-6 space-y-6">
-
                             {/* Add Note */}
-                            <div>
+                            <div className="space-y-3">
                                 <textarea
                                     rows={4}
                                     value={noteContent}
@@ -587,57 +875,224 @@ export default function CoursePlayer() {
                                     className="w-full p-4 rounded-xl bg-[#13161F] border border-white/10 text-white focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm resize-none"
                                 />
 
-                                <div className="flex justify-between items-center mt-3">
-                                    <span className="text-xs text-gray-500">
-                                        Timestamp: {formatTimestamp(videoTime)}
+                                <div className="flex justify-between items-center">
+                                    <span className="text-xs text-gray-400 bg-white/5 px-2.5 py-1 rounded-md border border-white/5">
+                                        Timestamp: <span className="text-blue-400 font-semibold">{formatTimestamp(videoTime)}</span>
                                     </span>
 
                                     <button
                                         onClick={handleAddNote}
                                         disabled={addingNote || !noteContent.trim()}
-                                        className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors shadow-md shadow-blue-900/30"
                                     >
                                         {addingNote ? "Saving..." : "Add Note"}
                                     </button>
                                 </div>
                             </div>
 
-                            {/* Existing Notes */}
-                            <div className="space-y-3">
+                            {/* Existing Notes List */}
+                            <div className="space-y-3 pt-2">
                                 <h3 className="text-white font-semibold text-sm">
-                                    Your Notes
+                                    Notes for this Lesson ({currentLessonNotes.length})
                                 </h3>
 
-                                {currentLessonNotes.length === 0 ? (
-                                    <p className="text-gray-500 text-sm">
-                                        No notes for this lesson yet.
+                                {notesLoading && currentLessonNotes.length === 0 ? (
+                                    <p className="text-gray-500 text-sm">Loading notes...</p>
+                                ) : currentLessonNotes.length === 0 ? (
+                                    <p className="text-gray-500 text-sm py-4">
+                                        No notes for this lesson yet. Type above and click "Add Note" to save notes timestamped to this point in the video.
                                     </p>
                                 ) : (
-                                    currentLessonNotes.map((note, index) => (
-                                        <div
-                                            key={note.id || note._id || index}
-                                            className="p-4 rounded-xl bg-[#13161F] border border-white/10"
-                                        >
-                                            <div className="flex items-center justify-between mb-2">
-                                                <span className="text-xs text-blue-400 font-semibold">
-                                                    {note.timestamp}
-                                                </span>
-                                            </div>
+                                    currentLessonNotes.map((note, index) => {
+                                        const noteId = note.id || note._id || note.noteId || index;
+                                        const isDeleting = deletingNoteId === noteId;
 
-                                            <p className="text-gray-300 text-sm leading-relaxed">
-                                                {note.content}
-                                            </p>
-                                        </div>
-                                    ))
+                                        return (
+                                            <div
+                                                key={noteId}
+                                                className="p-4 rounded-xl bg-[#13161F] border border-white/10 flex items-start justify-between gap-4"
+                                            >
+                                                <div className="space-y-1.5 flex-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-xs text-blue-400 font-semibold px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/20">
+                                                            {note.timestamp || "00:00"}
+                                                        </span>
+                                                        {note.createdAt && (
+                                                            <span className="text-[11px] text-gray-500">
+                                                                {new Date(note.createdAt).toLocaleDateString()}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
+                                                        {note.content}
+                                                    </p>
+                                                </div>
+
+                                                <button
+                                                    onClick={() => handleDeleteNote(noteId)}
+                                                    disabled={isDeleting}
+                                                    className="text-gray-500 hover:text-red-400 p-1 rounded transition-colors cursor-pointer shrink-0 disabled:opacity-40"
+                                                    title="Delete note"
+                                                >
+                                                    <DeleteOutlineIcon sx={{ fontSize: 18 }} />
+                                                </button>
+                                            </div>
+                                        );
+                                    })
                                 )}
                             </div>
-
                         </div>
                     )}
 
+                    {/* Tab Contents: Q&A Section */}
                     {activeTab === "qna" && (
-                        <div className="py-6 text-gray-400 text-sm">
-                            <p>No questions submitted for this lesson yet. Be the first to ask!</p>
+                        <div className="py-6 space-y-6">
+                            {/* Ask Question Box */}
+                            <div className="p-4 rounded-xl bg-[#13161F] border border-white/10 space-y-3">
+                                <h3 className="text-white font-semibold text-sm">Ask a Question</h3>
+                                <textarea
+                                    rows={3}
+                                    value={questionInput}
+                                    onChange={(e) => setQuestionInput(e.target.value)}
+                                    placeholder="Have a question about this lesson? Ask instructors and peers..."
+                                    className="w-full p-3 rounded-lg bg-[#0E1017] border border-white/10 text-white focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm resize-none"
+                                />
+                                <div className="flex justify-end">
+                                    <button
+                                        onClick={handleAddQuestion}
+                                        disabled={addingQuestion || !questionInput.trim()}
+                                        className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold disabled:opacity-50 cursor-pointer transition-colors shadow-md shadow-blue-900/30"
+                                    >
+                                        {addingQuestion ? "Posting..." : "Ask Question"}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Q&A Questions List */}
+                            <div className="space-y-4 pt-2">
+                                <h3 className="text-white font-semibold text-sm">
+                                    Community Questions ({Array.isArray(qnaList) ? qnaList.length : 0})
+                                </h3>
+
+                                {qnaLoading && (!qnaList || qnaList.length === 0) ? (
+                                    <p className="text-gray-500 text-sm">Loading questions...</p>
+                                ) : !Array.isArray(qnaList) || qnaList.length === 0 ? (
+                                    <p className="text-gray-500 text-sm py-4">
+                                        No questions submitted yet. Be the first to ask!
+                                    </p>
+                                ) : (
+                                    qnaList.map((item, idx) => {
+                                        const qId = item.id || item._id || item.questionId || idx;
+                                        const isReplying = activeReplyId === qId;
+                                        const isUpvoting = upvotingQuestionId === qId;
+                                        const replies = Array.isArray(item.replies) ? item.replies : [];
+
+                                        return (
+                                            <div
+                                                key={qId}
+                                                className="p-5 rounded-xl bg-[#13161F] border border-white/10 space-y-4"
+                                            >
+                                                {/* Question Header & Content */}
+                                                <div className="flex items-start justify-between gap-4">
+                                                    <div className="space-y-1">
+                                                        <div className="flex items-center gap-2 text-xs text-gray-400">
+                                                            <span className="font-semibold text-white">
+                                                                {item.author?.name || item.author || item.userName || "Student"}
+                                                            </span>
+                                                            {item.createdAt && (
+                                                                <span>• {new Date(item.createdAt).toLocaleDateString()}</span>
+                                                            )}
+                                                            {item.lessonId && (
+                                                                <span className="px-2 py-0.5 rounded bg-white/5 border border-white/5 text-[11px] text-gray-400">
+                                                                    Lesson {item.lessonId}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-white text-sm font-medium leading-relaxed pt-1">
+                                                            {item.question || item.title || item.content}
+                                                        </p>
+                                                    </div>
+
+                                                    {/* Upvote Button */}
+                                                    <button
+                                                        onClick={() => handleUpvoteQuestion(qId)}
+                                                        disabled={isUpvoting}
+                                                        className={`flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors cursor-pointer shrink-0 ${item.isUpvoted
+                                                            ? "bg-blue-600/20 text-blue-400 border-blue-500/30"
+                                                            : "bg-white/5 text-gray-400 border-white/10 hover:text-white"
+                                                            }`}
+                                                    >
+                                                        {item.isUpvoted ? (
+                                                            <ThumbUpIcon sx={{ fontSize: 14 }} />
+                                                        ) : (
+                                                            <ThumbUpOutlinedIcon sx={{ fontSize: 14 }} />
+                                                        )}
+                                                        <span>{item.upvotes ?? 0}</span>
+                                                    </button>
+                                                </div>
+
+                                                {/* Actions Bar */}
+                                                <div className="flex items-center gap-4 text-xs text-gray-400 border-t border-white/5 pt-3">
+                                                    <button
+                                                        onClick={() => setActiveReplyId(isReplying ? null : qId)}
+                                                        className="flex items-center gap-1.5 hover:text-white transition-colors cursor-pointer"
+                                                    >
+                                                        <ChatBubbleOutlineIcon sx={{ fontSize: 15 }} />
+                                                        <span>{replies.length} {replies.length === 1 ? "Reply" : "Replies"}</span>
+                                                    </button>
+                                                </div>
+
+                                                {/* Replies list */}
+                                                {replies.length > 0 && (
+                                                    <div className="pl-4 border-l-2 border-white/10 space-y-3 pt-1">
+                                                        {replies.map((reply, rIdx) => (
+                                                            <div key={reply.id || reply._id || rIdx} className="space-y-1">
+                                                                <div className="flex items-center gap-2 text-xs text-gray-400">
+                                                                    <span className="font-semibold text-gray-300">
+                                                                        {reply.author?.name || reply.author || reply.userName || "Instructor / Peer"}
+                                                                    </span>
+                                                                    {reply.createdAt && (
+                                                                        <span className="text-[11px]">• {new Date(reply.createdAt).toLocaleDateString()}</span>
+                                                                    )}
+                                                                </div>
+                                                                <p className="text-gray-300 text-xs leading-relaxed">
+                                                                    {reply.text || reply.content || reply.message}
+                                                                </p>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {/* Reply Input */}
+                                                {isReplying && (
+                                                    <div className="pt-2 flex items-center gap-2">
+                                                        <input
+                                                            type="text"
+                                                            value={replyInputs[qId] || ""}
+                                                            onChange={(e) =>
+                                                                setReplyInputs((prev) => ({ ...prev, [qId]: e.target.value }))
+                                                            }
+                                                            placeholder="Write a reply..."
+                                                            className="flex-1 px-3.5 py-2 rounded-lg bg-[#0E1017] border border-white/10 text-white text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                            onKeyDown={(e) => {
+                                                                if (e.key === "Enter") handleReplyToQuestion(qId);
+                                                            }}
+                                                        />
+                                                        <button
+                                                            onClick={() => handleReplyToQuestion(qId)}
+                                                            disabled={replyingQuestionId === qId || !replyInputs[qId]?.trim()}
+                                                            className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold disabled:opacity-50 cursor-pointer flex items-center gap-1"
+                                                        >
+                                                            <SendIcon sx={{ fontSize: 13 }} />
+                                                            <span>Reply</span>
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
                         </div>
                     )}
 

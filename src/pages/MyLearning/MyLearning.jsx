@@ -1,4 +1,4 @@
-import Card from '../../components/Card'
+import Card from '../../components/Card';
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -9,7 +9,6 @@ import {
     ToggleButtonGroup,
 } from "@mui/material";
 import { fetchMyLearning } from "../../features/myLearning/myLearningThunks";
-import { fetchContinueLearning } from "../../features/dashboard/dashThunks";
 
 const courseFilters = [
     { value: "all", label: "All Courses" },
@@ -17,84 +16,135 @@ const courseFilters = [
     { value: "completed", label: "Completed" },
 ];
 
+// Resolve the real course ID from various backend shapes
+const getRealCourseId = (course) => {
+    if (!course) return null;
+    if (course.course && typeof course.course === "object") {
+        return course.course.id || course.course._id || course.course.courseId;
+    }
+    if (course.courseId && typeof course.courseId === "object") {
+        return course.courseId.id || course.courseId._id;
+    }
+    const id = course.courseId || course.id || course._id;
+    if (id && !String(id).startsWith("sv_") && !String(id).startsWith("save_")) {
+        return id;
+    }
+    return course.courseId || course.id || course._id;
+};
+
+const getRealTitle = (course) =>
+    course?.course?.title || course?.course?.name ||
+    course?.title || course?.courseName || course?.name || "Untitled Course";
+
+const getRealCategory = (course) =>
+    course?.course?.category || course?.course?.categoryName ||
+    course?.category || course?.categoryName || "Course";
+
+const getRealDuration = (course) =>
+    course?.course?.duration || course?.course?.totalDuration ||
+    course?.duration || course?.totalDuration || "Self-paced";
+
 function MyLearning() {
     const navigate = useNavigate();
     const [filter, setFilter] = useState("all");
     const dispatch = useDispatch();
 
-    const myLearningState = useSelector((state) => state.myLearning || state.courses);
-    const myLearning = myLearningState?.myLearning || {};
-    const { continueLearning, status: dashStatus } = useSelector((state) => state.dashboard);
+    // myLearningSlice is the single source of truth (CourseDetails.saveCourseThunk writes here)
+    const {
+        myLearning,
+        loading: myLearningLoading,
+        error: myLearningError,
+    } = useSelector((state) => state.myLearning);
 
-    const loading = Boolean(myLearningState?.loading || myLearningState?.myLearningLoading || dashStatus?.continueLearning === "pending");
-    const myLearningLoading = loading;
+    const inProgressList  = Array.isArray(myLearning?.inProgress)   ? myLearning.inProgress   : [];
+    const savedForLaterList = Array.isArray(myLearning?.savedForLater) ? myLearning.savedForLater : [];
+    const completedList   = Array.isArray(myLearning?.completed)     ? myLearning.completed     : [];
 
     useEffect(() => {
         dispatch(fetchMyLearning());
-        dispatch(fetchContinueLearning());
     }, [dispatch]);
 
-    const handleFilterChange = (event, newFilter) => {
-        // Prevent deselecting the currently selected option
-        if (newFilter !== null) {
-            setFilter(newFilter);
-            if (newFilter === "inProgress" || newFilter === "all") {
-                dispatch(fetchContinueLearning());
-            }
-        }
+    const handleFilterChange = (_, newFilter) => {
+        if (newFilter !== null) setFilter(newFilter);
     };
 
-    // Combine Continue Learning API data with enrolled inProgress list
-    const inProgressList = (Array.isArray(continueLearning) && continueLearning.length > 0)
-        ? continueLearning
-        : (myLearning?.inProgress ?? []);
+    // ── Map raw API objects to UI shapes ──────────────────────────────────────
 
-    // Map API array to UI structure expected by cards
-    const learningCourses = inProgressList.map((course, idx) => ({
-        id: course.id || course.courseId || course._id || idx,
-        category: course.category || course.categoryName || "Course",
-        title: course.title || course.courseName || course.name || "",
-        currentLessonTitle: course.currentLessonTitle || null,
-        progress: course.progress ?? course.progressPercent ?? 0,
-        lastAccessed: course.lastAccessed || null,
-        timeLeft: course.currentLessonTitle
-            ? `Lesson: ${course.currentLessonTitle}`
-            : course.timeLeft || (course.totalLessons && course.completedLessons ? `${course.totalLessons - course.completedLessons} lessons left` : course.lastAccessed ? `Last accessed ${new Date(course.lastAccessed).toLocaleDateString()}` : ""),
-        buttonText: (course.progress ?? 0) >= 100 ? "Review Course" : (course.progress ?? 0) > 0 ? "Continue Lesson" : "Start Course",
+    const learningCourses = inProgressList.map((course, idx) => {
+        const id = getRealCourseId(course) || idx;
+        const progress = course.progress ?? course.progressPercent ?? 0;
+        const lessonsLeft = (course.totalLessons != null && course.completedLessons != null)
+            ? course.totalLessons - course.completedLessons
+            : null;
+        const timeLeftText =
+            course.currentLessonTitle ? `Lesson: ${course.currentLessonTitle}` :
+            course.timeLeft ? course.timeLeft :
+            lessonsLeft != null ? `${lessonsLeft} lessons left` :
+            course.lastAccessed
+                ? `Last: ${new Date(course.lastAccessed).toLocaleDateString()}`
+                : "";
+        return {
+            id,
+            category: getRealCategory(course),
+            title: getRealTitle(course),
+            progress,
+            timeLeft: timeLeftText,
+            buttonText: progress >= 100 ? "Review Course" : progress > 0 ? "Continue Lesson" : "Start Course",
+        };
+    });
+
+    const savedCourses = savedForLaterList.map((course, idx) => ({
+        id: getRealCourseId(course) || idx,
+        category: getRealCategory(course),
+        title: getRealTitle(course),
+        duration: getRealDuration(course),
     }));
 
-    const courseSavedCategories = (myLearning?.savedForLater ?? []).map((course, idx) => ({
-        id: course.id || course._id || course.courseId || idx,
-        category: course.category || course.categoryName || "Saved",
-        title: course.title || course.courseName || course.name || "",
-        duration: course.duration || course.totalDuration || "Self-paced",
-    }));
+    const completedCourses = completedList
+        .filter((item, index, self) => {
+            const id = getRealCourseId(item);
+            return index === self.findIndex((t) => getRealCourseId(t) === id);
+        })
+        .map((course, idx) => ({
+            id: getRealCourseId(course) || idx,
+            title: getRealTitle(course),
+            certificateDate: course.certificateDate ||
+                (course.completedAt
+                    ? `Certified ${new Date(course.completedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
+                    : "Completed"),
+        }));
 
-    const completedCategories = (myLearning?.completed ?? []).map((course, idx) => ({
-        id: course.id || course._id || course.courseId || idx,
-        course: course.title || course.courseName || course.name || "",
-        certificateDate: course.certificateDate || (course.completedAt
-            ? `certified ${new Date(course.completedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-            : "Completed"),
-    }));
+    // ── Error state ───────────────────────────────────────────────────────────
+    if (myLearningError && !myLearningLoading) {
+        return (
+            <div className="w-full max-w-7xl mx-auto p-4 md:p-10 pb-20">
+                <h1 className="text-white text-2xl md:text-3xl font-bold mb-4">My Learning</h1>
+                <div className="flex flex-col items-center justify-center py-20 gap-4">
+                    <p className="text-red-400 text-sm">{myLearningError}</p>
+                    <button
+                        onClick={() => dispatch(fetchMyLearning())}
+                        className="px-6 py-2.5 bg-[#0759d9] hover:bg-[#054dbb] text-white rounded-lg text-sm font-semibold transition-colors cursor-pointer"
+                    >
+                        Retry
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
+    // ── Render ────────────────────────────────────────────────────────────────
     return (
         <div className="w-full max-w-7xl mx-auto p-4 md:p-10 pb-20">
+
+            {/* Page Header */}
             <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6 mb-10">
                 <div>
-                    <h1 className="text-white text-2xl md:text-3xl font-bold mb-2">
-                        My Learning
-                    </h1>
+                    <h1 className="text-white text-2xl md:text-3xl font-bold mb-2">My Learning</h1>
                     <p className="text-gray-400 text-sm sm:text-base md:text-md max-w-2xl leading-relaxed">
                         Track your progress and continue where you left off in your learning journey.
                     </p>
                 </div>
-                <Box
-                    sx={{
-                        width: "100%",
-                        maxWidth: { xs: "100%", lg: 340 },
-                    }}
-                >
+                <Box sx={{ width: "100%", maxWidth: { xs: "100%", lg: 340 } }}>
                     <ToggleButtonGroup
                         value={filter}
                         exclusive
@@ -108,7 +158,6 @@ function MyLearning() {
                             borderColor: "#343942",
                             borderRadius: "22px",
                             backgroundColor: "#181b21",
-
                             "& .MuiToggleButtonGroup-grouped": {
                                 border: "none",
                                 borderRadius: "16px !important",
@@ -128,17 +177,11 @@ function MyLearning() {
                                     fontSize: { xs: "10px", sm: "12px", md: "14px" },
                                     fontWeight: 500,
                                     letterSpacing: "0.2px",
-                                    "&:hover": {
-                                        backgroundColor: "rgba(255, 255, 255, 0.05)",
-                                    },
-
+                                    "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.05)" },
                                     "&.Mui-selected": {
                                         backgroundColor: "#0759d9",
                                         color: "#ffffff",
-
-                                        "&:hover": {
-                                            backgroundColor: "#0759d9",
-                                        },
+                                        "&:hover": { backgroundColor: "#0759d9" },
                                     },
                                 }}
                             >
@@ -149,7 +192,7 @@ function MyLearning() {
                 </Box>
             </div>
 
-            {/* In Progress Section */}
+            {/* ── In Progress ─────────────────────────────────────────────── */}
             {(filter === "all" || filter === "inProgress") && (
                 <div className="mb-10">
                     <h2 className="text-xl font-semibold mb-4 flex items-center gap-2 text-white">
@@ -159,11 +202,14 @@ function MyLearning() {
                     {myLearningLoading ? (
                         <p className="text-gray-500 text-sm">Loading...</p>
                     ) : learningCourses.length === 0 ? (
-                        <p className="text-gray-500 text-sm">No courses in progress yet.</p>
+                        <p className="text-gray-500 text-sm">No courses in progress.</p>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {learningCourses.map((course) => (
-                                <Card className="flex flex-col justify-between p-5 rounded-xl border border-gray-800 bg-[#1A1D24] text-start h-full" key={course.id}>
+                                <Card
+                                    className="flex flex-col justify-between p-5 rounded-xl border border-gray-800 bg-[#1A1D24] text-start h-full"
+                                    key={course.id}
+                                >
                                     <div className="space-y-3">
                                         <div className="flex justify-between items-center text-xs text-gray-400 font-medium">
                                             <span className="bg-[#181b21] px-2.5 py-1 rounded-md text-gray-300 border border-gray-800">
@@ -184,7 +230,7 @@ function MyLearning() {
                                             <div className="w-full bg-gray-800 rounded-full h-1.5 overflow-hidden">
                                                 <div
                                                     className="bg-[#0759d9] h-full rounded-full transition-all duration-300"
-                                                    style={{ width: `${course.progress}%` }}
+                                                    style={{ width: `${Math.min(100, Math.max(0, course.progress))}%` }}
                                                 />
                                             </div>
                                         </div>
@@ -202,24 +248,30 @@ function MyLearning() {
                 </div>
             )}
 
-            {/* Saved and Completed Sections */}
+            {/* ── Saved for Later + Completed (side by side, "all" view) ──── */}
             {filter === "all" && (
                 <div className="flex flex-col lg:flex-row gap-8 mt-10">
+
+                    {/* Saved for Later */}
                     <div className="flex-1">
                         <h2 className="text-white text-xl font-semibold mb-4">Saved for Later</h2>
                         {myLearningLoading ? (
                             <p className="text-gray-500 text-sm">Loading...</p>
-                        ) : courseSavedCategories.length === 0 ? (
-                            <p className="text-gray-500 text-sm">No saved courses yet.</p>
+                        ) : savedCourses.length === 0 ? (
+                            <p className="text-gray-500 text-sm">No courses saved for later.</p>
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                {courseSavedCategories.map((course) => (
-                                    <Card className="flex flex-col justify-between p-5 rounded-xl border border-gray-800 bg-[#1A1D24]" key={course.id}>
+                                {savedCourses.map((course) => (
+                                    <Card
+                                        className="flex flex-col justify-between p-5 rounded-xl border border-gray-800 bg-[#1A1D24] hover:border-gray-700 transition-all cursor-pointer"
+                                        key={course.id}
+                                        onClick={() => navigate(course.id ? `/courses/${course.id}` : "/catalog")}
+                                    >
                                         <div>
                                             <span className="text-[10px] uppercase font-bold tracking-wider text-gray-500 block mb-1">
                                                 {course.category}
                                             </span>
-                                            <h3 className="text-white font-bold text-base mb-2 line-clamp-2">
+                                            <h3 className="text-white font-bold text-base mb-2 line-clamp-2 hover:text-blue-400 transition-colors">
                                                 {course.title}
                                             </h3>
                                         </div>
@@ -232,19 +284,26 @@ function MyLearning() {
                         )}
                     </div>
 
+                    {/* Completed */}
                     <div className="w-full lg:w-80 flex flex-col gap-4">
                         <h2 className="text-white text-xl font-semibold mb-4">Completed</h2>
-                        {loading ? (
+                        {myLearningLoading ? (
                             <p className="text-gray-500 text-sm">Loading...</p>
-                        ) : completedCategories.length === 0 ? (
+                        ) : completedCourses.length === 0 ? (
                             <p className="text-gray-500 text-sm">No completed courses yet.</p>
                         ) : (
                             <div className="flex flex-col gap-4">
-                                {completedCategories.map((complete) => (
-                                    <Card className="p-5 rounded-xl border border-gray-800 bg-[#1A1D24] flex flex-col gap-2" key={complete.id}>
-                                        <h3 className="text-white font-bold text-base">{complete.course}</h3>
+                                {completedCourses.map((course) => (
+                                    <Card
+                                        className="p-5 rounded-xl border border-gray-800 bg-[#1A1D24] flex flex-col gap-2 hover:border-gray-700 transition-all cursor-pointer"
+                                        key={course.id}
+                                        onClick={() => navigate(course.id ? `/courses/${course.id}/learn` : "/catalog")}
+                                    >
+                                        <h3 className="text-white font-bold text-base hover:text-blue-400 transition-colors">
+                                            {course.title}
+                                        </h3>
                                         <span className="text-xs text-[#0759d9] bg-[#0759d9]/10 border border-[#0759d9]/20 self-start px-2 py-0.5 rounded-md font-medium uppercase tracking-wider">
-                                            {complete.certificateDate}
+                                            {course.certificateDate}
                                         </span>
                                     </Card>
                                 ))}
@@ -254,21 +313,27 @@ function MyLearning() {
                 </div>
             )}
 
-            {/* Filter-specific completed view */}
+            {/* ── Filter: Completed only ──────────────────────────────────── */}
             {filter === "completed" && (
                 <div className="mt-6">
                     <h2 className="text-white text-xl font-semibold mb-4">Completed</h2>
-                    {loading ? (
+                    {myLearningLoading ? (
                         <p className="text-gray-500 text-sm">Loading...</p>
-                    ) : completedCategories.length === 0 ? (
+                    ) : completedCourses.length === 0 ? (
                         <p className="text-gray-500 text-sm">No completed courses yet.</p>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {completedCategories.map((complete) => (
-                                <Card className="p-5 rounded-xl border border-gray-800 bg-[#1A1D24] flex flex-col gap-2" key={complete.id}>
-                                    <h3 className="text-white font-bold text-base">{complete.course}</h3>
+                            {completedCourses.map((course) => (
+                                <Card
+                                    className="p-5 rounded-xl border border-gray-800 bg-[#1A1D24] flex flex-col gap-2 hover:border-gray-700 transition-all cursor-pointer"
+                                    key={course.id}
+                                    onClick={() => navigate(course.id ? `/courses/${course.id}/learn` : "/catalog")}
+                                >
+                                    <h3 className="text-white font-bold text-base hover:text-blue-400 transition-colors">
+                                        {course.title}
+                                    </h3>
                                     <span className="text-xs text-[#0759d9] bg-[#0759d9]/10 border border-[#0759d9]/20 self-start px-2 py-0.5 rounded-md font-medium uppercase tracking-wider">
-                                        {complete.certificateDate}
+                                        {course.certificateDate}
                                     </span>
                                 </Card>
                             ))}
@@ -276,8 +341,6 @@ function MyLearning() {
                     )}
                 </div>
             )}
-
-
         </div>
     );
 }

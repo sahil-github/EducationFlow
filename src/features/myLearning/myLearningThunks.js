@@ -29,10 +29,12 @@ export const fetchMyLearning = createAsyncThunk(
 // ---------------------------------------------------------------------------
 export const saveCourseThunk = createAsyncThunk(
     "myLearning/saveCourse",
-    async (id, { rejectWithValue }) => {
+    async (arg, { rejectWithValue }) => {
+        const id = typeof arg === "object" ? arg.id : arg;
+        const courseData = typeof arg === "object" ? arg.course : null;
         try {
             const response = await myLearningApi.saveCourse(id);
-            return { id, ...(response.data?.data ?? response.data) };
+            return { id, course: courseData, ...(response.data?.data ?? response.data) };
         } catch (err) {
             return rejectWithValue(
                 extractMsg(err, "Failed to save course")
