@@ -130,3 +130,31 @@ export const completeLessonInCourse = createAsyncThunk(
         }
     }
 );
+
+export const getCourseNotes = createAsyncThunk(
+    "courses/courseNotes",
+    async (id, { rejectWithValue }) => {
+        try {
+            const response = await courseApi.getCourseNotes(id);
+            return response.data?.data ?? response.data;
+        } catch (err) {
+            return rejectWithValue(
+                extractMsg(err, "Failed to fetch course notes")
+            );
+        }
+    }
+);
+
+export const addCourseNote = createAsyncThunk(
+    "courses/addCourseNote",
+    async ({ id, data }, { rejectWithValue }) => {
+        try {
+            const response = await courseApi.addCourseNote(id, data);
+            return response.data?.data ?? response.data;
+        } catch (err) {
+            return rejectWithValue(
+                extractMsg(err, "Failed to add course note")
+            );
+        }
+    }
+);

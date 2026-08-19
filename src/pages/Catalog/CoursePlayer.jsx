@@ -13,14 +13,12 @@ import TaskAltIcon from "@mui/icons-material/TaskAlt";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-
 import Card from "../../components/Card";
 import Button from "../../components/Button";
-// import { fetchCourseById, fetchCoursePlayer } from "../../features/courses/coursesThunks";
 import { clearCoursePlayer } from "../../features/courses/coursesSlice";
-// import { completeLessonInCourse } from "../../features/myLearning/myLearningThunks";
-import { fetchCourseById, fetchCoursePlayer, completeLessonInCourse } from "../../features/courses/coursesThunks";
+import { fetchCourseById, fetchCoursePlayer, completeLessonInCourse, getCourseNotes, addCourseNote } from "../../features/courses/coursesThunks";
 // Default fallback lesson structure
+
 const DEFAULT_LESSONS = [
     {
         id: "l_1",
@@ -66,11 +64,21 @@ export default function CoursePlayer() {
         coursePlayerError: error,
     } = useSelector((state) => state.courses);
 
+    const { notesList } = useSelector((state) => state.courses);
+
+    useEffect(() => {
+        dispatch(
+            getCourseNotes(id),
+        );
+    }, [dispatch, id]);
+
     const [activeTab, setActiveTab] = useState("about");
     const [isPlaying, setIsPlaying] = useState(false);
     const [selectedLessonId, setSelectedLessonId] = useState(null);
     const [completedLessonIds, setCompletedLessonIds] = useState(new Set());
-
+    const [noteContent, setNoteContent] = useState("");
+    const [addingNote, setAddingNote] = useState(false);
+    const [videoTime, setVideoTime] = useState(0);
     useEffect(() => {
         if (id) {
             dispatch(fetchCoursePlayer(id));
@@ -128,11 +136,56 @@ export default function CoursePlayer() {
 
         return DEFAULT_LESSONS;
     })();
+    const handleAddNote = async () => {
+        if (!noteContent.trim()) {
+            toast.info("Please enter a note.");
+            return;
+        }
 
+        if (!id || !activeLessonId) {
+            toast.error("Course or lesson information is missing.");
+            return;
+        }
+
+        setAddingNote(true);
+
+        try {
+            await dispatch(
+                addCourseNote({
+                    id,
+                    data: {
+                        lessonId: activeLessonId,
+                        timestamp: "02:45",
+                        content: noteContent.trim(),
+                    },
+                })
+            ).unwrap();
+
+            setNoteContent("");
+
+            toast.success("Note added successfully!");
+        } catch (err) {
+            toast.error(
+                typeof err === "string"
+                    ? err
+                    : "Failed to add note"
+            );
+        } finally {
+            setAddingNote(false);
+        }
+    };
+
+    const formatTimestamp = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+
+        return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+    };
     // Active lesson resolution
     const activeLessonObj = playerData?.activeLesson || (lessonsList.length > 0 ? lessonsList[0] : null);
     const activeLessonId = selectedLessonId || activeLessonObj?.id || activeLessonObj?._id || activeLessonObj?.lessonId || lessonsList[0]?.id || "l_1";
     const currentLesson = lessonsList.find((l) => l.id === activeLessonId) || activeLessonObj || lessonsList[0];
+    const currentLessonNotes = notesList?.[activeLessonId] || [];
 
     const courseTitle = playerData?.title || playerData?.courseTitle || currentCourse?.title || "Design Thinking";
     const moduleName = playerData?.moduleName || playerData?.activeModule || currentCourse?.moduleName || "Module 1 of 12";
@@ -280,10 +333,10 @@ export default function CoursePlayer() {
                                         key={lesson.id}
                                         onClick={() => handleSelectLesson(lesson)}
                                         className={`w-full flex items-center justify-between p-3.5 rounded-xl transition-all cursor-pointer select-none ${isActive
-                                                ? "bg-blue-600 text-white font-semibold shadow-lg shadow-blue-600/30"
-                                                : isLocked
-                                                    ? "opacity-50 hover:bg-white/5 text-gray-400 cursor-not-allowed"
-                                                    : "hover:bg-white/5 text-gray-300"
+                                            ? "bg-blue-600 text-white font-semibold shadow-lg shadow-blue-600/30"
+                                            : isLocked
+                                                ? "opacity-50 hover:bg-white/5 text-gray-400 cursor-not-allowed"
+                                                : "hover:bg-white/5 text-gray-300"
                                             }`}
                                     >
                                         <div className="flex items-center gap-3 min-w-0">
@@ -338,6 +391,7 @@ export default function CoursePlayer() {
                                 src={currentLesson.videoUrl}
                                 controls
                                 autoPlay
+                                onTimeUpdate={(e) => setVideoTime(e.target.currentTime)}
                                 onEnded={() => handleCompleteLesson(currentLesson?.id)}
                                 className="w-full h-full object-cover rounded-2xl"
                             />
@@ -387,8 +441,8 @@ export default function CoursePlayer() {
                                 onClick={() => handleCompleteLesson(currentLesson?.id)}
                                 disabled={completingLesson || completedLessonIds.has(currentLesson?.id) || currentLesson?.status === "completed"}
                                 className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${completedLessonIds.has(currentLesson?.id) || currentLesson?.status === "completed"
-                                        ? "bg-white/5 text-gray-400 border border-white/10 cursor-default"
-                                        : "bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-900/30"
+                                    ? "bg-white/5 text-gray-400 border border-white/10 cursor-default"
+                                    : "bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-900/30"
                                     }`}
                             >
                                 <CheckCircleIcon sx={{ fontSize: 16 }} />
@@ -417,8 +471,8 @@ export default function CoursePlayer() {
                         <button
                             onClick={() => setActiveTab("about")}
                             className={`pb-3 transition-colors cursor-pointer ${activeTab === "about"
-                                    ? "text-white border-b-2 border-blue-500 font-bold"
-                                    : "text-gray-400 hover:text-white"
+                                ? "text-white border-b-2 border-blue-500 font-bold"
+                                : "text-gray-400 hover:text-white"
                                 }`}
                         >
                             About
@@ -426,8 +480,8 @@ export default function CoursePlayer() {
                         <button
                             onClick={() => setActiveTab("resources")}
                             className={`pb-3 transition-colors cursor-pointer ${activeTab === "resources"
-                                    ? "text-white border-b-2 border-blue-500 font-bold"
-                                    : "text-gray-400 hover:text-white"
+                                ? "text-white border-b-2 border-blue-500 font-bold"
+                                : "text-gray-400 hover:text-white"
                                 }`}
                         >
                             Resources
@@ -435,8 +489,8 @@ export default function CoursePlayer() {
                         <button
                             onClick={() => setActiveTab("notes")}
                             className={`pb-3 transition-colors cursor-pointer ${activeTab === "notes"
-                                    ? "text-white border-b-2 border-blue-500 font-bold"
-                                    : "text-gray-400 hover:text-white"
+                                ? "text-white border-b-2 border-blue-500 font-bold"
+                                : "text-gray-400 hover:text-white"
                                 }`}
                         >
                             Notes
@@ -444,8 +498,8 @@ export default function CoursePlayer() {
                         <button
                             onClick={() => setActiveTab("qna")}
                             className={`pb-3 transition-colors cursor-pointer ${activeTab === "qna"
-                                    ? "text-white border-b-2 border-blue-500 font-bold"
-                                    : "text-gray-400 hover:text-white"
+                                ? "text-white border-b-2 border-blue-500 font-bold"
+                                : "text-gray-400 hover:text-white"
                                 }`}
                         >
                             Q&A
@@ -521,12 +575,63 @@ export default function CoursePlayer() {
                     )}
 
                     {activeTab === "notes" && (
-                        <div className="py-6 text-gray-400 text-sm">
-                            <textarea
-                                rows={4}
-                                placeholder="Type your personal lesson notes here..."
-                                className="w-full p-4 rounded-xl bg-[#13161F] border border-white/10 text-white focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm resize-none"
-                            />
+                        <div className="py-6 space-y-6">
+
+                            {/* Add Note */}
+                            <div>
+                                <textarea
+                                    rows={4}
+                                    value={noteContent}
+                                    onChange={(e) => setNoteContent(e.target.value)}
+                                    placeholder="Type your personal lesson notes here..."
+                                    className="w-full p-4 rounded-xl bg-[#13161F] border border-white/10 text-white focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm resize-none"
+                                />
+
+                                <div className="flex justify-between items-center mt-3">
+                                    <span className="text-xs text-gray-500">
+                                        Timestamp: {formatTimestamp(videoTime)}
+                                    </span>
+
+                                    <button
+                                        onClick={handleAddNote}
+                                        disabled={addingNote || !noteContent.trim()}
+                                        className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {addingNote ? "Saving..." : "Add Note"}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Existing Notes */}
+                            <div className="space-y-3">
+                                <h3 className="text-white font-semibold text-sm">
+                                    Your Notes
+                                </h3>
+
+                                {currentLessonNotes.length === 0 ? (
+                                    <p className="text-gray-500 text-sm">
+                                        No notes for this lesson yet.
+                                    </p>
+                                ) : (
+                                    currentLessonNotes.map((note, index) => (
+                                        <div
+                                            key={note.id || note._id || index}
+                                            className="p-4 rounded-xl bg-[#13161F] border border-white/10"
+                                        >
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-xs text-blue-400 font-semibold">
+                                                    {note.timestamp}
+                                                </span>
+                                            </div>
+
+                                            <p className="text-gray-300 text-sm leading-relaxed">
+                                                {note.content}
+                                            </p>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+
                         </div>
                     )}
 

@@ -11,7 +11,8 @@ export const courseApi = {
     saveCourse: (id) => api.post(`/api/courses/save/${id}`),
     completeLesson: (id, lessonId) =>
         api.post(`/api/courses/complete-lesson/${id}`, { lessonId }),
+    getCourseNotes: (id) => api.get(`/api/courses/${id}/notes`),
+    addCourseNote: (id, data) => api.post(`/api/courses/${id}/notes`, data),
 };
 
-export default courseApi;
-
+export default courseApi;   

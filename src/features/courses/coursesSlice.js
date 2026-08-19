@@ -8,6 +8,8 @@ import {
     fetchMyLearning,
     saveCourseThunk,
     completeLessonInCourse,
+    getCourseNotes,
+    addCourseNote,
 } from "./coursesThunks";
 
 const initialState = {
@@ -28,6 +30,8 @@ const initialState = {
     error: null,
     categoriesError: null,
     courseDetailsError: null,
+    courseNoteError: null,
+    courseNotesLoading: false,
     enrollError: null,
     // My Learning state – populated by GET /api/courses/my-learning
     myLearning: {
@@ -52,6 +56,10 @@ const coursesSlice = createSlice({
         clearCoursePlayer: (state) => {
             state.coursePlayerData = null;
             state.coursePlayerError = null;
+        },
+        clearNotesList: (state) => {
+            state.notesList = null;
+            state.error = null;
         },
     },
     extraReducers: (builder) => {
@@ -176,9 +184,23 @@ const coursesSlice = createSlice({
                         progressPercentage: action.payload.progressPercentage,
                     };
                 }
-            });
+            })
+
+            .addCase(getCourseNotes.fulfilled, (state, action) => {
+                state.notesList = action.payload;
+            })
+
+            .addCase(addCourseNote.fulfilled, (state, action) => {
+                const newNote = action.payload;
+                if (newNote.lessonId) {
+                    if (!state.notesList[newNote.lessonId]) {
+                        state.notesList[newNote.lessonId] = [];
+                    }
+                    state.notesList[newNote.lessonId].push(newNote);
+                }
+            })
     },
 });
 
-export const { clearCurrentCourse, clearCoursePlayer } = coursesSlice.actions;
+export const { clearCurrentCourse, clearCoursePlayer, clearNotesList } = coursesSlice.actions;
 export default coursesSlice.reducer;
