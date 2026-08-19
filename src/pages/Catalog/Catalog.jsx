@@ -10,15 +10,7 @@ function Catalog() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
-    const {
-        courses,
-        categories,
-        totalPages,
-        currentPage,
-        hasMore,
-        loading,
-        error,
-    } = useSelector((state) => state.courses);
+    const { courses, categories, totalPages, currentPage, hasMore, loading, error, } = useSelector((state) => state.courses);
 
     // Filter states
     const [category, setCategory] = useState("All");
@@ -35,15 +27,7 @@ function Catalog() {
     // Fetch courses with debounce on search
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
-            dispatch(
-                fetchCourses({
-                    category,
-                    level,
-                    sort,
-                    page,
-                    limit,
-                })
-            );
+            dispatch(fetchCourses({ category, level, sort, page, limit, }))
         }, 300);
 
         return () => clearTimeout(delayDebounceFn);

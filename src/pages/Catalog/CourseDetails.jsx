@@ -66,7 +66,7 @@ export default function CourseDetails() {
 
     const handleSave = async () => {
         try {
-            const res = await dispatch(saveCourseThunk(id)).unwrap();
+            const res = await dispatch(saveCourseThunk({ id, course })).unwrap();
             const newStatus = typeof res?.isSaved === "boolean"
                 ? res.isSaved
                 : typeof res?.data?.isSaved === "boolean"
@@ -74,6 +74,9 @@ export default function CourseDetails() {
                     : !isSavedLocally;
             setIsSavedLocally(newStatus);
             toast.success(newStatus ? "Course saved for later!" : "Course removed from saved!");
+            if (newStatus) {
+                navigate("/my-learning");
+            }
         } catch (err) {
             toast.error(err || "Failed to update saved status.");
         }
