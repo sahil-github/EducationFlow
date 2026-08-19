@@ -251,15 +251,15 @@ export default function CourseDetails() {
                         {course.isEnrolled ? (
                             <div className="space-y-3">
                                 <button
-                                    disabled
-                                    className="w-full py-3 bg-gray-800 text-gray-500 rounded-xl text-sm font-semibold transition-colors cursor-not-allowed border border-white/5"
+                                    onClick={() => navigate(`/courses/${id}/learn`)}
+                                    className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition-all shadow-lg shadow-blue-900/50 cursor-pointer flex items-center justify-center gap-2"
                                 >
-                                    Already Enrolled
+                                    <span>Continue to Course Player</span>
                                 </button>
                                 <Button
                                     variant="ghost"
                                     onClick={() => navigate("/my-learning")}
-                                    className="w-full py-3 text-center block text-sm font-semibold text-blue-400 hover:text-blue-300"
+                                    className="w-full py-2 text-center block text-xs font-semibold text-gray-400 hover:text-white"
                                 >
                                     Go to My Learning
                                 </Button>

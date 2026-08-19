@@ -16,10 +16,10 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 import Card from "../../components/Card";
 import Button from "../../components/Button";
-import { fetchCourseById, fetchCoursePlayer } from "../../features/courses/coursesThunks";
+// import { fetchCourseById, fetchCoursePlayer } from "../../features/courses/coursesThunks";
 import { clearCoursePlayer } from "../../features/courses/coursesSlice";
-import { completeLessonInCourse } from "../../features/myLearning/myLearningThunks";
-
+// import { completeLessonInCourse } from "../../features/myLearning/myLearningThunks";
+import { fetchCourseById, fetchCoursePlayer, completeLessonInCourse } from "../../features/courses/coursesThunks";
 // Default fallback lesson structure
 const DEFAULT_LESSONS = [
     {
@@ -81,37 +81,42 @@ export default function CoursePlayer() {
         };
     }, [dispatch, id]);
 
+    // Normalize potential backend response nesting shapes
+    const playerData = coursePlayerData?.data ?? coursePlayerData?.course ?? coursePlayerData;
+
     // Derive lessons list from API response (playlist or modules)
     const lessonsList = (() => {
-        if (coursePlayerData?.playlist && Array.isArray(coursePlayerData.playlist) && coursePlayerData.playlist.length > 0) {
-            return coursePlayerData.playlist.map((les, index) => ({
-                id: les.id || les.lessonId || `l_${index + 1}`,
+        const playlist = playerData?.playlist || playerData?.lessons;
+        if (playlist && Array.isArray(playlist) && playlist.length > 0) {
+            return playlist.map((les, index) => ({
+                id: les.id || les._id || les.lessonId || `l_${index + 1}`,
                 title: les.title || les.name || `Lesson ${index + 1}`,
                 duration: les.duration || "10:00",
-                videoUrl: les.videoUrl || "",
+                videoUrl: les.videoUrl || les.url || "",
                 description: les.description || "",
                 keyObjectives: les.keyObjectives || [],
                 proTips: les.proTips || "",
-                status: completedLessonIds.has(les.id || les.lessonId || `l_${index + 1}`)
+                status: completedLessonIds.has(les.id || les._id || les.lessonId || `l_${index + 1}`)
                     ? "completed"
                     : les.status || (les.isCompleted ? "completed" : index === 0 ? "active" : "upcoming"),
             }));
         }
 
-        if (coursePlayerData?.modules && Array.isArray(coursePlayerData.modules) && coursePlayerData.modules.length > 0) {
+        const modules = playerData?.modules || currentCourse?.modules;
+        if (modules && Array.isArray(modules) && modules.length > 0) {
             const allLessons = [];
-            coursePlayerData.modules.forEach((mod, modIdx) => {
+            modules.forEach((mod, modIdx) => {
                 if (Array.isArray(mod.lessons)) {
                     mod.lessons.forEach((les, lesIdx) => {
                         allLessons.push({
-                            id: les.id || les.lessonId || `l_${modIdx + 1}_${lesIdx + 1}`,
+                            id: les.id || les._id || les.lessonId || `l_${modIdx + 1}_${lesIdx + 1}`,
                             title: les.title || les.name || `Lesson ${lesIdx + 1}`,
                             duration: les.duration || "10:00",
-                            videoUrl: les.videoUrl || "",
+                            videoUrl: les.videoUrl || les.url || "",
                             description: les.description || "",
                             keyObjectives: les.keyObjectives || [],
                             proTips: les.proTips || "",
-                            status: completedLessonIds.has(les.id || les.lessonId || `l_${modIdx + 1}_${lesIdx + 1}`)
+                            status: completedLessonIds.has(les.id || les._id || les.lessonId || `l_${modIdx + 1}_${lesIdx + 1}`)
                                 ? "completed"
                                 : les.status || (les.isCompleted ? "completed" : allLessons.length === 0 ? "active" : "upcoming"),
                         });
@@ -121,47 +126,31 @@ export default function CoursePlayer() {
             if (allLessons.length > 0) return allLessons;
         }
 
-        if (currentCourse?.modules && Array.isArray(currentCourse.modules) && currentCourse.modules.length > 0) {
-            const firstMod = currentCourse.modules[0];
-            if (firstMod.lessons && Array.isArray(firstMod.lessons) && firstMod.lessons.length > 0) {
-                return firstMod.lessons.map((les, index) => ({
-                    id: les.id || les.lessonId || `l_${index + 1}`,
-                    title: les.title || les.name || `Lesson ${index + 1}`,
-                    duration: les.duration || "10:00",
-                    videoUrl: les.videoUrl || "",
-                    description: les.description || "",
-                    keyObjectives: les.keyObjectives || [],
-                    proTips: les.proTips || "",
-                    status: completedLessonIds.has(les.id || les.lessonId || `l_${index + 1}`)
-                        ? "completed"
-                        : les.status || (index === 0 ? "completed" : index === 1 ? "active" : index === 4 ? "locked" : "upcoming"),
-                }));
-            }
-        }
         return DEFAULT_LESSONS;
     })();
 
     // Active lesson resolution
-    const activeLessonId = selectedLessonId || coursePlayerData?.activeLesson?.id || coursePlayerData?.activeLesson?.lessonId || lessonsList[0]?.id || "l_1";
-    const currentLesson = lessonsList.find((l) => l.id === activeLessonId) || coursePlayerData?.activeLesson || lessonsList[0];
+    const activeLessonObj = playerData?.activeLesson || (lessonsList.length > 0 ? lessonsList[0] : null);
+    const activeLessonId = selectedLessonId || activeLessonObj?.id || activeLessonObj?._id || activeLessonObj?.lessonId || lessonsList[0]?.id || "l_1";
+    const currentLesson = lessonsList.find((l) => l.id === activeLessonId) || activeLessonObj || lessonsList[0];
 
-    const courseTitle = coursePlayerData?.title || coursePlayerData?.courseTitle || currentCourse?.title || "Design Thinking";
-    const moduleName = coursePlayerData?.moduleName || coursePlayerData?.activeModule || currentCourse?.moduleName || "Module 1 of 12";
-    const progressPercent = coursePlayerData?.progressPercentage ?? coursePlayerData?.progress ?? currentCourse?.progress ?? 25;
+    const courseTitle = playerData?.title || playerData?.courseTitle || currentCourse?.title || "Design Thinking";
+    const moduleName = playerData?.moduleName || playerData?.activeModule || currentCourse?.moduleName || "Module 1 of 12";
+    const progressPercent = playerData?.progressPercentage ?? playerData?.progress ?? currentCourse?.progress ?? 25;
 
     // Active lesson details from API response
-    const lessonDescription = currentLesson?.description || coursePlayerData?.activeLesson?.description || "Welcome to the core module of our series. In this lesson, we explore foundational principles and how they integrate into modern agile workflows.";
+    const lessonDescription = currentLesson?.description || activeLessonObj?.description || "Welcome to the core module of our series. In this lesson, we explore foundational principles and how they integrate into modern agile workflows.";
     const keyObjectives = (Array.isArray(currentLesson?.keyObjectives) && currentLesson.keyObjectives.length > 0)
         ? currentLesson.keyObjectives
-        : (Array.isArray(coursePlayerData?.activeLesson?.keyObjectives) && coursePlayerData.activeLesson.keyObjectives.length > 0)
-        ? coursePlayerData.activeLesson.keyObjectives
-        : [
-            "Define customer pain points through empathy mapping",
-            "Integrate design sprints into product roadmaps",
-            "Validate early prototypes with real user testing",
-        ];
-    const proTips = currentLesson?.proTips || coursePlayerData?.activeLesson?.proTips || "Always start with 'How Might We' questions before jumping into mental models. It opens up creative problem spaces without premature constraints.";
-    const resourcesList = coursePlayerData?.resources || [
+        : (Array.isArray(activeLessonObj?.keyObjectives) && activeLessonObj.keyObjectives.length > 0)
+            ? activeLessonObj.keyObjectives
+            : [
+                "Define customer pain points through empathy mapping",
+                "Integrate design sprints into product roadmaps",
+                "Validate early prototypes with real user testing",
+            ];
+    const proTips = currentLesson?.proTips || activeLessonObj?.proTips || "Always start with 'How Might We' questions before jumping into mental models. It opens up creative problem spaces without premature constraints.";
+    const resourcesList = playerData?.resources || [
         { title: "Lesson 02 - Design Thinking Framework (PDF)", type: "pdf" },
         { title: "Empathy Mapping Template (Figma / XLSX)", type: "template" },
     ];
@@ -190,7 +179,7 @@ export default function CoursePlayer() {
             setCompletedLessonIds((prev) => new Set([...prev, lid]));
             const pct = res?.progressPercentage !== undefined ? `${res.progressPercentage}%` : "Progress saved";
             toast.success(`Lesson marked as completed (${pct})! 🎉`);
-            
+
             // Advance to next lesson if available
             const currentIndex = lessonsList.findIndex((l) => l.id === lid);
             if (currentIndex !== -1 && currentIndex + 1 < lessonsList.length) {
@@ -290,13 +279,12 @@ export default function CoursePlayer() {
                                     <div
                                         key={lesson.id}
                                         onClick={() => handleSelectLesson(lesson)}
-                                        className={`w-full flex items-center justify-between p-3.5 rounded-xl transition-all cursor-pointer select-none ${
-                                            isActive
+                                        className={`w-full flex items-center justify-between p-3.5 rounded-xl transition-all cursor-pointer select-none ${isActive
                                                 ? "bg-blue-600 text-white font-semibold shadow-lg shadow-blue-600/30"
                                                 : isLocked
-                                                ? "opacity-50 hover:bg-white/5 text-gray-400 cursor-not-allowed"
-                                                : "hover:bg-white/5 text-gray-300"
-                                        }`}
+                                                    ? "opacity-50 hover:bg-white/5 text-gray-400 cursor-not-allowed"
+                                                    : "hover:bg-white/5 text-gray-300"
+                                            }`}
                                     >
                                         <div className="flex items-center gap-3 min-w-0">
                                             <button
@@ -358,7 +346,7 @@ export default function CoursePlayer() {
                                 {/* Background Ambient Studio Elements */}
                                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-black/80 pointer-events-none" />
                                 <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
-                                
+
                                 {/* Top Right Counter Badge */}
                                 <div className="absolute top-4 right-4 text-xs font-bold text-gray-400 bg-black/60 backdrop-blur-md px-3 py-1 rounded-md border border-white/10 tracking-widest">
                                     {Math.round(progressPercent)}%
@@ -398,11 +386,10 @@ export default function CoursePlayer() {
                             <button
                                 onClick={() => handleCompleteLesson(currentLesson?.id)}
                                 disabled={completingLesson || completedLessonIds.has(currentLesson?.id) || currentLesson?.status === "completed"}
-                                className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                                    completedLessonIds.has(currentLesson?.id) || currentLesson?.status === "completed"
+                                className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${completedLessonIds.has(currentLesson?.id) || currentLesson?.status === "completed"
                                         ? "bg-white/5 text-gray-400 border border-white/10 cursor-default"
                                         : "bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-900/30"
-                                }`}
+                                    }`}
                             >
                                 <CheckCircleIcon sx={{ fontSize: 16 }} />
                                 {completingLesson ? "Saving..." : (completedLessonIds.has(currentLesson?.id) || currentLesson?.status === "completed") ? "Lesson Completed" : "Mark as Complete"}
@@ -429,41 +416,37 @@ export default function CoursePlayer() {
                     <div className="flex gap-8 border-b border-white/10 mt-8 mb-6 text-sm font-semibold">
                         <button
                             onClick={() => setActiveTab("about")}
-                            className={`pb-3 transition-colors cursor-pointer ${
-                                activeTab === "about"
+                            className={`pb-3 transition-colors cursor-pointer ${activeTab === "about"
                                     ? "text-white border-b-2 border-blue-500 font-bold"
                                     : "text-gray-400 hover:text-white"
-                            }`}
+                                }`}
                         >
                             About
                         </button>
                         <button
                             onClick={() => setActiveTab("resources")}
-                            className={`pb-3 transition-colors cursor-pointer ${
-                                activeTab === "resources"
+                            className={`pb-3 transition-colors cursor-pointer ${activeTab === "resources"
                                     ? "text-white border-b-2 border-blue-500 font-bold"
                                     : "text-gray-400 hover:text-white"
-                            }`}
+                                }`}
                         >
                             Resources
                         </button>
                         <button
                             onClick={() => setActiveTab("notes")}
-                            className={`pb-3 transition-colors cursor-pointer ${
-                                activeTab === "notes"
+                            className={`pb-3 transition-colors cursor-pointer ${activeTab === "notes"
                                     ? "text-white border-b-2 border-blue-500 font-bold"
                                     : "text-gray-400 hover:text-white"
-                            }`}
+                                }`}
                         >
                             Notes
                         </button>
                         <button
                             onClick={() => setActiveTab("qna")}
-                            className={`pb-3 transition-colors cursor-pointer ${
-                                activeTab === "qna"
+                            className={`pb-3 transition-colors cursor-pointer ${activeTab === "qna"
                                     ? "text-white border-b-2 border-blue-500 font-bold"
                                     : "text-gray-400 hover:text-white"
-                            }`}
+                                }`}
                         >
                             Q&A
                         </button>

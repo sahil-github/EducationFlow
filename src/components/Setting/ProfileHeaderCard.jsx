@@ -2,8 +2,8 @@ import React from 'react';
 import EditIcon from '@mui/icons-material/Edit';
 
 export default function ProfileHeaderCard({ user, onEditAvatar, onViewPublicProfile }) {
-    const avatarUrl = user?.avatarUrl;
     const displayName = user?.fullName || user?.name || "Alex Rivera";
+    const avatarUrl = user?.avatarUrl || user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(displayName)}`;
     const roleTitle = user?.headline || user?.bio || user?.role || "Senior Product Designer & Lifelong Learner";
     const memberStatus = user?.memberStatus || "Pro Member";
     const rawJoinedDate = user?.joinedDate || "June 2023";

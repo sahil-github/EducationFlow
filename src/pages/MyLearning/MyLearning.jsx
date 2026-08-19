@@ -189,7 +189,7 @@ function MyLearning() {
                                             </div>
                                         </div>
                                         <button
-                                            onClick={() => navigate(`/courses/${course.id || 1}/learn`)}
+                                            onClick={() => navigate(course.id ? `/courses/${course.id}/learn` : "/catalog")}
                                             className="w-full py-2.5 bg-[#0759d9] hover:bg-[#054dbb] text-white rounded-lg text-sm font-semibold transition-colors cursor-pointer"
                                         >
                                             {course.buttonText}

@@ -10,6 +10,8 @@ const timezones = [
 ];
 
 export default function ContactRegionCard({ values, onChange }) {
+    const isCustomTimezone = values.timezone && !timezones.includes(values.timezone);
+
     return (
         <div className="w-full bg-[#16171D]/90 border border-white/10 rounded-2xl p-6 shadow-xl flex flex-col gap-4">
             <h3 className="text-white font-bold text-sm font-[Poppins] tracking-wide pb-2 border-b border-white/5">
@@ -25,7 +27,7 @@ export default function ContactRegionCard({ values, onChange }) {
                     <div className="relative">
                         <select
                             name="timezone"
-                            value={values.timezone}
+                            value={values.timezone || ""}
                             onChange={onChange}
                             className="w-full bg-[#121318] border border-white/10 text-white rounded-xl px-4 py-2.5 text-xs font-[Manrope] focus:border-blue-500 focus:outline-none transition-all appearance-none cursor-pointer pr-10"
                             style={{
@@ -35,6 +37,14 @@ export default function ContactRegionCard({ values, onChange }) {
                                 backgroundSize: '16px',
                             }}
                         >
+                            <option value="" disabled className="bg-[#16171D] text-gray-500">
+                                Select Timezone
+                            </option>
+                            {isCustomTimezone && (
+                                <option value={values.timezone} className="bg-[#16171D] text-white">
+                                    {values.timezone}
+                                </option>
+                            )}
                             {timezones.map(tz => (
                                 <option key={tz} value={tz} className="bg-[#16171D] text-white">
                                     {tz}
@@ -52,7 +62,7 @@ export default function ContactRegionCard({ values, onChange }) {
                     <input
                         type="text"
                         name="phoneNumber"
-                        value={values.phoneNumber}
+                        value={values.phoneNumber || ""}
                         onChange={onChange}
                         placeholder="+1 (555) 000-0000"
                         className="w-full bg-[#121318] border border-white/10 text-white rounded-xl px-4 py-2.5 text-xs font-[Manrope] focus:border-blue-500 focus:outline-none transition-all placeholder-gray-600"
