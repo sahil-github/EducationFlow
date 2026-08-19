@@ -3,6 +3,7 @@ import {
     fetchCourses,
     fetchCategories,
     fetchCourseById,
+    fetchCoursePlayer,
     enrollInCourse,
     fetchMyLearning,
     saveCourseThunk,
@@ -13,6 +14,9 @@ const initialState = {
     courses: [],
     categories: [],
     currentCourse: null,
+    coursePlayerData: null,
+    coursePlayerLoading: false,
+    coursePlayerError: null,
     totalPages: 1,
     currentPage: 1,
     totalCourses: 0,
@@ -44,6 +48,10 @@ const coursesSlice = createSlice({
         clearCurrentCourse: (state) => {
             state.currentCourse = null;
             state.courseDetailsError = null;
+        },
+        clearCoursePlayer: (state) => {
+            state.coursePlayerData = null;
+            state.coursePlayerError = null;
         },
     },
     extraReducers: (builder) => {
@@ -134,6 +142,20 @@ const coursesSlice = createSlice({
                 state.myLearningError = action.payload ?? "Failed to fetch my learning";
             })
 
+            // fetchCoursePlayer
+            .addCase(fetchCoursePlayer.pending, (state) => {
+                state.coursePlayerLoading = true;
+                state.coursePlayerError = null;
+            })
+            .addCase(fetchCoursePlayer.fulfilled, (state, action) => {
+                state.coursePlayerLoading = false;
+                state.coursePlayerData = action.payload;
+            })
+            .addCase(fetchCoursePlayer.rejected, (state, action) => {
+                state.coursePlayerLoading = false;
+                state.coursePlayerError = action.payload ?? "Failed to load course player";
+            })
+
             // saveCourseThunk
             .addCase(saveCourseThunk.fulfilled, (state, action) => {
                 // If the backend echoes back updated course data, refresh currentCourse
@@ -148,9 +170,15 @@ const coursesSlice = createSlice({
                 if (state.currentCourse && action.payload) {
                     state.currentCourse = { ...state.currentCourse, ...action.payload };
                 }
+                if (state.coursePlayerData && action.payload?.progressPercentage !== undefined) {
+                    state.coursePlayerData = {
+                        ...state.coursePlayerData,
+                        progressPercentage: action.payload.progressPercentage,
+                    };
+                }
             });
     },
 });
 
-export const { clearCurrentCourse } = coursesSlice.actions;
+export const { clearCurrentCourse, clearCoursePlayer } = coursesSlice.actions;
 export default coursesSlice.reducer;

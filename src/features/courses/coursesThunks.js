@@ -61,6 +61,20 @@ export const fetchCourseById = createAsyncThunk(
     }
 );
 
+export const fetchCoursePlayer = createAsyncThunk(
+    "courses/fetchCoursePlayer",
+    async (id, { rejectWithValue }) => {
+        try {
+            const response = await courseApi.getCoursePlayer(id);
+            return response.data?.data ?? response.data;
+        } catch (err) {
+            return rejectWithValue(
+                extractMsg(err, "Failed to load course player")
+            );
+        }
+    }
+);
+
 export const enrollInCourse = createAsyncThunk(
     "courses/enrollInCourse",
     async (id, { rejectWithValue }) => {
