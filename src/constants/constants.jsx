@@ -258,4 +258,6 @@ export const levels = [
     { id: 'Public speaking', title: 'Public Speaking', icon: <RecordVoiceOverIcon /> },
     { id: 'UI/UX Design', title: 'UI/UX Design', icon: <ColorLensIcon /> }
 ];
-// Courses are now retrieved dynamically via the backend APIs.
+// Courses are now retrieved dynamically via the backend APIs.
+
+// aknfkajkjgj
