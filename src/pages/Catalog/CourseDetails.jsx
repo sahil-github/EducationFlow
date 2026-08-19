@@ -67,7 +67,11 @@ export default function CourseDetails() {
     const handleSave = async () => {
         try {
             const res = await dispatch(saveCourseThunk(id)).unwrap();
-            const newStatus = res.isSaved ?? !isSavedLocally;
+            const newStatus = typeof res?.isSaved === "boolean"
+                ? res.isSaved
+                : typeof res?.data?.isSaved === "boolean"
+                    ? res.data.isSaved
+                    : !isSavedLocally;
             setIsSavedLocally(newStatus);
             toast.success(newStatus ? "Course saved for later!" : "Course removed from saved!");
         } catch (err) {
@@ -206,8 +210,27 @@ export default function CourseDetails() {
                 <div className="lg:col-span-4 space-y-6">
                     <Card className="p-6 border border-gray-800 bg-[#1A1D24] space-y-4 shadow-2xl">
                         {/* Course Thumbnail or Placeholder */}
-                        <div className="aspect-video w-full rounded-lg bg-gradient-to-tr from-blue-900 to-indigo-800 flex items-center justify-center text-3xl shadow-inner border border-white/10 relative overflow-hidden">
-                            <span className="text-3xl"></span>
+                        <div className="aspect-video w-full rounded-lg bg-gradient-to-br from-indigo-950 via-slate-900 to-blue-950 flex items-center justify-center shadow-inner border border-white/10 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/10 to-transparent"></div>
+                            <h2 className="text-white/10 text-4xl font-extrabold select-none absolute">EduFlow</h2>
+
+                            {course?.thumbnail && (
+                                <img
+                                    src={course.thumbnail}
+                                    alt={course?.title || "Course Thumbnail"}
+                                    className="w-full h-full object-cover relative z-10"
+                                    onError={(e) => {
+                                        e.target.style.display = 'none';
+                                    }}
+                                />
+                            )}
+
+                            {course?.rating != null && (
+                                <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md rounded-md px-2 py-1 flex items-center gap-1 border border-white/10 z-20">
+                                    <StarIcon sx={{ fontSize: 14, color: '#facc15' }} />
+                                    <span className="text-white text-xs font-bold">{course.rating || "0.0"}</span>
+                                </div>
+                            )}
                         </div>
 
                         <div className="space-y-4">

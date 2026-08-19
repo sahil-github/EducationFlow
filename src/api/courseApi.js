@@ -5,6 +5,7 @@ export const courseApi = {
     createCourse: (data) => api.post("/api/courses/create", data),
     getCategories: () => api.get("/api/courses/categories"),
     getCourseById: (id) => api.get(`/api/courses/details/${id}`),
+    getCoursePlayer: (id) => api.get(`/api/courses/learn/${id}`),
     enrollInCourse: (id) => api.post(`/api/courses/enroll/${id}`),
     getMyLearning: () => api.get("/api/courses/my-learning"),
     saveCourse: (id) => api.post(`/api/courses/save/${id}`),

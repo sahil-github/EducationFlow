@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import Card from "../../components/Card";
 import { LocalFireDepartment, AccessTime, WorkspacePremium, SettingsOutlined, BarChartOutlined, DescriptionOutlined, CalendarToday, Star, MenuBook } from '@mui/icons-material';
@@ -33,6 +34,7 @@ const STAT_ICON_MAP = {
 
 export const Dashboard = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     // Auth / profile
     const { user: authUser } = useSelector((state) => state.auth);
@@ -93,17 +95,15 @@ export const Dashboard = () => {
 
     const displayName = profile?.fullName || profile?.name || authUser?.fullName || authUser?.name || summary?.user?.name || summary?.user?.fullName || "Learner";
 
-    // Dispatch thunks on mount — guard with status checks so each endpoint
-    // is only fetched once, even when React StrictMode double-invokes effects
-    // in development (second invocation sees 'pending'/'succeeded' and skips).
+    // Dispatch thunks on mount — always refresh Continue Learning to catch recent progress
     useEffect(() => {
+        dispatch(fetchContinueLearning());
         if (status.summary === 'idle') dispatch(fetchDashboard());
         if (status.learningStats === 'idle') dispatch(fetchLearningStats());
         if (status.liveClasses === 'idle') dispatch(fetchLiveClasses());
-        if (status.continueLearning === 'idle') dispatch(fetchContinueLearning());
         if (status.recommendedCourses === 'idle') dispatch(fetchRecommendedCourses());
         if (status.moduleExplorer === 'idle') dispatch(fetchModuleExplorer());
-    }, [dispatch, status.summary, status.learningStats, status.liveClasses, status.continueLearning, status.recommendedCourses, status.moduleExplorer]);
+    }, [dispatch, status.summary, status.learningStats, status.liveClasses, status.recommendedCourses, status.moduleExplorer]);
 
     // -----------------------------------------------------------------------
     // Data adaptation: map API shapes → UI shapes
@@ -168,23 +168,32 @@ export const Dashboard = () => {
     })();
 
 
-    // Continue learning — map API shape to UI shape: { module, title, progress, lessonsLeft }
+    // Continue learning — map API shape to UI shape: { id, module, title, progress, lessonsLeft, currentLessonTitle, lastAccessed }
     const coursesPending = (() => {
         const rawData = reduxContinueLearning?.data ?? reduxContinueLearning ?? summaryData?.continueLearning;
         const raw = Array.isArray(rawData) ? rawData : [];
         if (raw.length === 0) {
             // fallback mock
             return [
-                { module: 'Module 4 of 12', title: "Project Management Essentials", progress: 75, lessonsLeft: 3 },
-                { module: 'Module 2 of 8', title: "Advanced Data Analytics", progress: 20, lessonsLeft: 12 },
-                { module: 'Module 1 of 5', title: 'Design Thinking', progress: 5, lessonsLeft: 8 },
+                { id: "1", module: 'Module 4 of 12', title: "Project Management Essentials", progress: 75, lessonsLeft: "3 lessons left" },
+                { id: "2", module: 'Module 2 of 8', title: "Advanced Data Analytics", progress: 20, lessonsLeft: "12 lessons left" },
+                { id: "3", module: 'Module 1 of 5', title: 'Design Thinking', progress: 5, lessonsLeft: "8 lessons left" },
             ];
         }
-        return raw.map((item) => ({
-            module: item.module || item.moduleLabel || item.currentModule || `Module ${item.currentModuleNumber || 1} of ${item.totalModules || 1}`,
-            title: item.title || item.courseName || item.name || "",
+        return raw.map((item, idx) => ({
+            id: item.id || item._id || item.courseId || (idx + 1).toString(),
+            module: item.currentLessonTitle ? item.currentLessonTitle : (item.module || item.moduleLabel || item.currentModule || `Module ${item.currentModuleNumber || 1} of ${item.totalModules || 1}`),
+            title: item.title || item.courseName || item.name || "Untitled Course",
             progress: item.progress ?? item.progressPercent ?? item.completionPercent ?? 0,
-            lessonsLeft: item.lessonsLeft ?? item.lessons_left ?? item.remainingLessons ?? 0,
+            lessonsLeft: item.lessonsLeft !== undefined
+                ? `${item.lessonsLeft} lessons left`
+                : item.remainingLessons !== undefined
+                ? `${item.remainingLessons} lessons left`
+                : item.lastAccessed
+                ? `Last accessed ${new Date(item.lastAccessed).toLocaleDateString()}`
+                : "In progress",
+            currentLessonTitle: item.currentLessonTitle || null,
+            lastAccessed: item.lastAccessed || null,
         }));
     })();
 
@@ -326,7 +335,11 @@ export const Dashboard = () => {
                             className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 mb-2 scrollbar-hide flex-nowrap scroll-smooth"
                         >
                             {coursesPending.map((course, index) => (
-                                <Card key={index} className="min-w-[260px] max-w-[260px] sm:min-w-[320px] sm:max-w-[320px] bg-[#1c1f28]/60 overflow-hidden group cursor-pointer border-transparent hover:border-blue-500/50 transition-colors p-5 sm:p-6 flex flex-col justify-between">
+                                <Card
+                                    key={index}
+                                    onClick={() => navigate(course.id ? `/courses/${course.id}/learn` : "/catalog")}
+                                    className="min-w-[260px] max-w-[260px] sm:min-w-[320px] sm:max-w-[320px] bg-[#1c1f28]/60 overflow-hidden group cursor-pointer border-transparent hover:border-blue-500/50 transition-colors p-5 sm:p-6 flex flex-col justify-between"
+                                >
                                     <div>
                                         <div className="text-blue-400 text-[10px] font-bold tracking-wider uppercase mb-3">
                                             {course.module}
@@ -339,7 +352,7 @@ export const Dashboard = () => {
                                     <div className="mt-auto">
                                         <div className="flex justify-between items-end mb-3 text-xs font-medium text-gray-400">
                                             <span>{course.progress}% Complete</span>
-                                            <span>{course.lessonsLeft} lessons left</span>
+                                            <span>{course.lessonsLeft}</span>
                                         </div>
 
                                         <div className="w-full bg-[#13151a] rounded-full h-1.5 overflow-hidden">

@@ -99,7 +99,6 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
     const [anchorEl, setAnchorEl] = useState(null);
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
     const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
-
     // Search state — local only, does NOT touch global Redux courses state
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);

@@ -9,6 +9,7 @@ import {
     ToggleButtonGroup,
 } from "@mui/material";
 import { fetchMyLearning } from "../../features/myLearning/myLearningThunks";
+import { fetchContinueLearning } from "../../features/dashboard/dashThunks";
 
 const courseFilters = [
     { value: "all", label: "All Courses" },
@@ -21,31 +22,45 @@ function MyLearning() {
     const [filter, setFilter] = useState("all");
     const dispatch = useDispatch();
 
-
     const myLearningState = useSelector((state) => state.myLearning || state.courses);
     const myLearning = myLearningState?.myLearning || {};
-    const loading = Boolean(myLearningState?.loading || myLearningState?.myLearningLoading);
+    const { continueLearning, status: dashStatus } = useSelector((state) => state.dashboard);
+
+    const loading = Boolean(myLearningState?.loading || myLearningState?.myLearningLoading || dashStatus?.continueLearning === "pending");
     const myLearningLoading = loading;
 
     useEffect(() => {
         dispatch(fetchMyLearning());
+        dispatch(fetchContinueLearning());
     }, [dispatch]);
 
     const handleFilterChange = (event, newFilter) => {
         // Prevent deselecting the currently selected option
         if (newFilter !== null) {
             setFilter(newFilter);
+            if (newFilter === "inProgress" || newFilter === "all") {
+                dispatch(fetchContinueLearning());
+            }
         }
     };
 
+    // Combine Continue Learning API data with enrolled inProgress list
+    const inProgressList = (Array.isArray(continueLearning) && continueLearning.length > 0)
+        ? continueLearning
+        : (myLearning?.inProgress ?? []);
+
     // Map API array to UI structure expected by cards
-    const learningCourses = (myLearning?.inProgress ?? []).map((course, idx) => ({
-        id: course.id || course.courseId || idx,
+    const learningCourses = inProgressList.map((course, idx) => ({
+        id: course.id || course.courseId || course._id || idx,
         category: course.category || course.categoryName || "Course",
         title: course.title || course.courseName || course.name || "",
+        currentLessonTitle: course.currentLessonTitle || null,
         progress: course.progress ?? course.progressPercent ?? 0,
-        timeLeft: course.timeLeft || (course.totalLessons && course.completedLessons ? `${course.totalLessons - course.completedLessons} lessons left` : ""),
-        buttonText: (course.progress ?? 0) >= 90 ? "Finish Module" : (course.progress ?? 0) > 0 ? "Continue Lesson" : "Start Course",
+        lastAccessed: course.lastAccessed || null,
+        timeLeft: course.currentLessonTitle
+            ? `Lesson: ${course.currentLessonTitle}`
+            : course.timeLeft || (course.totalLessons && course.completedLessons ? `${course.totalLessons - course.completedLessons} lessons left` : course.lastAccessed ? `Last accessed ${new Date(course.lastAccessed).toLocaleDateString()}` : ""),
+        buttonText: (course.progress ?? 0) >= 100 ? "Review Course" : (course.progress ?? 0) > 0 ? "Continue Lesson" : "Start Course",
     }));
 
     const courseSavedCategories = (myLearning?.savedForLater ?? []).map((course, idx) => ({
