@@ -51,22 +51,33 @@ const settingsSlice = createSlice({
             })
             .addCase(updateSettingsThunk.fulfilled, (state, action) => {
                 state.saving = false;
-                const payloadData = action.payload?.data;
-                if (payloadData && state.settingsData) {
-                    state.settingsData = {
-                        ...state.settingsData,
-                        identity: {
-                            ...state.settingsData.identity,
-                            fullName: payloadData.fullName ?? state.settingsData.identity?.fullName,
-                            headline: payloadData.headline ?? state.settingsData.identity?.headline,
-                        },
-                        contactRegion: {
-                            ...state.settingsData.contactRegion,
-                            timezone: payloadData.timezone ?? state.settingsData.contactRegion?.timezone,
-                            phoneNumber: payloadData.phoneNumber ?? state.settingsData.contactRegion?.phoneNumber,
-                        },
-                    };
-                }
+                const sent = action.meta?.arg || {};
+                const resData = action.payload?.data ?? action.payload?.settings ?? (typeof action.payload === "object" ? action.payload : {});
+
+                const updatedFullName = resData.fullName ?? sent.fullName;
+                const updatedEmail = resData.email ?? sent.email;
+                const updatedHeadline = resData.headline ?? sent.headline;
+                const updatedCountry = resData.country ?? sent.country;
+                const updatedTimezone = resData.timezone ?? sent.timezone;
+                const updatedPhoneNumber = resData.phoneNumber ?? sent.phoneNumber;
+
+                const currentSettings = state.settingsData || {};
+
+                state.settingsData = {
+                    ...currentSettings,
+                    identity: {
+                        ...(currentSettings.identity || {}),
+                        fullName: updatedFullName ?? currentSettings.identity?.fullName,
+                        email: updatedEmail ?? currentSettings.identity?.email,
+                        headline: updatedHeadline ?? currentSettings.identity?.headline,
+                    },
+                    contactRegion: {
+                        ...(currentSettings.contactRegion || {}),
+                        country: updatedCountry ?? currentSettings.contactRegion?.country,
+                        timezone: updatedTimezone ?? currentSettings.contactRegion?.timezone,
+                        phoneNumber: updatedPhoneNumber ?? currentSettings.contactRegion?.phoneNumber,
+                    },
+                };
             })
             .addCase(updateSettingsThunk.rejected, (state, action) => {
                 state.saving = false;
@@ -80,16 +91,24 @@ const settingsSlice = createSlice({
             })
             .addCase(updateNotificationPreferencesThunk.fulfilled, (state, action) => {
                 state.notificationsSaving = false;
-                const newNotifs = action.payload?.notifications;
-                if (newNotifs && state.settingsData) {
-                    state.settingsData = {
-                        ...state.settingsData,
-                        notifications: {
-                            ...state.settingsData.notifications,
-                            ...newNotifs,
-                        },
-                    };
-                }
+                const sentNotifs = action.meta?.arg || {};
+                const resNotifs = action.payload?.notifications ?? action.payload?.data?.notifications ?? action.payload?.data ?? (typeof action.payload === "object" ? action.payload : {});
+
+                const updatedNotifs = {
+                    courseActivity: resNotifs.courseActivity ?? sentNotifs.courseActivity,
+                    liveSessions: resNotifs.liveSessions ?? sentNotifs.liveSessions,
+                    newsletter: resNotifs.newsletter ?? sentNotifs.newsletter,
+                };
+
+                const currentSettings = state.settingsData || {};
+
+                state.settingsData = {
+                    ...currentSettings,
+                    notifications: {
+                        ...(currentSettings.notifications || {}),
+                        ...updatedNotifs,
+                    },
+                };
             })
             .addCase(updateNotificationPreferencesThunk.rejected, (state, action) => {
                 state.notificationsSaving = false;

@@ -5,7 +5,7 @@ import {
     socialLoginUser,
     sendPasswordReset,
 } from "./authThunks";
-import { clearCurrentUser } from "../../utils/storage";
+import { clearCurrentUser, saveCurrentUser } from "../../utils/storage";
 
 // ---------------------------------------------------------------------------
 // Safe localStorage read — a tampered/malformed value must not crash the app.
@@ -53,6 +53,7 @@ const authSlice = createSlice({
          */
         updateUser: (state, action) => {
             state.user = { ...state.user, ...action.payload };
+            saveCurrentUser(state.user);
         },
     },
     extraReducers: (builder) => {
