@@ -4,21 +4,58 @@ import {
     updateSettingsThunk,
     updateNotificationPreferencesThunk,
 } from "./settingsThunks";
+import { getSettings, saveSettings } from "../../utils/storage";
+
+// ---------------------------------------------------------------------------
+// Rehydrate from localStorage on app startup.
+// getSettings() reads the "ef_settings" key — returns the saved object or null.
+// We never overwrite it with defaults; only real API / user-submitted data goes in.
+// ---------------------------------------------------------------------------
+const persisted = getSettings();
 
 const initialState = {
-    settingsData: null,
-    loading: false,
+    // Full settings object returned by GET /api/profile/settings.
+    // Expected shape consumed by Setting.jsx:
+    //   { identity, contactRegion, notifications, security, subscription }
+    settingsData: persisted || null,
+
+    loading: false,             // true while fetchSettings is in-flight
     error: null,
-    saving: false,
+
+    saving: false,              // true while updateSettingsThunk is in-flight
     saveError: null,
-    notificationsSaving: false,
+
+    notificationsSaving: false, // true while updateNotificationPreferencesThunk is in-flight
     notificationsError: null,
+};
+
+// ---------------------------------------------------------------------------
+// Helper — deep-merge a patch into existing settingsData.
+// Prevents a partial API response from wiping unrelated nested fields.
+// ---------------------------------------------------------------------------
+const mergeSettings = (existing, patch) => {
+    if (!patch) return existing;
+    if (!existing) return patch;
+    return {
+        ...existing,
+        ...patch,
+        identity:      { ...(existing.identity      || {}), ...(patch.identity      || {}) },
+        contactRegion: { ...(existing.contactRegion || {}), ...(patch.contactRegion || {}) },
+        notifications: { ...(existing.notifications || {}), ...(patch.notifications || {}) },
+        security:      { ...(existing.security      || {}), ...(patch.security      || {}) },
+        subscription:  { ...(existing.subscription  || {}), ...(patch.subscription  || {}) },
+    };
 };
 
 const settingsSlice = createSlice({
     name: "settings",
     initialState,
     reducers: {
+        /** Apply a local optimistic patch (e.g. after a successful save in Setting.jsx). */
+        patchSettingsData: (state, action) => {
+            state.settingsData = mergeSettings(state.settingsData, action.payload);
+            saveSettings(state.settingsData);
+        },
         clearSettingsError: (state) => {
             state.error = null;
             state.saveError = null;
@@ -27,95 +64,68 @@ const settingsSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            // Reset on logout
-            .addCase("auth/logout", () => initialState)
-
-            // ── fetchSettings ───────────────────────────────────────────────
+            // ── fetchSettings ─────────────────────────────────────────────
             .addCase(fetchSettings.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
             .addCase(fetchSettings.fulfilled, (state, action) => {
                 state.loading = false;
-                state.settingsData = action.payload ?? null;
+                // Merge API data on top of whatever was in localStorage so
+                // neither source loses data the other holds.
+                state.settingsData = mergeSettings(state.settingsData, action.payload);
+                // Persist the merged result back to localStorage immediately.
+                saveSettings(state.settingsData);
             })
             .addCase(fetchSettings.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload ?? "Failed to load settings";
+                state.error = action.payload;
+                // Keep whatever was loaded from localStorage — do NOT clear it.
             })
 
-            // ── updateSettingsThunk ─────────────────────────────────────────
+            // ── updateSettingsThunk ───────────────────────────────────────
             .addCase(updateSettingsThunk.pending, (state) => {
                 state.saving = true;
                 state.saveError = null;
             })
             .addCase(updateSettingsThunk.fulfilled, (state, action) => {
                 state.saving = false;
-                const sent = action.meta?.arg || {};
-                const resData = action.payload?.data ?? action.payload?.settings ?? (typeof action.payload === "object" ? action.payload : {});
-
-                const updatedFullName = resData.fullName ?? sent.fullName;
-                const updatedEmail = resData.email ?? sent.email;
-                const updatedHeadline = resData.headline ?? sent.headline;
-                const updatedCountry = resData.country ?? sent.country;
-                const updatedTimezone = resData.timezone ?? sent.timezone;
-                const updatedPhoneNumber = resData.phoneNumber ?? sent.phoneNumber;
-
-                const currentSettings = state.settingsData || {};
-
-                state.settingsData = {
-                    ...currentSettings,
-                    identity: {
-                        ...(currentSettings.identity || {}),
-                        fullName: updatedFullName ?? currentSettings.identity?.fullName,
-                        email: updatedEmail ?? currentSettings.identity?.email,
-                        headline: updatedHeadline ?? currentSettings.identity?.headline,
-                    },
-                    contactRegion: {
-                        ...(currentSettings.contactRegion || {}),
-                        country: updatedCountry ?? currentSettings.contactRegion?.country,
-                        timezone: updatedTimezone ?? currentSettings.contactRegion?.timezone,
-                        phoneNumber: updatedPhoneNumber ?? currentSettings.contactRegion?.phoneNumber,
-                    },
-                };
+                // Merge the API response (may contain updated identity / contactRegion).
+                const patch = action.payload?.data ?? action.payload;
+                state.settingsData = mergeSettings(state.settingsData, patch);
+                // Persist to localStorage immediately.
+                saveSettings(state.settingsData);
             })
             .addCase(updateSettingsThunk.rejected, (state, action) => {
                 state.saving = false;
-                state.saveError = action.payload ?? "Failed to update settings";
+                state.saveError = action.payload;
             })
 
-            // ── updateNotificationPreferencesThunk ─────────────────────────
+            // ── updateNotificationPreferencesThunk ────────────────────────
             .addCase(updateNotificationPreferencesThunk.pending, (state) => {
                 state.notificationsSaving = true;
                 state.notificationsError = null;
             })
             .addCase(updateNotificationPreferencesThunk.fulfilled, (state, action) => {
                 state.notificationsSaving = false;
-                const sentNotifs = action.meta?.arg || {};
-                const resNotifs = action.payload?.notifications ?? action.payload?.data?.notifications ?? action.payload?.data ?? (typeof action.payload === "object" ? action.payload : {});
-
-                const updatedNotifs = {
-                    courseActivity: resNotifs.courseActivity ?? sentNotifs.courseActivity,
-                    liveSessions: resNotifs.liveSessions ?? sentNotifs.liveSessions,
-                    newsletter: resNotifs.newsletter ?? sentNotifs.newsletter,
-                };
-
-                const currentSettings = state.settingsData || {};
-
-                state.settingsData = {
-                    ...currentSettings,
-                    notifications: {
-                        ...(currentSettings.notifications || {}),
-                        ...updatedNotifs,
-                    },
-                };
+                // Normalise: backend may return { notifications: {...} } or the
+                // prefs object directly.
+                const raw = action.payload?.data ?? action.payload;
+                const notifsPatch = raw?.notifications ?? raw;
+                if (notifsPatch && typeof notifsPatch === "object") {
+                    state.settingsData = mergeSettings(state.settingsData, {
+                        notifications: notifsPatch,
+                    });
+                }
+                saveSettings(state.settingsData);
             })
             .addCase(updateNotificationPreferencesThunk.rejected, (state, action) => {
                 state.notificationsSaving = false;
-                state.notificationsError = action.payload ?? "Failed to update notification preferences";
+                state.notificationsError = action.payload;
             });
     },
 });
 
-export const { clearSettingsError } = settingsSlice.actions;
+export const { patchSettingsData, clearSettingsError } = settingsSlice.actions;
 export default settingsSlice.reducer;
+

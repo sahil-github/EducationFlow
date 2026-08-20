@@ -38,39 +38,7 @@ import {
     saveLessonProgress,
 } from "../../features/courses/coursesThunks";
 
-// Default fallback lesson structure
-const DEFAULT_LESSONS = [
-    {
-        id: "l_1",
-        title: "Course Overview",
-        duration: "3:45",
-        status: "completed",
-    },
-    {
-        id: "l_2",
-        title: "Introduction",
-        duration: "5:20",
-        status: "active",
-    },
-    {
-        id: "l_3",
-        title: "Understanding Users",
-        duration: "12:10",
-        status: "upcoming",
-    },
-    {
-        id: "l_4",
-        title: "Ideation Techniques",
-        duration: "08:45",
-        status: "upcoming",
-    },
-    {
-        id: "l_5",
-        title: "Prototyping Labs",
-        duration: "25:00",
-        status: "locked",
-    },
-];
+
 
 export default function CoursePlayer() {
     const { id } = useParams();
@@ -208,7 +176,7 @@ export default function CoursePlayer() {
             }];
         }
 
-        return DEFAULT_LESSONS;
+        return [];
     })();
 
     // Active lesson resolution
@@ -507,7 +475,7 @@ export default function CoursePlayer() {
     };
 
     // ── Render States ────────────────────────────────────────────────────────
-    if (loading && !coursePlayerData) {
+    if (loading && !coursePlayerData && lessonsList.length === 0) {
         return (
             <div className="w-full min-h-screen flex items-center justify-center text-white">
                 <div className="flex flex-col items-center gap-3">
@@ -518,18 +486,27 @@ export default function CoursePlayer() {
         );
     }
 
-    if (error && !coursePlayerData) {
+    if ((error && !coursePlayerData) || (!loading && lessonsList.length === 0)) {
         return (
             <div className="w-full max-w-xl mx-auto p-6 text-center text-white mt-20">
                 <Card className="p-8 border border-red-500/20 bg-red-950/10">
-                    <h2 className="text-xl font-bold text-red-400 mb-2">Error Loading Course Player</h2>
-                    <p className="text-gray-400 mb-6">{error}</p>
+                    <h2 className="text-xl font-bold text-red-400 mb-2">
+                        {error ? "Error Loading Course Player" : "No Lessons Found"}
+                    </h2>
+                    <p className="text-gray-400 mb-6">
+                        {error || "This course does not have any active lessons available."}
+                    </p>
                     <div className="flex justify-center gap-4">
                         <Button variant="outline" onClick={() => navigate("/catalog")}>
                             Back to Catalog
                         </Button>
-                        <Button variant="primary" onClick={() => dispatch(fetchCoursePlayer(id))}>
-                            Retry
+                        <Button variant="primary" onClick={() => {
+                            if (id) {
+                                dispatch(fetchCoursePlayer(id));
+                                dispatch(fetchCourseById(id));
+                            }
+                        }}>
+                            Retry Loading Course
                         </Button>
                     </div>
                 </Card>

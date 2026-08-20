@@ -24,8 +24,6 @@ const initialState = {
     token: localStorage.getItem("token") || null,
     loading: false,
     error: null,
-    // Separate loading state for the forgot-password flow so it doesn't
-    // conflict with the main auth loading spinner.
     resetLoading: false,
     resetError: null,
 };
@@ -67,6 +65,7 @@ const authSlice = createSlice({
                 state.loading = false;
                 state.token = action.payload.token;
                 state.user = action.payload.user;
+                saveCurrentUser(action.payload.user);
             })
             .addCase(loginUser.rejected, (state, action) => {
                 state.loading = false;
@@ -82,6 +81,7 @@ const authSlice = createSlice({
                 state.loading = false;
                 state.token = action.payload.token;
                 state.user = action.payload.user;
+                saveCurrentUser(action.payload.user);
             })
             .addCase(registerUser.rejected, (state, action) => {
                 state.loading = false;
@@ -97,6 +97,7 @@ const authSlice = createSlice({
                 state.loading = false;
                 state.token = action.payload.token;
                 state.user = action.payload.user;
+                saveCurrentUser(action.payload.user);
             })
             .addCase(socialLoginUser.rejected, (state, action) => {
                 state.loading = false;
@@ -114,6 +115,28 @@ const authSlice = createSlice({
             .addCase(sendPasswordReset.rejected, (state, action) => {
                 state.resetLoading = false;
                 state.resetError = action.payload;
+            })
+
+            // ── Listen for Profile Thunks to keep auth user & storage in sync ─
+            .addCase("profile/completeOnboarding/fulfilled", (state, action) => {
+                if (state.user) {
+                    state.user = {
+                        ...state.user,
+                        ...(action.payload || {}),
+                        isOnboarded: true,
+                        onboardingCompleted: true,
+                    };
+                    saveCurrentUser(state.user);
+                }
+            })
+            .addCase("profile/getProfile/fulfilled", (state, action) => {
+                if (state.user && action.payload) {
+                    state.user = {
+                        ...state.user,
+                        ...action.payload,
+                    };
+                    saveCurrentUser(state.user);
+                }
             });
     },
 });

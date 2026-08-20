@@ -11,9 +11,9 @@ const menuItems = [
     { id: 'subscription', label: 'Subscription Plan', icon: CreditCardOutlinedIcon },
 ];
 
-export default function SettingsSidebar({ activeTab, setActiveTab }) {
+export default function SettingsSidebar({ activeTab, setActiveTab, onScrollTo }) {
     return (
-        <div className="w-full lg:w-64 flex flex-col gap-6 shrink-0">
+        <div className="w-full  lg:w-64 flex flex-col gap-6 shrink-0">
             {/* Header Title & Tag */}
             <div className="flex flex-col gap-1.5">
                 <h1 className="text-white font-bold text-2xl font-[Poppins]">Settings</h1>
@@ -31,7 +31,13 @@ export default function SettingsSidebar({ activeTab, setActiveTab }) {
                         <button
                             key={item.id}
                             type="button"
-                            onClick={() => setActiveTab(item.id)}
+                        onClick={() => {
+                                if (onScrollTo) {
+                                    onScrollTo(item.id);
+                                } else {
+                                    setActiveTab(item.id);
+                                }
+                            }}
                             className={`flex-none lg:w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold font-[Poppins] transition-all duration-200 cursor-pointer whitespace-nowrap ${isActive
                                     ? 'bg-[#1D61E7] text-white shadow-lg shadow-blue-500/20'
                                     : 'text-[#94A3B8] hover:text-white hover:bg-white/5'
