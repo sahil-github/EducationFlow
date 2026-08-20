@@ -71,6 +71,7 @@ function Setting() {
     const [formData, setFormData] = useState({
         fullName: '',
         email: '',
+        bio: '',
         headline: '',
         country: 'US',
         timezone: '',
@@ -90,6 +91,8 @@ function Setting() {
         dispatch(fetchSettings());
     }, [dispatch]);
 
+
+    const hasUserEditedForm = useRef(false);
     // Populate state whenever settingsData or currentUser changes
     useEffect(() => {
         if (settingsData) {
@@ -108,6 +111,7 @@ function Setting() {
             setFormData({
                 fullName: identity.fullName || currentUser.fullName || currentUser.name || '',
                 email: identity.email || currentUser.email || '',
+                bio: identity.bio || currentUser.bio || '',
                 headline: identity.headline || currentUser.headline || currentUser.bio || '',
                 country: detectedCountry,
                 timezone: initialTz,
@@ -125,6 +129,7 @@ function Setting() {
             setFormData((prev) => ({
                 fullName: currentUser.fullName || currentUser.name || prev.fullName,
                 email: currentUser.email || prev.email,
+                bio: currentUser.bio || prev.bio,
                 headline: currentUser.headline || currentUser.bio || prev.headline,
                 country: detectedCountry || prev.country,
                 phoneNumber: currentUser.phoneNumber || currentUser.phone || prev.phoneNumber,
@@ -145,6 +150,7 @@ function Setting() {
 
     const handleFormChange = (e) => {
         const { name, value } = e.target;
+        hasUserEditedForm.current = true;
         if (name === 'country') {
             const countryData = COUNTRY_MAP[value];
             setFormData((prev) => ({
@@ -175,6 +181,7 @@ function Setting() {
             setFormData({
                 fullName: identity.fullName || '',
                 email: identity.email || '',
+                bio: identity.bio || '',
                 headline: identity.headline || '',
                 country: detectedCountry,
                 timezone: contactRegion.timezone || '',
@@ -193,16 +200,33 @@ function Setting() {
 
     const handleSaveAll = async () => {
         // 1. Validate phone number before sending API request
-        let finalPhoneNumber = formData.phoneNumber;
-        if (formData.phoneNumber) {
-            const valResult = validatePhoneNumber(formData.phoneNumber, formData.country);
-            if (!valResult.isValid) {
-                setPhoneError(valResult.error);
-                toast.error(valResult.error || 'Please enter a valid phone number');
-                return;
-            }
-            finalPhoneNumber = valResult.e164Format;
-        }
+        // let finalPhoneNumber = formData.phoneNumber;
+        // if (formData.phoneNumber) {
+        //     const valResult = validatePhoneNumber(formData.phoneNumber, formData.country);
+        //     if (!valResult.isValid) {
+        //         setPhoneError(valResult.error);
+        //         toast.error(valResult.error || 'Please enter a valid phone number');
+        //         return;
+        //     }
+        //     finalPhoneNumber = valResult.e164Format;
+        // }
+        const phoneNumber = formData.phoneNumber?.trim();
+
+if (!phoneNumber) {
+    setPhoneError('Phone number is required');
+    toast.error('Phone number is required');
+    return;
+}
+
+const valResult = validatePhoneNumber(phoneNumber, formData.country);
+
+if (!valResult.isValid) {
+    setPhoneError(valResult.error);
+    toast.error(valResult.error || 'Please enter a valid phone number');
+    return;
+}
+
+const finalPhoneNumber = valResult.e164Format;
 
         try {
             // 2. Send complete updated settings payload to backend APIs
@@ -232,6 +256,7 @@ function Setting() {
                 country: formData.country,
                 phoneNumber: finalPhoneNumber,
                 timezone: formData.timezone,
+                bio: formData.bio,
             };
 
             dispatch(updateUser(updatedUser));
@@ -245,6 +270,7 @@ function Setting() {
                         fullName: formData.fullName,
                         email: formData.email,
                         headline: formData.headline,
+                        bio: formData.bio,
                     },
                     contactRegion: {
                         country: formData.country,
@@ -271,6 +297,7 @@ function Setting() {
         ...currentUser,
         ...(settingsData?.identity || {}),
         fullName: formData.fullName || settingsData?.identity?.fullName || currentUser.fullName,
+        bio: formData.bio || settingsData?.identity?.bio || currentUser.bio,
     };
 
     const isSaving = settingsLoading || settingsSaving || notificationsSaving;
@@ -296,7 +323,7 @@ function Setting() {
                         {/* Top Profile Header Card */}
                         <ProfileHeaderCard
                             user={headerUser}
-                            onEditAvatar={() => toast.info('Avatar upload modal opened')}
+                            onEditAvatar={() => { }}
                             onViewPublicProfile={() => toast.info('Navigating to public profile')}
                         />
 

@@ -37,6 +37,18 @@ export default function IdentityDetailsCard({ values, onChange }) {
                         className="w-full bg-[#121318] border border-white/10 text-white rounded-xl px-4 py-2.5 text-xs font-[Manrope] focus:border-blue-500 focus:outline-none transition-all placeholder-gray-600"
                     />
                 </div>
+                <div className="flex flex-col gap-1.5">
+                    <label className="text-[#94A3B8] text-[10px] font-bold tracking-wider uppercase font-[Manrope]">
+                        BIO
+                    </label>
+                    <textarea
+                        name="bio"
+                        value={values.bio}
+                        onChange={onChange}
+                        placeholder="Frontend Developer with 2+ years of experience in building web applications."
+                        className="w-full bg-[#121318] border border-white/10 text-white rounded-xl px-4 py-2.5 text-xs font-[Manrope] focus:border-blue-500 focus:outline-none transition-all placeholder-gray-600"
+                    />
+                </div>
             </div>
         </div>
     );

@@ -17,6 +17,7 @@ import { useSelector } from 'react-redux'
 import Mainlayout from '../layout/Mainlayout';
 import Authlayout from '../layout/Authlayout';
 import { getCurrentUser } from '../utils/storage';
+import Profile from '../pages/Profile/Profile'
 
 export const ROUTES = {
     LOGIN: '/login',
@@ -159,6 +160,7 @@ function AppRoutes() {
                                 <Route path="/courses/:id/learn" element={<CoursePlayer />} />
                                 <Route path='/my-learning' element={<MyLearning />}></Route>
                                 <Route path='/setting' element={<Setting />}></Route>
+                                <Route path='/profile' element={<Profile />}></Route>
                             </Route>
 
                             <Route element={<OnboardingGuard />}>
