@@ -5,6 +5,7 @@ import {
     updateNotificationPreferencesThunk,
 } from "./settingsThunks";
 import { getSettings, saveSettings } from "../../utils/storage";
+import { validatePhoneNumber } from "../../utils/localizationUtils";
 
 // ---------------------------------------------------------------------------
 // Rehydrate from localStorage on app startup.
@@ -32,15 +33,29 @@ const initialState = {
 // ---------------------------------------------------------------------------
 // Helper — deep-merge a patch into existing settingsData.
 // Prevents a partial API response from wiping unrelated nested fields.
+// Also sanitizes country / phone consistency so mismatched phone numbers
+// never persist across country changes.
 // ---------------------------------------------------------------------------
 const mergeSettings = (existing, patch) => {
     if (!patch) return existing;
     if (!existing) return patch;
+
+    const mergedContact = { ...(existing.contactRegion || {}), ...(patch.contactRegion || {}) };
+
+    // If country is specified and phone number exists, ensure the phone is valid for this country.
+    // If not valid (e.g. leftover from a previous country), clear it out.
+    if (mergedContact.country && mergedContact.phoneNumber) {
+        const val = validatePhoneNumber(mergedContact.phoneNumber, mergedContact.country);
+        if (!val.isValid) {
+            mergedContact.phoneNumber = "";
+        }
+    }
+
     return {
         ...existing,
         ...patch,
         identity:      { ...(existing.identity      || {}), ...(patch.identity      || {}) },
-        contactRegion: { ...(existing.contactRegion || {}), ...(patch.contactRegion || {}) },
+        contactRegion: mergedContact,
         notifications: { ...(existing.notifications || {}), ...(patch.notifications || {}) },
         security:      { ...(existing.security      || {}), ...(patch.security      || {}) },
         subscription:  { ...(existing.subscription  || {}), ...(patch.subscription  || {}) },

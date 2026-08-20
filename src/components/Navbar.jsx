@@ -225,7 +225,7 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
     const showDropdown = searchFocused && searchTerm.trim().length > 0;
 
     return (
-        <nav className="sticky top-0 shadow-md z-50 bg-[#18181C]">
+        <nav className="sticky top-0 left-0 right-0 w-full shadow-md z-50 bg-[#18181C]">
             <div style={{
                 display: 'flex',
                 alignItems: 'center',

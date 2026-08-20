@@ -13,7 +13,7 @@ export default function SubscriptionPlanCard({ subscription, countryCode = "US",
     const { priceAmount, pricePeriod } = formatSubscriptionPrice(priceText, countryCode);
 
     return (
-        <div className="w-full bg-[#16171D]/90 border border-white/10 rounded-2xl p-6 shadow-xl flex flex-col gap-5">
+        <div className="w-full bg-[#16171D]/90 border border-white/10 rounded-2xl p-4 sm:p-6 shadow-xl flex flex-col gap-5">
             {/* Plan Info & Pricing Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex flex-col gap-1">

@@ -18,9 +18,31 @@ const profileApi = {
             avatarUrl: data.avatarUrl || "",
         }),
 
-    /** POST /api/profile/avatar */
+    /**
+     * POST /api/profile/avatar (seed / DiceBear — existing JSON endpoint)
+     * Accepts { seed: string } and returns a DiceBear avatar URL.
+     * Use uploadAvatarFile() for actual image file uploads.
+     */
     uploadAvatar: (data) =>
         api.post("/api/profile/avatar", typeof data === "string" ? { seed: data } : data),
+
+    /**
+     * POST /api/profile/avatar (multipart/form-data — actual image upload)
+     * Sends the image file as FormData with the field name "avatar".
+     *
+     * NOTE: This endpoint requires backend support for multipart/form-data.
+     * If the backend only supports the seed-based JSON variant, this call
+     * will fail with 400/415. The caller (Setting.jsx) handles that gracefully
+     * by catching the error, logging a clear warning, and continuing without
+     * breaking the rest of the save flow.
+     */
+    uploadAvatarFile: (file) => {
+        const formData = new FormData();
+        formData.append("avatar", file);
+        return api.post("/api/profile/avatar", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+        });
+    },
 
     /** PUT /api/profile/goals */
     updateGoals: (data) =>

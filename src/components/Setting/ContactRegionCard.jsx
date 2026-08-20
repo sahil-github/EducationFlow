@@ -17,7 +17,7 @@ export default function ContactRegionCard({ values, onChange, phoneError }) {
     const isCustomTimezone = values.timezone && !timezones.includes(values.timezone);
 
     return (
-        <div className="w-full bg-[#16171D]/90 border border-white/10 rounded-2xl p-6 shadow-xl flex flex-col gap-4">
+        <div className="w-full bg-[#16171D]/90 border border-white/10 rounded-2xl p-4 sm:p-6 shadow-xl flex flex-col gap-4">
             <h3 className="text-white font-bold text-sm font-[Poppins] tracking-wide pb-2 border-b border-white/5">
                 Contact & Region
             </h3>
@@ -100,7 +100,7 @@ export default function ContactRegionCard({ values, onChange, phoneError }) {
                             name="phoneNumber"
                             value={values.phoneNumber || ""}
                             onChange={onChange}
-                            placeholder={countryData.code === 'IN' ? '98765 43210' : '(000) 000-0000'}
+                            placeholder={countryData.phonePlaceholder || '000 000 0000'}
                             className={`w-full bg-[#121318] border ${phoneError ? 'border-red-500/80 focus:border-red-500' : 'border-white/10 focus:border-blue-500'
                                 } text-white rounded-xl px-4 py-2.5 text-xs font-[Manrope] focus:outline-none transition-all placeholder-gray-600`}
                         />
