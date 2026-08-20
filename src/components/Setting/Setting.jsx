@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import SettingsSidebar from './SettingsSidebar';
@@ -14,12 +14,17 @@ import {
     updateSettingsThunk,
     updateNotificationPreferencesThunk,
 } from '../../features/settings/settingsThunks';
+import { patchSettingsData } from '../../features/settings/settingsSlice';
 import { updateUser } from '../../features/auth/authSlice';
 import {
     detectUserCountry,
     validatePhoneNumber,
     COUNTRY_MAP,
 } from '../../utils/localizationUtils';
+
+// Height of the sticky navbar — used to offset smooth-scroll so headings
+// aren't hidden behind the bar. Matches Navbar.jsx minHeight: 64px.
+// const NAVBAR_HEIGHT = 64;
 
 function Setting() {
     const dispatch = useDispatch();
@@ -31,6 +36,37 @@ function Setting() {
     const currentUser = { ...authUser, ...profile };
 
     const [activeTab, setActiveTab] = useState('personal');
+
+    // ── Section refs — one per sidebar menu item ────────────────────────────
+    const sectionRefs = useRef({
+        personal: null,
+        security: null,
+        notifications: null,
+        subscription: null,
+    });
+    const contentRef = useRef(null);
+
+    /**
+     * Smoothly scrolls to the section that matches `sectionId`, offsetting
+     * for the sticky navbar so the heading is never hidden behind it.
+     * Also updates the active tab to keep the sidebar highlight in sync.
+     */
+    const scrollToSection = useCallback((sectionId) => {
+        const section = sectionRefs.current[sectionId];
+        const container = contentRef.current;
+
+        if (!section || !container) return;
+
+        setActiveTab(sectionId);
+
+        const containerTop = container.getBoundingClientRect().top;
+        const sectionTop = section.getBoundingClientRect().top;
+
+        container.scrollTo({
+            top: container.scrollTop + (sectionTop - containerTop),
+            behavior: 'smooth',
+        });
+    }, []);
 
     const [formData, setFormData] = useState({
         fullName: '',
@@ -199,6 +235,26 @@ function Setting() {
             };
 
             dispatch(updateUser(updatedUser));
+
+            // 4. Persist the updated settings values to localStorage via the
+            //    settings slice. This ensures the data survives page refresh
+            //    even when the API response body doesn't echo back every field.
+            dispatch(
+                patchSettingsData({
+                    identity: {
+                        fullName: formData.fullName,
+                        email: formData.email,
+                        headline: formData.headline,
+                    },
+                    contactRegion: {
+                        country: formData.country,
+                        timezone: formData.timezone,
+                        phoneNumber: finalPhoneNumber,
+                    },
+                    notifications: notificationPreferences,
+                })
+            );
+
             setPhoneError(null);
 
             const successMsg = settingsRes?.message || notifRes?.message || 'Settings updated successfully';
@@ -223,54 +279,84 @@ function Setting() {
         <div className="w-full min-h-screen bg-[#0F1015] text-white flex flex-col justify-between p-4 sm:p-6 lg:p-10 font-[Manrope]">
             <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 lg:gap-12">
                 {/* Settings Left Sidebar */}
-                <SettingsSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+                <div className="lg:sticky lg:top-20 lg:self-start">
+                    <SettingsSidebar
+                        activeTab={activeTab}
+                        setActiveTab={setActiveTab}
+                        onScrollTo={scrollToSection}
+                    />
+                </div>
 
                 {/* Main Settings Content Column */}
-                <div className="flex-1 flex flex-col gap-6">
-                    {/* Top Profile Header Card */}
-                    <ProfileHeaderCard
-                        user={headerUser}
-                        onEditAvatar={() => toast.info('Avatar upload modal opened')}
-                        onViewPublicProfile={() => toast.info('Navigating to public profile')}
-                    />
+                <div
+                    ref={contentRef}
+                    className="flex-1 min-w-0 lg:max-h-[calc(100vh-80px)] lg:overflow-y-auto"
+                >
+                    <div className="flex flex-col gap-6">
+                        {/* Top Profile Header Card */}
+                        <ProfileHeaderCard
+                            user={headerUser}
+                            onEditAvatar={() => toast.info('Avatar upload modal opened')}
+                            onViewPublicProfile={() => toast.info('Navigating to public profile')}
+                        />
 
-                    {/* Identity Details & Contact Region Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <IdentityDetailsCard values={formData} onChange={handleFormChange} />
-                        <ContactRegionCard
-                            values={formData}
-                            onChange={handleFormChange}
-                            phoneError={phoneError}
+                        {/* ── Personal Information section ── */}
+                        <div
+                            ref={(el) => { sectionRefs.current.personal = el; }}
+                            id="section-personal"
+                            className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                        >
+                            <IdentityDetailsCard values={formData} onChange={handleFormChange} />
+                            <ContactRegionCard
+                                values={formData}
+                                onChange={handleFormChange}
+                                phoneError={phoneError}
+                            />
+                        </div>
+
+                        {/* ── Account Security section ── */}
+                        <div
+                            ref={(el) => { sectionRefs.current.security = el; }}
+                            id="section-security"
+                        >
+                            <AccountSecurityCard
+                                security={settingsData?.security}
+                                onUpdatePassword={() => toast.info('Password update requested')}
+                                onManage2FA={() => toast.info('Opening 2FA management')}
+                            />
+                        </div>
+
+                        {/* ── Notifications section ── */}
+                        <div
+                            ref={(el) => { sectionRefs.current.notifications = el; }}
+                            id="section-notifications"
+                        >
+                            <NotificationPreferencesCard
+                                preferences={notificationPreferences}
+                                onToggle={handleNotificationToggle}
+                            />
+                        </div>
+
+                        {/* ── Subscription Plan section ── */}
+                        <div
+                            ref={(el) => { sectionRefs.current.subscription = el; }}
+                            id="section-subscription"
+                        >
+                            <SubscriptionPlanCard
+                                subscription={settingsData?.subscription}
+                                countryCode={formData.country}
+                                onChangePlan={() => toast.info('Change plan modal opened')}
+                                onCancelSubscription={() => toast.warning('Cancel subscription requested')}
+                            />
+                        </div>
+
+                        {/* Bottom Action Bar */}
+                        <SettingsActionBar
+                            onDiscard={handleDiscard}
+                            onSave={handleSaveAll}
+                            loading={isSaving}
                         />
                     </div>
-
-                    {/* Account Security Card */}
-                    <AccountSecurityCard
-                        security={settingsData?.security}
-                        onUpdatePassword={() => toast.info('Password update requested')}
-                        onManage2FA={() => toast.info('Opening 2FA management')}
-                    />
-
-                    {/* Notification Preferences Card */}
-                    <NotificationPreferencesCard
-                        preferences={notificationPreferences}
-                        onToggle={handleNotificationToggle}
-                    />
-
-                    {/* Subscription Plan Card */}
-                    <SubscriptionPlanCard
-                        subscription={settingsData?.subscription}
-                        countryCode={formData.country}
-                        onChangePlan={() => toast.info('Change plan modal opened')}
-                        onCancelSubscription={() => toast.warning('Cancel subscription requested')}
-                    />
-
-                    {/* Bottom Action Bar */}
-                    <SettingsActionBar
-                        onDiscard={handleDiscard}
-                        onSave={handleSaveAll}
-                        loading={isSaving}
-                    />
                 </div>
             </div>
 
