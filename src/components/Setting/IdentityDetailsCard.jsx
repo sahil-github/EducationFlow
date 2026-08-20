@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function IdentityDetailsCard({ values, onChange }) {
     return (
-        <div className="w-full bg-[#16171D]/90 border border-white/10 rounded-2xl p-6 shadow-xl flex flex-col gap-4">
+        <div className="w-full bg-[#16171D]/90 border border-white/10 rounded-2xl p-4 sm:p-6 shadow-xl flex flex-col gap-4">
             <h3 className="text-white font-bold text-sm font-[Poppins] tracking-wide pb-2 border-b border-white/5">
                 Identity Details
             </h3>

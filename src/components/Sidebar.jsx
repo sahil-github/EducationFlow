@@ -180,7 +180,11 @@ export default function Sidebar({ children, open, setOpen }) {
                 sx={{
                     flexGrow: 1,
                     minHeight: '100vh',
-                    overflowY: 'auto',
+                    // Do NOT set overflowY here — let the browser window scroll.
+                    // Setting overflowY: 'auto' on this box would:
+                    //   1. Make window.scrollTo() a no-op (wrong scroll container)
+                    //   2. Break lg:sticky on child elements (sticky requires a
+                    //      scrollable window ancestor, not a scrollable Box ancestor)
                     padding: '0 24px',
                     // Only apply the drawer-offset margin during onboarding.
                     // On dashboard pages the Drawer doesn't exist so margin is always 0.

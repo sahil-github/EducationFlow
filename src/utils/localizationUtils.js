@@ -14,6 +14,7 @@ export const COUNTRIES = [
         rate: 1.0,
         flag: "🇺🇸",
         defaultTimezone: "Pacific Time (PT) - UTC-8",
+        phonePlaceholder: "(555) 000-0000",
     },
     {
         code: "IN",
@@ -24,6 +25,7 @@ export const COUNTRIES = [
         rate: 83.5,
         flag: "🇮🇳",
         defaultTimezone: "India Standard Time (IST) - UTC+5:30",
+        phonePlaceholder: "98765 43210",
     },
     {
         code: "GB",
@@ -34,6 +36,7 @@ export const COUNTRIES = [
         rate: 0.79,
         flag: "🇬🇧",
         defaultTimezone: "Greenwich Mean Time (GMT) - UTC+0",
+        phonePlaceholder: "07700 900000",
     },
     {
         code: "DE",
@@ -44,6 +47,7 @@ export const COUNTRIES = [
         rate: 0.92,
         flag: "🇩🇪",
         defaultTimezone: "Central European Time (CET) - UTC+1",
+        phonePlaceholder: "030 12345678",
     },
     {
         code: "FR",
@@ -54,6 +58,7 @@ export const COUNTRIES = [
         rate: 0.92,
         flag: "🇫🇷",
         defaultTimezone: "Central European Time (CET) - UTC+1",
+        phonePlaceholder: "06 12 34 56 78",
     },
     {
         code: "AU",
@@ -64,6 +69,7 @@ export const COUNTRIES = [
         rate: 1.52,
         flag: "🇦🇺",
         defaultTimezone: "Australian Eastern Time (AEST) - UTC+10",
+        phonePlaceholder: "0412 345 678",
     },
     {
         code: "CA",
@@ -74,6 +80,7 @@ export const COUNTRIES = [
         rate: 1.36,
         flag: "🇨🇦",
         defaultTimezone: "Eastern Time (ET) - UTC-5",
+        phonePlaceholder: "(416) 000-0000",
     },
     {
         code: "JP",
@@ -84,6 +91,7 @@ export const COUNTRIES = [
         rate: 155.0,
         flag: "🇯🇵",
         defaultTimezone: "Japan Standard Time (JST) - UTC+9",
+        phonePlaceholder: "090-0000-0000",
     },
 ];
 
@@ -145,6 +153,7 @@ export function validatePhoneNumber(phoneNumberStr, countryCode = "US") {
             e164Format: "",
             formattedNational: "",
             formattedInternational: "",
+            nationalNumber: "",
             error: null,
         };
     }
@@ -153,29 +162,35 @@ export function validatePhoneNumber(phoneNumberStr, countryCode = "US") {
     const cData = COUNTRY_MAP[countryCode] || COUNTRY_MAP["US"];
 
     try {
-        // If user already typed with '+', attempt global parse
-        const parseInput = trimmed.startsWith("+")
-            ? trimmed
-            : `${cData.dialCode}${trimmed}`;
+        let phoneNumber;
+        if (trimmed.startsWith("+")) {
+            // Explicit international format (e.g., +919876545678, +4915123456789)
+            phoneNumber = parsePhoneNumberWithError(trimmed);
+        } else {
+            // National format or raw digits with countryCode default
+            phoneNumber = parsePhoneNumberWithError(trimmed, countryCode);
+        }
 
-        const isVal = isValidPhoneNumber(parseInput, countryCode);
-        if (!isVal) {
+        // Must strictly belong to the selected countryCode
+        if (phoneNumber.country !== countryCode) {
             return {
                 isValid: false,
                 e164Format: trimmed,
                 formattedNational: trimmed,
                 formattedInternational: trimmed,
-                error: `Invalid phone number format for ${cData.name} (${cData.dialCode})`,
+                nationalNumber: trimmed,
+                error: `Phone number belongs to ${phoneNumber.country || 'another country'}, not ${cData.name} (${cData.dialCode})`,
             };
         }
 
-        const phoneNumber = parsePhoneNumberWithError(parseInput, countryCode);
+        const isValid = phoneNumber.isValid();
         return {
-            isValid: phoneNumber.isValid(),
-            e164Format: phoneNumber.format("E.164"),
-            formattedNational: phoneNumber.formatNational(),
-            formattedInternational: phoneNumber.formatInternational(),
-            error: phoneNumber.isValid()
+            isValid,
+            e164Format: isValid ? phoneNumber.format("E.164") : trimmed,
+            formattedNational: isValid ? phoneNumber.formatNational() : trimmed,
+            formattedInternational: isValid ? phoneNumber.formatInternational() : trimmed,
+            nationalNumber: isValid ? phoneNumber.nationalNumber : trimmed,
+            error: isValid
                 ? null
                 : `Invalid phone number format for ${cData.name} (${cData.dialCode})`,
         };
@@ -185,6 +200,7 @@ export function validatePhoneNumber(phoneNumberStr, countryCode = "US") {
             e164Format: trimmed,
             formattedNational: trimmed,
             formattedInternational: trimmed,
+            nationalNumber: trimmed,
             error: `Invalid phone number format for ${cData.name} (${cData.dialCode})`,
         };
     }
