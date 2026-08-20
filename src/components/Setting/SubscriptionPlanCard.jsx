@@ -1,16 +1,16 @@
 import React from 'react';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import VerifiedUserOutlinedIcon from '@mui/icons-material/VerifiedUserOutlined';
+import { formatSubscriptionPrice } from '../../utils/localizationUtils';
 
-export default function SubscriptionPlanCard({ subscription, onChangePlan, onCancelSubscription }) {
+export default function SubscriptionPlanCard({ subscription, countryCode = "US", onChangePlan, onCancelSubscription }) {
     const planName = subscription?.planName || "EduFlow Pro Plan";
     const nextBillingDate = subscription?.nextBillingDate || "July 12, 2024";
     const priceText = subscription?.price || "$19.99 per month";
     const paymentMethod = subscription?.paymentMethod || "Visa ending in 4242";
 
-    // Split priceText if it contains "per month" or similar format
-    const priceAmount = priceText.includes(" per ") ? priceText.split(" per ")[0] : priceText;
-    const pricePeriod = priceText.includes(" per ") ? `per ${priceText.split(" per ")[1]}` : "per month";
+    // Format subscription price according to country locale and exchange rate using Intl.NumberFormat
+    const { priceAmount, pricePeriod } = formatSubscriptionPrice(priceText, countryCode);
 
     return (
         <div className="w-full bg-[#16171D]/90 border border-white/10 rounded-2xl p-6 shadow-xl flex flex-col gap-5">
