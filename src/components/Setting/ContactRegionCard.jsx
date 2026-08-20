@@ -100,10 +100,9 @@ export default function ContactRegionCard({ values, onChange, phoneError }) {
                             name="phoneNumber"
                             value={values.phoneNumber || ""}
                             onChange={onChange}
-                            placeholder={countryData.code === 'IN' ? '98765 43210' : countryData.code === 'GB' ? '7911 123456' : '(555) 000-0000'}
-                            className={`w-full bg-[#121318] border ${
-                                phoneError ? 'border-red-500/80 focus:border-red-500' : 'border-white/10 focus:border-blue-500'
-                            } text-white rounded-xl px-4 py-2.5 text-xs font-[Manrope] focus:outline-none transition-all placeholder-gray-600`}
+                            placeholder={countryData.code === 'IN' ? '98765 43210' : '(000) 000-0000'}
+                            className={`w-full bg-[#121318] border ${phoneError ? 'border-red-500/80 focus:border-red-500' : 'border-white/10 focus:border-blue-500'
+                                } text-white rounded-xl px-4 py-2.5 text-xs font-[Manrope] focus:outline-none transition-all placeholder-gray-600`}
                         />
                     </div>
                     {phoneError && (

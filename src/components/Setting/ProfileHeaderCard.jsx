@@ -1,16 +1,19 @@
 import React from 'react';
 import EditIcon from '@mui/icons-material/Edit';
+import { useNavigate } from 'react-router-dom';
 
-export default function ProfileHeaderCard({ user, onEditAvatar, onViewPublicProfile }) {
+export default function ProfileHeaderCard({ user, onEditAvatar, showViewProfileButton = true, className }) {
     const displayName = user?.fullName || user?.name || "Alex Rivera";
     const avatarUrl = user?.avatarUrl || user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(displayName)}`;
     const roleTitle = user?.headline || user?.bio || user?.role || "Senior Product Designer & Lifelong Learner";
     const memberStatus = user?.memberStatus || "Pro Member";
     const rawJoinedDate = user?.joinedDate || "June 2023";
     const joinedDate = rawJoinedDate.startsWith("Joined") ? rawJoinedDate : `Joined ${rawJoinedDate}`;
+    const navigate = useNavigate();
 
     return (
-        <div className="w-full bg-[#16171D]/90 border border-white/10 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className={`w-full bg-[#16171D]/90 border border-white/10 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 ${className}`}
+        >
             <div className="flex flex-col md:flex-row items-center gap-5">
                 {/* Avatar with Floating Edit Icon */}
                 <div className="relative shrink-0">
@@ -50,13 +53,14 @@ export default function ProfileHeaderCard({ user, onEditAvatar, onViewPublicProf
             </div>
 
             {/* View Public Profile Button */}
-            <button
+            {showViewProfileButton && <button
                 type="button"
-                onClick={onViewPublicProfile}
+                onClick={() => navigate('/profile')}
                 className="px-4 py-2 border border-white/15 hover:bg-white/10 text-white text-xs font-semibold rounded-xl transition-all shadow-sm font-[Poppins] whitespace-nowrap cursor-pointer"
             >
                 View Public Profile
             </button>
+            }
         </div>
     );
 }
