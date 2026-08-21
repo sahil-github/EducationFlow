@@ -13,15 +13,31 @@ import { useNavigate } from 'react-router-dom';
  *   className        — extra class names
  */
 export default function ProfileHeaderCard({ user, onAvatarChange, showViewProfileButton = true, className }) {
-    const displayName = user?.fullName || user?.name || 'Alex Rivera';
+    const displayName = user?.fullName
     const avatarUrl =
         user?.avatarUrl ||
         user?.avatar ||
         `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(displayName)}`;
-    const roleTitle = user?.headline || user?.bio || user?.role || 'Senior Product Designer & Lifelong Learner';
-    const memberStatus = user?.memberStatus || 'Pro Member';
-    const rawJoinedDate = user?.joinedDate || 'June 2023';
-    const joinedDate = rawJoinedDate.startsWith('Joined') ? rawJoinedDate : `Joined ${rawJoinedDate}`;
+    const roleTitle = user?.headline || user?.bio || user?.roless
+    const memberStatus = user?.memberStatus
+    const rawJoinedDate = user?.joinedDate
+    // const joinedDate = rawJoinedDate.startsWith('Joined') ? rawJoinedDate : `Joined ${rawJoinedDate}`;
+
+    // const displayName = user?.fullName ?? 'User';
+
+    // const avatarUrl =
+    //     user?.avatarUrl ||
+    //     user?.avatar ||
+    //     `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(displayName)}`;
+
+    // const roleTitle = user?.headline || user?.bio || user?.roless || '';
+    // const memberStatus = user?.memberStatus ?? '';
+    // const rawJoinedDate = user?.joinedDate ?? '';
+    const joinedDate = rawJoinedDate
+        ? rawJoinedDate.startsWith('Joined')
+            ? rawJoinedDate
+            : `Joined ${rawJoinedDate}`
+        : '';
     const navigate = useNavigate();
 
     // Hidden file input ref — triggered programmatically by the edit button
