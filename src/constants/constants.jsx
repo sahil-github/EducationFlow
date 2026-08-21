@@ -258,6 +258,71 @@ export const levels = [
     { id: 'Public speaking', title: 'Public Speaking', icon: <RecordVoiceOverIcon /> },
     { id: 'UI/UX Design', title: 'UI/UX Design', icon: <ColorLensIcon /> }
 ];
-// Courses are now retrieved dynamically via the backend APIs.
 
-// aknfkajkjgj
+export const DEFAULT_SKILLS = [
+    "Tech & Development",
+    "Business Strategy & Growth",
+    "Marketing & Branding",
+    "Sales & Partnerships",
+    "Communication",
+    "Leadership",
+    "Project Management",
+    "Problem Solving",
+    "Teamwork",
+    "Time Management",
+    "Critical Thinking",
+    "Negotiation",
+    "Technical Writing",
+    "Data Analysis",
+    "Python",
+    "Java",
+    "Public Speaking",
+    "Creativity",
+    "Customer Service",
+    "UI/UX Design",
+    "React",
+    "Node.js",
+    "Cloud Computing",
+    "Machine Learning",
+    "Cybersecurity",
+    "SQL",
+    "Product Management",
+    "DevOps",
+];
+
+export const DEFAULT_INTERESTS = [
+    "Web Development",
+    "AI & ML",
+    "UI/UX Design",
+    "Cybersecurity",
+    "Data Analytics",
+    "Graphic Design",
+    "Marketing",
+    "Entrepreneurship",
+    "Photography",
+    "Music Theory",
+    "Physics",
+    "Wellness",
+    "Psychology",
+    "Cloud Architecture",
+    "Mobile Apps",
+    "Blockchain",
+];
+
+export const DEFAULT_GOALS = [
+    "Get a software development job",
+    "Improve React skills",
+    "Learn backend development",
+    "Career Switch",
+    "Skill Upgrade",
+    "Certification Preparation",
+    "Personal Interest",
+    "Get a Promotion",
+    "Start Freelancing",
+    "Build a Portfolio",
+    "Prepare for Interviews",
+    "Learn AI",
+    "Become a Full Stack Developer",
+    "Start a Business",
+    "Improve Productivity",
+];

@@ -1,10 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
-import SettingsSidebar from './SettingsSidebar';
+import SettingsSidebar, { SETTINGS_SECTIONS } from './SettingsSidebar';
+import MobileSettingsNavigator from './MobileSettingsNavigator';
 import ProfileHeaderCard from './ProfileHeaderCard';
 import IdentityDetailsCard from './IdentityDetailsCard';
 import ContactRegionCard from './ContactRegionCard';
+import GoalsCard from './GoalsCard';
+import InterestsCard from './InterestsCard';
+import SkillsCard from './SkillsCard';
+import ItemSelectorModal from './ItemSelectorModal';
 import AccountSecurityCard from './AccountSecurityCard';
 import NotificationPreferencesCard from './NotificationPreferencesCard';
 import SubscriptionPlanCard from './SubscriptionPlanCard';
@@ -16,32 +21,84 @@ import {
 } from '../../features/settings/settingsThunks';
 import { patchSettingsData } from '../../features/settings/settingsSlice';
 import { updateUser } from '../../features/auth/authSlice';
-import { patchProfile } from '../../features/profile/profileSlice';
+import {
+    patchProfile,
+} from '../../features/profile/profileSlice';
+import {
+    updateGoals,
+    updateInterests,
+    updateSkills,
+} from '../../features/profile/profileThunks';
 import {
     detectUserCountry,
     validatePhoneNumber,
     COUNTRY_MAP,
 } from '../../utils/localizationUtils';
+import {
+    DEFAULT_GOALS,
+    DEFAULT_INTERESTS,
+    DEFAULT_SKILLS,
+} from '../../constants/constants';
 import profileApi from '../../api/profileApi';
 
 // Height of the sticky navbar — used to offset smooth-scroll so section
-// headings are never hidden behind it. Matches Navbar.jsx minHeight: 64px.
+// headings are never hidden behind it on desktop. Matches Navbar.jsx minHeight: 64px.
 const NAVBAR_HEIGHT = 64;
-// Extra breathing room above the section heading
+// Extra breathing room above the section heading on desktop
 const SCROLL_OFFSET = 16;
+
+// ── Normalization Helpers ──────────────────────────────────────────────────
+const normalizeGoals = (rawGoals) => {
+    if (!rawGoals) return [];
+    if (Array.isArray(rawGoals)) {
+        return rawGoals
+            .map((item) => {
+                if (typeof item === 'string') return item.trim();
+                return item?.name || item?.value || item?.title || item?.id || '';
+            })
+            .filter(Boolean);
+    }
+    return [];
+};
+
+const normalizeInterests = (rawInterests) => {
+    if (!rawInterests) return [];
+    if (Array.isArray(rawInterests)) {
+        return rawInterests
+            .map((item) => {
+                if (typeof item === 'string') return item.trim();
+                return item?.name || item?.exname || item?.title || item?.id || '';
+            })
+            .filter(Boolean);
+    }
+    return [];
+};
+
+const normalizeSkills = (rawSkills) => {
+    if (!rawSkills) return [];
+    if (Array.isArray(rawSkills)) {
+        return rawSkills
+            .map((item) => {
+                if (typeof item === 'string') return item.trim();
+                return item?.name || item?.title || item?.id || '';
+            })
+            .filter(Boolean);
+    }
+    return [];
+};
 
 function Setting() {
     const dispatch = useDispatch();
 
     const { settingsData, loading: settingsLoading, saving: settingsSaving, notificationsSaving } = useSelector((state) => state.settings);
-    const { profile } = useSelector((state) => state.profile);
+    const { profile, loading: profileLoading } = useSelector((state) => state.profile);
     const { user: authUser } = useSelector((state) => state.auth);
 
     const currentUser = { ...authUser, ...profile };
 
     const [activeTab, setActiveTab] = useState('personal');
 
-    // ── Section refs — one per sidebar menu item ────────────────────────────
+    // ── Section refs — one per sidebar menu item (used for desktop smooth scroll) ──
     const sectionRefs = useRef({
         personal: null,
         security: null,
@@ -50,9 +107,9 @@ function Setting() {
     });
 
     /**
-     * Smoothly scrolls the PAGE (window) to the section that matches
-     * `sectionId`, offsetting for the sticky navbar height so the heading
-     * is never hidden behind it. Also keeps the sidebar highlight in sync.
+     * Desktop scroll handler:
+     * Smoothly scrolls the window to the section that matches `sectionId`,
+     * offsetting for the sticky navbar height.
      */
     const scrollToSection = useCallback((sectionId) => {
         const section = sectionRefs.current[sectionId];
@@ -67,6 +124,15 @@ function Setting() {
             SCROLL_OFFSET;
 
         window.scrollTo({ top, behavior: 'smooth' });
+    }, []);
+
+    /**
+     * Mobile navigation handler:
+     * Updates active tab and resets scroll position to the top of the page.
+     */
+    const handleMobileSectionChange = useCallback((sectionId) => {
+        setActiveTab(sectionId);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }, []);
 
     const [formData, setFormData] = useState({
@@ -86,6 +152,21 @@ function Setting() {
         liveSessions: true,
         newsletter: false,
     });
+
+    // ── Goals, Interests & Skills State ─────────────────────────────────────
+    const [goals, setGoals] = useState([]);
+    const [interests, setInterests] = useState([]);
+    const [skills, setSkills] = useState([]);
+
+    // Modal Visibility State
+    const [isGoalsModalOpen, setIsGoalsModalOpen] = useState(false);
+    const [isInterestsModalOpen, setIsInterestsModalOpen] = useState(false);
+    const [isSkillsModalOpen, setIsSkillsModalOpen] = useState(false);
+
+    // Modal Saving Loaders
+    const [isSavingGoals, setIsSavingGoals] = useState(false);
+    const [isSavingInterests, setIsSavingInterests] = useState(false);
+    const [isSavingSkills, setIsSavingSkills] = useState(false);
 
     // ── Avatar local state — file + blob preview URL ─────────────────────────
     const [avatarPreview, setAvatarPreview] = useState(null); // ObjectURL string
@@ -162,18 +243,24 @@ function Setting() {
                 timezone: currentUser.timezone || COUNTRY_MAP[detectedCountry]?.defaultTimezone || prev.timezone,
             }));
         }
+
+        // Populate Goals, Interests, and Skills from profile / settingsData / authUser
+        const rawGoals = profile?.goals || profile?.learningGoal || settingsData?.goals || currentUser.goals || currentUser.learningGoal;
+        const rawInterests = profile?.interests || settingsData?.interests || currentUser.interests;
+        const rawSkills = profile?.skills || settingsData?.skills || currentUser.skills;
+
+        setGoals(normalizeGoals(rawGoals));
+        setInterests(normalizeInterests(rawInterests));
+        setSkills(normalizeSkills(rawSkills));
     }, [settingsData, authUser, profile]);
 
     // Validate phone number whenever phoneNumber or country changes (real-time feedback).
-    // Empty field is not flagged in real-time — that check only happens on Save.
     useEffect(() => {
         const trimmed = formData.phoneNumber?.trim();
         if (trimmed) {
             const valResult = validatePhoneNumber(trimmed, formData.country);
             setPhoneError(valResult.error);
         } else {
-            // Clear any existing error when the field is emptied so the user
-            // isn't stuck seeing an error until they hit Save.
             setPhoneError(null);
         }
     }, [formData.phoneNumber, formData.country]);
@@ -191,10 +278,8 @@ function Setting() {
             if (currentPhone) {
                 const valResult = validatePhoneNumber(currentPhone, newCountry);
                 if (valResult.isValid) {
-                    // Valid for the new country -> preserve it
                     newPhoneNumber = valResult.nationalNumber || currentPhone;
                 } else {
-                    // Invalid for the new country -> clear it immediately!
                     newPhoneNumber = '';
                 }
             }
@@ -203,7 +288,6 @@ function Setting() {
             setFormData((prev) => ({
                 ...prev,
                 country: newCountry,
-                // Auto-update timezone to the country's default when country changes
                 timezone: countryData?.defaultTimezone || prev.timezone,
                 phoneNumber: newPhoneNumber,
             }));
@@ -218,6 +302,86 @@ function Setting() {
             ...prev,
             [key]: checked,
         }));
+    };
+
+    // ── Goals Handler (Save / Remove) ───────────────────────────────────────
+    const handleSaveGoals = async (newGoals) => {
+        setIsSavingGoals(true);
+        try {
+            await dispatch(updateGoals(newGoals)).unwrap();
+            setGoals(newGoals);
+            dispatch(patchProfile({ goals: newGoals, learningGoal: newGoals }));
+            dispatch(updateUser({ ...currentUser, goals: newGoals, learningGoal: newGoals }));
+            setIsGoalsModalOpen(false);
+            toast.success("Learning goals updated successfully");
+        } catch (err) {
+            toast.error(typeof err === 'string' ? err : err?.message || "Failed to save learning goals");
+        } finally {
+            setIsSavingGoals(false);
+        }
+    };
+
+    const handleRemoveGoal = async (goalToRemove) => {
+        const goalName = typeof goalToRemove === 'string' ? goalToRemove : goalToRemove?.name || goalToRemove?.value || goalToRemove?.id;
+        const updated = goals.filter((g) => {
+            const name = typeof g === 'string' ? g : g?.name || g?.value || g?.id;
+            return name !== goalName;
+        });
+        await handleSaveGoals(updated);
+    };
+
+    // ── Interests Handler (Save / Remove) ───────────────────────────────────
+    const handleSaveInterests = async (newInterests) => {
+        setIsSavingInterests(true);
+        try {
+            const payload = newInterests.map((item, idx) => ({ id: idx + 1, name: item }));
+            await dispatch(updateInterests(payload)).unwrap();
+            setInterests(newInterests);
+            dispatch(patchProfile({ interests: payload }));
+            dispatch(updateUser({ ...currentUser, interests: payload }));
+            setIsInterestsModalOpen(false);
+            toast.success("Interests updated successfully");
+        } catch (err) {
+            toast.error(typeof err === 'string' ? err : err?.message || "Failed to save interests");
+        } finally {
+            setIsSavingInterests(false);
+        }
+    };
+
+    const handleRemoveInterest = async (interestToRemove) => {
+        const intName = typeof interestToRemove === 'string' ? interestToRemove : interestToRemove?.name || interestToRemove?.exname || interestToRemove?.id;
+        const updated = interests.filter((i) => {
+            const name = typeof i === 'string' ? i : i?.name || i?.exname || i?.id;
+            return name !== intName;
+        });
+        await handleSaveInterests(updated);
+    };
+
+    // ── Skills Handler (Save / Remove) ──────────────────────────────────────
+    const handleSaveSkills = async (newSkills) => {
+        setIsSavingSkills(true);
+        try {
+            const payload = newSkills.map((item) => ({ id: item, name: item, level: 70 }));
+            await dispatch(updateSkills(payload)).unwrap();
+            setSkills(newSkills);
+            dispatch(patchProfile({ skills: payload }));
+            dispatch(updateUser({ ...currentUser, skills: payload }));
+            setIsSkillsModalOpen(false);
+            toast.success("Skills & expertise updated successfully");
+        } catch (err) {
+            toast.error(typeof err === 'string' ? err : err?.message || "Failed to save skills");
+        } finally {
+            setIsSavingSkills(false);
+        }
+    };
+
+    const handleRemoveSkill = async (skillToRemove) => {
+        const skillName = typeof skillToRemove === 'string' ? skillToRemove : skillToRemove?.name || skillToRemove?.id || skillToRemove?.title;
+        const updated = skills.filter((s) => {
+            const name = typeof s === 'string' ? s : s?.name || s?.id || s?.title;
+            return name !== skillName;
+        });
+        await handleSaveSkills(updated);
     };
 
     const handleDiscard = () => {
@@ -253,6 +417,16 @@ function Setting() {
                 newsletter: notifs.newsletter ?? false,
             });
         }
+
+        // Restore Goals, Interests, and Skills
+        const rawGoals = profile?.goals || profile?.learningGoal || currentUser.goals || currentUser.learningGoal;
+        const rawInterests = profile?.interests || currentUser.interests;
+        const rawSkills = profile?.skills || currentUser.skills;
+
+        setGoals(normalizeGoals(rawGoals));
+        setInterests(normalizeInterests(rawInterests));
+        setSkills(normalizeSkills(rawSkills));
+
         // Also discard any unsaved avatar selection
         if (avatarPreview) {
             URL.revokeObjectURL(avatarPreview);
@@ -263,9 +437,8 @@ function Setting() {
         toast.info('Changes discarded.');
     };
 
-    // ── Avatar selection handler — triggered by ProfileHeaderCard ────────────
+    // ── Avatar selection handler ────────────────────────────────────────────
     const handleAvatarChange = useCallback((file, previewUrl) => {
-        // Revoke any previous preview to avoid memory leaks
         if (avatarPreview) {
             URL.revokeObjectURL(avatarPreview);
         }
@@ -273,7 +446,7 @@ function Setting() {
         setAvatarPreview(previewUrl);
     }, [avatarPreview]);
 
-    // ── Cleanup blob URL when component unmounts ─────────────────────────────
+    // ── Cleanup blob URL on unmount ─────────────────────────────────────────
     useEffect(() => {
         return () => {
             if (avatarPreview) {
@@ -300,7 +473,7 @@ function Setting() {
         const finalPhoneNumber = valResult.e164Format;
 
         try {
-            // 2. Upload avatar if the user selected a new image
+            // 2. Upload avatar if a new image was selected
             if (avatarFile) {
                 try {
                     const avatarRes = await profileApi.uploadAvatarFile(avatarFile);
@@ -310,11 +483,9 @@ function Setting() {
                         avatarRes?.avatarUrl;
 
                     if (newAvatarUrl) {
-                        // Update profile Redux state so avatar persists immediately
                         dispatch(patchProfile({ avatarUrl: newAvatarUrl }));
                         dispatch(updateUser({ ...currentUser, avatarUrl: newAvatarUrl }));
                     }
-                    // Clear the pending file — it has been uploaded
                     URL.revokeObjectURL(avatarPreview);
                     setAvatarPreview(null);
                     setAvatarFile(null);
@@ -360,8 +531,7 @@ function Setting() {
 
             dispatch(updateUser(updatedUser));
 
-            // 5. Persist the updated settings values to localStorage via the
-            //    settings slice. This ensures the data survives page refresh.
+            // 5. Persist the updated settings values
             dispatch(
                 patchSettingsData({
                     identity: {
@@ -385,7 +555,6 @@ function Setting() {
             const successMsg = settingsRes?.message || notifRes?.message || 'Settings updated successfully';
             toast.success(successMsg);
         } catch (err) {
-            // On failure: show actual backend error & preserve unsaved changes in UI
             const errorMsg = typeof err === 'string' ? err : err?.message || 'Failed to save settings updates.';
             toast.error(errorMsg);
         }
@@ -397,17 +566,85 @@ function Setting() {
         ...(settingsData?.identity || {}),
         fullName: formData.fullName || settingsData?.identity?.fullName || currentUser.fullName,
         bio: formData.bio || settingsData?.identity?.bio || currentUser.bio,
-        // Show blob preview if user has selected an image but not yet saved
         avatarUrl: avatarPreview || currentUser.avatarUrl || currentUser.avatar,
     };
 
     const isSaving = settingsLoading || settingsSaving || notificationsSaving;
 
+    // ── Section Render Helpers ──────────────────────────────────────────────
+    const renderPersonalInformation = () => (
+        <div className="flex flex-col gap-6">
+            <ProfileHeaderCard
+                user={headerUser}
+                onAvatarChange={handleAvatarChange}
+                onViewPublicProfile={() => toast.info('Navigating to public profile')}
+            />
+
+            {/* Identity Details & Contact Region */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <IdentityDetailsCard values={formData} onChange={handleFormChange} />
+                <ContactRegionCard
+                    values={formData}
+                    onChange={handleFormChange}
+                    phoneError={phoneError}
+                />
+            </div>
+
+            {/* Goals & Interests (2 Columns on tablet/desktop, stacked on mobile) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <GoalsCard
+                    goals={goals}
+                    onEdit={() => setIsGoalsModalOpen(true)}
+                    onRemoveGoal={handleRemoveGoal}
+                    loading={profileLoading || isSavingGoals}
+                />
+                <InterestsCard
+                    interests={interests}
+                    onEdit={() => setIsInterestsModalOpen(true)}
+                    onRemoveInterest={handleRemoveInterest}
+                    loading={profileLoading || isSavingInterests}
+                />
+            </div>
+
+            {/* Skills & Expertise (Full Width Card) */}
+            <SkillsCard
+                skills={skills}
+                onEdit={() => setIsSkillsModalOpen(true)}
+                onRemoveSkill={handleRemoveSkill}
+                loading={profileLoading || isSavingSkills}
+            />
+        </div>
+    );
+
+    const renderAccountSecurity = () => (
+        <AccountSecurityCard
+            security={settingsData?.security}
+            onUpdatePassword={() => toast.info('Password update requested')}
+            onManage2FA={() => toast.info('Opening 2FA management')}
+        />
+    );
+
+    const renderNotifications = () => (
+        <NotificationPreferencesCard
+            preferences={notificationPreferences}
+            onToggle={handleNotificationToggle}
+        />
+    );
+
+    const renderSubscriptionPlan = () => (
+        <SubscriptionPlanCard
+            subscription={settingsData?.subscription}
+            countryCode={formData.country}
+            onChangePlan={() => toast.info('Change plan modal opened')}
+            onCancelSubscription={() => toast.warning('Cancel subscription requested')}
+        />
+    );
+
     return (
         <div className="w-full min-h-screen bg-[#0F1015] text-white flex flex-col justify-between p-3.5 sm:p-6 lg:p-10 font-[Manrope]">
             <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row gap-6 lg:gap-12">
-                {/* Settings Left Sidebar — sticky on desktop, never scrolls independently */}
-                <div className="lg:sticky lg:top-20 lg:self-start">
+                {/* ── Desktop Left Sidebar (Sticky on desktop, hidden on mobile) ── */}
+                <div className="hidden lg:block lg:sticky lg:top-20 lg:self-start">
                     <SettingsSidebar
                         activeTab={activeTab}
                         setActiveTab={setActiveTab}
@@ -415,65 +652,62 @@ function Setting() {
                     />
                 </div>
 
-                {/* Main Settings Content Column — no inner scroll; page handles scrolling */}
-                <div className="flex-1 min-w-0">
-                    <div className="flex flex-col gap-6">
-                        {/* Top Profile Header Card */}
-                        <ProfileHeaderCard
-                            user={headerUser}
-                            onAvatarChange={handleAvatarChange}
-                            onViewPublicProfile={() => toast.info('Navigating to public profile')}
-                        />
+                {/* ── Mobile Compact Navigator (< Previous Current Next >) ── */}
+                <MobileSettingsNavigator
+                    activeTab={activeTab}
+                    onSelectSection={handleMobileSectionChange}
+                />
 
-                        {/* ── Personal Information section ── */}
+                {/* ── Main Settings Content Column ── */}
+                <div className="flex-1 min-w-0">
+                    {/* ── Desktop Multi-Section View (All sections rendered in sequence for smooth scrolling) ── */}
+                    <div className="hidden lg:flex flex-col gap-6">
+                        {/* ── 1. Personal Information section ── */}
                         <div
                             ref={(el) => { sectionRefs.current.personal = el; }}
                             id="section-personal"
-                            className="grid grid-cols-1 md:grid-cols-2 gap-6"
                         >
-                            <IdentityDetailsCard values={formData} onChange={handleFormChange} />
-                            <ContactRegionCard
-                                values={formData}
-                                onChange={handleFormChange}
-                                phoneError={phoneError}
-                            />
+                            {renderPersonalInformation()}
                         </div>
 
-                        {/* ── Account Security section ── */}
+                        {/* ── 2. Account Security section ── */}
                         <div
                             ref={(el) => { sectionRefs.current.security = el; }}
                             id="section-security"
                         >
-                            <AccountSecurityCard
-                                security={settingsData?.security}
-                                onUpdatePassword={() => toast.info('Password update requested')}
-                                onManage2FA={() => toast.info('Opening 2FA management')}
-                            />
+                            {renderAccountSecurity()}
                         </div>
 
-                        {/* ── Notifications section ── */}
+                        {/* ── 3. Notifications section ── */}
                         <div
                             ref={(el) => { sectionRefs.current.notifications = el; }}
                             id="section-notifications"
                         >
-                            <NotificationPreferencesCard
-                                preferences={notificationPreferences}
-                                onToggle={handleNotificationToggle}
-                            />
+                            {renderNotifications()}
                         </div>
 
-                        {/* ── Subscription Plan section ── */}
+                        {/* ── 4. Subscription Plan section ── */}
                         <div
                             ref={(el) => { sectionRefs.current.subscription = el; }}
                             id="section-subscription"
                         >
-                            <SubscriptionPlanCard
-                                subscription={settingsData?.subscription}
-                                countryCode={formData.country}
-                                onChangePlan={() => toast.info('Change plan modal opened')}
-                                onCancelSubscription={() => toast.warning('Cancel subscription requested')}
-                            />
+                            {renderSubscriptionPlan()}
                         </div>
+
+                        {/* Bottom Action Bar */}
+                        <SettingsActionBar
+                            onDiscard={handleDiscard}
+                            onSave={handleSaveAll}
+                            loading={isSaving}
+                        />
+                    </div>
+
+                    {/* ── Mobile Section View (Only the active section is rendered, switching scrolls to top) ── */}
+                    <div className="flex lg:hidden flex-col gap-6">
+                        {activeTab === 'personal' && renderPersonalInformation()}
+                        {activeTab === 'security' && renderAccountSecurity()}
+                        {activeTab === 'notifications' && renderNotifications()}
+                        {activeTab === 'subscription' && renderSubscriptionPlan()}
 
                         {/* Bottom Action Bar */}
                         <SettingsActionBar
@@ -484,6 +718,46 @@ function Setting() {
                     </div>
                 </div>
             </div>
+
+            {/* ── Edit Modals ──────────────────────────────────────────────── */}
+            {/* 1. Goals Modal */}
+            <ItemSelectorModal
+                isOpen={isGoalsModalOpen}
+                onClose={() => setIsGoalsModalOpen(false)}
+                onSave={handleSaveGoals}
+                title="Edit Learning Goals"
+                subtitle="Update your primary learning objectives and goals"
+                initialItems={goals}
+                availableItems={DEFAULT_GOALS}
+                allowCustom={true}
+                saving={isSavingGoals}
+            />
+
+            {/* 2. Interests Modal */}
+            <ItemSelectorModal
+                isOpen={isInterestsModalOpen}
+                onClose={() => setIsInterestsModalOpen(false)}
+                onSave={handleSaveInterests}
+                title="Edit Areas of Interest"
+                subtitle="Update your topics and areas of interest"
+                initialItems={interests}
+                availableItems={DEFAULT_INTERESTS}
+                allowCustom={true}
+                saving={isSavingInterests}
+            />
+
+            {/* 3. Skills & Expertise Modal (Matches Reference Screenshot) */}
+            <ItemSelectorModal
+                isOpen={isSkillsModalOpen}
+                onClose={() => setIsSkillsModalOpen(false)}
+                onSave={handleSaveSkills}
+                title="Edit Skills & Expertise"
+                subtitle="Update your skills & expertise"
+                initialItems={skills}
+                availableItems={DEFAULT_SKILLS}
+                allowCustom={true}
+                saving={isSavingSkills}
+            />
 
             {/* Page Footer */}
             <footer className="w-full max-w-7xl mx-auto border-t border-white/5 pt-6 mt-12 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-[#64748B]">
