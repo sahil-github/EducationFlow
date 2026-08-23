@@ -13,6 +13,7 @@ import {
     fetchDownloadResources,
     toggleLiveClassReminder,
 } from '../../features/dashboard/dashThunks';
+import { fetchMyLearning } from '../../features/myLearning/myLearningThunks';
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -50,6 +51,10 @@ export const Dashboard = () => {
         moduleExplorer: reduxModuleExplorer,
         status,
     } = useSelector((state) => state.dashboard);
+
+    // My Learning Redux state (for enrolled / in-progress courses)
+    const { myLearning } = useSelector((state) => state.myLearning || {});
+    const myLearningInProgress = myLearning?.inProgress || [];
 
     const [showCalendar, setShowCalendar] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -98,6 +103,7 @@ export const Dashboard = () => {
     // Dispatch thunks on mount — always refresh Continue Learning to catch recent progress
     useEffect(() => {
         dispatch(fetchContinueLearning());
+        dispatch(fetchMyLearning());
         if (status.summary === 'idle') dispatch(fetchDashboard());
         if (status.learningStats === 'idle') dispatch(fetchLearningStats());
         if (status.liveClasses === 'idle') dispatch(fetchLiveClasses());
@@ -168,33 +174,48 @@ export const Dashboard = () => {
     })();
 
 
-    // Continue learning — map API shape to UI shape: { id, module, title, progress, lessonsLeft, currentLessonTitle, lastAccessed }
+    // Continue learning — strictly map real enrolled / in-progress courses: { id, module, title, progress, lessonsLeft, currentLessonTitle, lastAccessed }
     const coursesPending = (() => {
-        const rawData = reduxContinueLearning?.data ?? reduxContinueLearning ?? summaryData?.continueLearning;
+        const rawData =
+            (Array.isArray(reduxContinueLearning?.data) && reduxContinueLearning.data.length > 0 ? reduxContinueLearning.data : null) ??
+            (Array.isArray(reduxContinueLearning) && reduxContinueLearning.length > 0 ? reduxContinueLearning : null) ??
+            (Array.isArray(summaryData?.continueLearning) && summaryData.continueLearning.length > 0 ? summaryData.continueLearning : null) ??
+            (Array.isArray(myLearningInProgress) && myLearningInProgress.length > 0 ? myLearningInProgress : null) ??
+            [];
+
         const raw = Array.isArray(rawData) ? rawData : [];
         if (raw.length === 0) {
-            // fallback mock
-            return [
-                { id: "1", module: 'Module 4 of 12', title: "Project Management Essentials", progress: 75, lessonsLeft: "3 lessons left" },
-                { id: "2", module: 'Module 2 of 8', title: "Advanced Data Analytics", progress: 20, lessonsLeft: "12 lessons left" },
-                { id: "3", module: 'Module 1 of 5', title: 'Design Thinking', progress: 5, lessonsLeft: "8 lessons left" },
-            ];
+            return [];
         }
-        return raw.map((item, idx) => ({
-            id: item.id || item._id || item.courseId || (idx + 1).toString(),
-            module: item.currentLessonTitle ? item.currentLessonTitle : (item.module || item.moduleLabel || item.currentModule || `Module ${item.currentModuleNumber || 1} of ${item.totalModules || 1}`),
-            title: item.title || item.courseName || item.name || "Untitled Course",
-            progress: item.progress ?? item.progressPercent ?? item.completionPercent ?? 0,
-            lessonsLeft: item.lessonsLeft !== undefined
-                ? `${item.lessonsLeft} lessons left`
-                : item.remainingLessons !== undefined
-                ? `${item.remainingLessons} lessons left`
-                : item.lastAccessed
-                ? `Last accessed ${new Date(item.lastAccessed).toLocaleDateString()}`
-                : "In progress",
-            currentLessonTitle: item.currentLessonTitle || null,
-            lastAccessed: item.lastAccessed || null,
-        }));
+
+        return raw.map((item, idx) => {
+            const courseId = item.id || item._id || item.courseId || (idx + 1).toString();
+            const totalLessons = item.totalLessons || item.lessonsCount;
+            const completedLessons = item.completedLessons || item.completedLessonsCount;
+            const lessonsLeftCalc = (totalLessons != null && completedLessons != null)
+                ? `${Math.max(0, totalLessons - completedLessons)} lessons left`
+                : null;
+
+            return {
+                id: courseId,
+                module: item.currentLessonTitle
+                    ? item.currentLessonTitle
+                    : (item.module || item.moduleLabel || item.currentModule || (item.totalModules ? `Module ${item.currentModuleNumber || 1} of ${item.totalModules}` : "In Progress")),
+                title: item.title || item.courseName || item.name || "Untitled Course",
+                progress: item.progress ?? item.progressPercent ?? item.completionPercent ?? 0,
+                lessonsLeft: item.lessonsLeft !== undefined
+                    ? `${item.lessonsLeft} lessons left`
+                    : item.remainingLessons !== undefined
+                    ? `${item.remainingLessons} lessons left`
+                    : lessonsLeftCalc
+                    ? lessonsLeftCalc
+                    : item.lastAccessed
+                    ? `Last accessed ${new Date(item.lastAccessed).toLocaleDateString()}`
+                    : "In progress",
+                currentLessonTitle: item.currentLessonTitle || null,
+                lastAccessed: item.lastAccessed || null,
+            };
+        });
     })();
 
     // Recommended courses — map API shape to UI shape: { title, rating, students, tags, icon }
@@ -300,92 +321,91 @@ export const Dashboard = () => {
                     </div>
                 </Card>
 
-                {/* Continue Learning */}
-                <div>
-                    <div className="flex justify-between items-end mb-6">
-                        <h2 className="text-white text-xl  font-bold tracking-wide">Continue Learning</h2>
-                        {/*  dusra kuch dalna hai idhar */}
-                    </div>
-
-                    {/* Carousel wrapper — arrows sit outside the scroll container */}
-                    <div className="flex items-center gap-2">
-
-                        {/* Left arrow */}
-                        <button
-                            aria-label="Scroll left"
-                            onClick={() => scrollCarousel('left')}
-                            disabled={!canScrollLeft}
-                            className={[
-                                "shrink-0 w-9 h-9 rounded-full flex items-center justify-center",
-                                "border transition-all duration-200",
-                                canScrollLeft
-                                    ? "border-white/20 bg-[#1c1f28] text-white hover:bg-blue-600 hover:border-blue-500 cursor-pointer"
-                                    : "border-white/5 bg-[#1c1f28]/40 text-white/20 cursor-not-allowed",
-                            ].join(' ')}
-                        >
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                                <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                        </button>
-
-                        {/* Scrollable cards container */}
-                        <div
-                            ref={carouselRef}
-                            onScroll={updateScrollButtons}
-                            className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 mb-2 scrollbar-hide flex-nowrap scroll-smooth"
-                        >
-                            {coursesPending.map((course, index) => (
-                                <Card
-                                    key={index}
-                                    onClick={() => navigate(course.id ? `/courses/${course.id}/learn` : "/catalog")}
-                                    className="min-w-[260px] max-w-[260px] sm:min-w-[320px] sm:max-w-[320px] bg-[#1c1f28]/60 overflow-hidden group cursor-pointer border-transparent hover:border-blue-500/50 transition-colors p-5 sm:p-6 flex flex-col justify-between"
-                                >
-                                    <div>
-                                        <div className="text-blue-400 text-[10px] font-bold tracking-wider uppercase mb-3">
-                                            {course.module}
-                                        </div>
-                                        <h3 className="text-white font-semibold text-lg sm:text-xl mb-6 group-hover:text-blue-400 transition-colors line-clamp-2">
-                                            {course.title}
-                                        </h3>
-                                    </div>
-
-                                    <div className="mt-auto">
-                                        <div className="flex justify-between items-end mb-3 text-xs font-medium text-gray-400">
-                                            <span>{course.progress}% Complete</span>
-                                            <span>{course.lessonsLeft}</span>
-                                        </div>
-
-                                        <div className="w-full bg-[#13151a] rounded-full h-1.5 overflow-hidden">
-                                            <div
-                                                className="bg-blue-500 h-1.5 rounded-full"
-                                                style={{ width: `${course.progress}%` }}
-                                            ></div>
-                                        </div>
-                                    </div>
-                                </Card>
-                            ))}
+                {/* Continue Learning — displayed only when user has active enrolled/in-progress courses */}
+                {coursesPending.length > 0 && (
+                    <div>
+                        <div className="flex justify-between items-end mb-6">
+                            <h2 className="text-white text-xl font-bold tracking-wide">Continue Learning</h2>
                         </div>
 
-                        {/* Right arrow */}
-                        <button
-                            aria-label="Scroll right"
-                            onClick={() => scrollCarousel('right')}
-                            disabled={!canScrollRight}
-                            className={[
-                                "shrink-0 w-9 h-9 rounded-full flex items-center justify-center",
-                                "border transition-all duration-200",
-                                canScrollRight
-                                    ? "border-white/20 bg-[#1c1f28] text-white hover:bg-blue-600 hover:border-blue-500 cursor-pointer"
-                                    : "border-white/5 bg-[#1c1f28]/40 text-white/20 cursor-not-allowed",
-                            ].join(' ')}
-                        >
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                                <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                        </button>
+                        {/* Carousel wrapper — arrows sit outside the scroll container */}
+                        <div className="flex items-center gap-2">
+                            {/* Left arrow */}
+                            <button
+                                aria-label="Scroll left"
+                                onClick={() => scrollCarousel('left')}
+                                disabled={!canScrollLeft}
+                                className={[
+                                    "shrink-0 w-9 h-9 rounded-full flex items-center justify-center",
+                                    "border transition-all duration-200",
+                                    canScrollLeft
+                                        ? "border-white/20 bg-[#1c1f28] text-white hover:bg-blue-600 hover:border-blue-500 cursor-pointer"
+                                        : "border-white/5 bg-[#1c1f28]/40 text-white/20 cursor-not-allowed",
+                                ].join(' ')}
+                            >
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                    <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                            </button>
 
+                            {/* Scrollable cards container */}
+                            <div
+                                ref={carouselRef}
+                                onScroll={updateScrollButtons}
+                                className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 mb-2 scrollbar-hide flex-nowrap scroll-smooth"
+                            >
+                                {coursesPending.map((course, index) => (
+                                    <Card
+                                        key={course.id || index}
+                                        onClick={() => navigate(course.id ? `/courses/${course.id}/learn` : "/catalog")}
+                                        className="min-w-[260px] max-w-[260px] sm:min-w-[320px] sm:max-w-[320px] bg-[#1c1f28]/60 overflow-hidden group cursor-pointer border-transparent hover:border-blue-500/50 transition-colors p-5 sm:p-6 flex flex-col justify-between"
+                                    >
+                                        <div>
+                                            <div className="text-blue-400 text-[10px] font-bold tracking-wider uppercase mb-3">
+                                                {course.module}
+                                            </div>
+                                            <h3 className="text-white font-semibold text-lg sm:text-xl mb-6 group-hover:text-blue-400 transition-colors line-clamp-2">
+                                                {course.title}
+                                            </h3>
+                                        </div>
+
+                                        <div className="mt-auto">
+                                            <div className="flex justify-between items-end mb-3 text-xs font-medium text-gray-400">
+                                                <span>{course.progress}% Complete</span>
+                                                <span>{course.lessonsLeft}</span>
+                                            </div>
+
+                                            <div className="w-full bg-[#13151a] rounded-full h-1.5 overflow-hidden">
+                                                <div
+                                                    className="bg-blue-500 h-1.5 rounded-full"
+                                                    style={{ width: `${course.progress}%` }}
+                                                ></div>
+                                            </div>
+                                        </div>
+                                    </Card>
+                                ))}
+                            </div>
+
+                            {/* Right arrow */}
+                            <button
+                                aria-label="Scroll right"
+                                onClick={() => scrollCarousel('right')}
+                                disabled={!canScrollRight}
+                                className={[
+                                    "shrink-0 w-9 h-9 rounded-full flex items-center justify-center",
+                                    "border transition-all duration-200",
+                                    canScrollRight
+                                        ? "border-white/20 bg-[#1c1f28] text-white hover:bg-blue-600 hover:border-blue-500 cursor-pointer"
+                                        : "border-white/5 bg-[#1c1f28]/40 text-white/20 cursor-not-allowed",
+                                ].join(' ')}
+                            >
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                    <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Recommended for You */}
                 <div>
