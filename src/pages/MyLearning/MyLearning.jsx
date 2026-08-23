@@ -70,7 +70,13 @@ function MyLearning() {
 
     // ── Map raw API objects to UI shapes ──────────────────────────────────────
 
-    const learningCourses = inProgressList.map((course, idx) => {
+    // Exclude any inProgress courses that have already reached 100% or are flagged complete
+    // (handles the case where backend still returns them in inProgress after last-lesson completion)
+    const activeInProgress = inProgressList.filter(
+        (c) => (c.progress ?? c.progressPercent ?? 0) < 100 && !c.isCompleted
+    );
+
+    const learningCourses = activeInProgress.map((course, idx) => {
         const id = getRealCourseId(course) || idx;
         const progress = course.progress ?? course.progressPercent ?? 0;
         const lessonsLeft = (course.totalLessons != null && course.completedLessons != null)
@@ -89,7 +95,7 @@ function MyLearning() {
             title: getRealTitle(course),
             progress,
             timeLeft: timeLeftText,
-            buttonText: progress >= 100 ? "Review Course" : progress > 0 ? "Continue Lesson" : "Start Course",
+            buttonText: progress > 0 ? "Continue Lesson" : "Start Course",
         };
     });
 
@@ -100,19 +106,40 @@ function MyLearning() {
         duration: getRealDuration(course),
     }));
 
-    const completedCourses = completedList
-        .filter((item, index, self) => {
-            const id = getRealCourseId(item);
-            return index === self.findIndex((t) => getRealCourseId(t) === id);
-        })
+    // Also collect any inProgress items that hit 100% but backend hasn't moved them yet
+    const locallyCompleted = inProgressList
+        .filter((c) => (c.progress ?? c.progressPercent ?? 0) >= 100 || c.isCompleted)
         .map((course, idx) => ({
-            id: getRealCourseId(course) || idx,
+            id: getRealCourseId(course) || `lc_${idx}`,
             title: getRealTitle(course),
-            certificateDate: course.certificateDate ||
-                (course.completedAt
-                    ? `Certified ${new Date(course.completedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
-                    : "Completed"),
+            category: getRealCategory(course),
+            duration: getRealDuration(course),
+            certificateDate: course.completedAt
+                ? `Completed ${new Date(course.completedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
+                : "100% Complete",
         }));
+
+    const completedCourses = [
+        ...completedList
+            .filter((item, index, self) => {
+                const id = getRealCourseId(item);
+                return index === self.findIndex((t) => getRealCourseId(t) === id);
+            })
+            .map((course, idx) => ({
+                id: getRealCourseId(course) || idx,
+                title: getRealTitle(course),
+                category: getRealCategory(course),
+                duration: getRealDuration(course),
+                certificateDate: course.certificateDate ||
+                    (course.completedAt
+                        ? `Completed ${new Date(course.completedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
+                        : "100% Complete"),
+            })),
+        // Merge locally-detected completions without duplicating
+        ...locallyCompleted.filter(
+            (lc) => !completedList.some((c) => String(getRealCourseId(c)) === String(lc.id))
+        ),
+    ];
 
     // ── Error state ───────────────────────────────────────────────────────────
     if (myLearningError && !myLearningLoading) {
@@ -299,11 +326,21 @@ function MyLearning() {
                                         key={course.id}
                                         onClick={() => navigate(course.id ? `/courses/${course.id}/learn` : "/catalog")}
                                     >
+                                        {course.category && (
+                                            <span className="text-[10px] uppercase font-bold tracking-wider text-gray-500 block">
+                                                {course.category}
+                                            </span>
+                                        )}
                                         <h3 className="text-white font-bold text-base hover:text-blue-400 transition-colors">
                                             {course.title}
                                         </h3>
-                                        <span className="text-xs text-[#0759d9] bg-[#0759d9]/10 border border-[#0759d9]/20 self-start px-2 py-0.5 rounded-md font-medium uppercase tracking-wider">
-                                            {course.certificateDate}
+                                        {course.duration && (
+                                            <p className="text-xs text-gray-400 flex items-center gap-1">
+                                                <span>🕒</span> {course.duration}
+                                            </p>
+                                        )}
+                                        <span className="text-xs text-green-400 bg-green-400/10 border border-green-400/20 self-start px-2 py-0.5 rounded-md font-medium uppercase tracking-wider">
+                                            ✓ {course.certificateDate}
                                         </span>
                                     </Card>
                                 ))}
@@ -325,16 +362,29 @@ function MyLearning() {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {completedCourses.map((course) => (
                                 <Card
-                                    className="p-5 rounded-xl border border-gray-800 bg-[#1A1D24] flex flex-col gap-2 hover:border-gray-700 transition-all cursor-pointer"
+                                    className="p-5 rounded-xl border border-gray-800 bg-[#1A1D24] flex flex-col gap-3 hover:border-gray-700 transition-all cursor-pointer"
                                     key={course.id}
                                     onClick={() => navigate(course.id ? `/courses/${course.id}/learn` : "/catalog")}
                                 >
-                                    <h3 className="text-white font-bold text-base hover:text-blue-400 transition-colors">
+                                    {course.category && (
+                                        <span className="text-[10px] uppercase font-bold tracking-wider text-gray-500 block">
+                                            {course.category}
+                                        </span>
+                                    )}
+                                    <h3 className="text-white font-bold text-base hover:text-blue-400 transition-colors line-clamp-2">
                                         {course.title}
                                     </h3>
-                                    <span className="text-xs text-[#0759d9] bg-[#0759d9]/10 border border-[#0759d9]/20 self-start px-2 py-0.5 rounded-md font-medium uppercase tracking-wider">
-                                        {course.certificateDate}
-                                    </span>
+                                    {course.duration && (
+                                        <p className="text-xs text-gray-400 flex items-center gap-1">
+                                            <span>🕒</span> {course.duration}
+                                        </p>
+                                    )}
+                                    <div className="flex items-center justify-between mt-1">
+                                        <span className="text-xs text-green-400 bg-green-400/10 border border-green-400/20 px-2 py-0.5 rounded-md font-medium uppercase tracking-wider">
+                                            ✓ {course.certificateDate}
+                                        </span>
+                                        <span className="text-xs font-bold text-green-400">100%</span>
+                                    </div>
                                 </Card>
                             ))}
                         </div>

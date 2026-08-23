@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, isAnyOf } from "@reduxjs/toolkit";
 import {
     fetchMyLearning,
     saveCourseThunk,
@@ -40,12 +40,27 @@ const saveToStorage = (list) => {
     } catch {}
 };
 
+const loadCompletedFromStorage = () => {
+    try {
+        const stored = localStorage.getItem("eduflow_completed_courses");
+        return stored ? JSON.parse(stored) : [];
+    } catch {
+        return [];
+    }
+};
+
+const saveCompletedToStorage = (list) => {
+    try {
+        localStorage.setItem("eduflow_completed_courses", JSON.stringify(list));
+    } catch {}
+};
+
 const initialState = {
     myLearning: {
         all: [],
         inProgress: [],
         savedForLater: loadSavedFromStorage(),
-        completed: [],
+        completed: loadCompletedFromStorage(),
         totalEnrolled: 0,
     },
     loading: false,
@@ -54,6 +69,65 @@ const initialState = {
     saveError: null,
     completeLessonLoading: false,
     completeLessonError: null,
+};
+
+// ── Shared completion logic ────────────────────────────────────────────────
+// Handles both myLearning/completeLesson and courses/completeLesson payloads
+const applyLessonCompletion = (state, payload, courseId) => {
+    if (!courseId) return;
+
+    const inProgress = state.myLearning.inProgress;
+    const idx = inProgress.findIndex(
+        (item) =>
+            String(getCourseId(item)) === String(courseId) ||
+            item.courseId === courseId ||
+            item.id === courseId ||
+            item._id === courseId
+    );
+
+    const updatedProgress =
+        payload?.progressPercentage ??
+        payload?.progress ??
+        (idx !== -1 ? inProgress[idx].progress : 100);
+
+    if (idx !== -1) {
+        state.myLearning.inProgress[idx] = {
+            ...inProgress[idx],
+            progress: updatedProgress,
+            progressPercentage: updatedProgress,
+        };
+    }
+
+    // If 100% complete, move course from inProgress → completed
+    if (updatedProgress >= 100 || payload?.isCompleted === true) {
+        const baseItem = idx !== -1 ? inProgress[idx] : null;
+        const completedItem = {
+            ...(baseItem || {}),
+            id: courseId,
+            courseId: courseId,
+            title: payload?.courseTitle || baseItem?.title || baseItem?.name || "Completed Course",
+            category: payload?.category || baseItem?.category || "Course",
+            duration: payload?.duration || baseItem?.duration || "Self-paced",
+            progress: 100,
+            progressPercentage: 100,
+            isCompleted: true,
+            completedAt: payload?.completedAt || new Date().toISOString(),
+        };
+
+        const alreadyComplete = state.myLearning.completed.some(
+            (c) => String(getCourseId(c)) === String(courseId)
+        );
+
+        if (!alreadyComplete) {
+            state.myLearning.completed.push(completedItem);
+        }
+
+        if (idx !== -1) {
+            state.myLearning.inProgress.splice(idx, 1);
+        }
+
+        saveCompletedToStorage(state.myLearning.completed);
+    }
 };
 
 const myLearningSlice = createSlice({
@@ -65,12 +139,23 @@ const myLearningSlice = createSlice({
             state.saveError = null;
             state.completeLessonError = null;
         },
+        // Allows external dispatchers (e.g. CoursePlayer) to directly mark
+        // a course as completed by courseId without going through the thunk
+        markCourseCompleted: (state, action) => {
+            const { courseId, courseTitle, category, duration, completedAt } = action.payload ?? {};
+            applyLessonCompletion(
+                state,
+                { progressPercentage: 100, isCompleted: true, courseTitle, category, duration, completedAt },
+                courseId
+            );
+        },
     },
     extraReducers: (builder) => {
         builder
             // Reset state on user logout
             .addCase("auth/logout", () => {
                 localStorage.removeItem("eduflow_saved_courses");
+                localStorage.removeItem("eduflow_completed_courses");
                 return initialState;
             })
 
@@ -102,6 +187,31 @@ const myLearningSlice = createSlice({
                     });
                 }
 
+                // Merge and deduplicate completed courses across backend and localStorage
+                const mergedCompleted = [];
+                const seenCompletedIds = new Set();
+
+                const addCourseToCompleted = (c) => {
+                    const cid = String(getCourseId(c) || "");
+                    if (cid && !seenCompletedIds.has(cid)) {
+                        seenCompletedIds.add(cid);
+                        mergedCompleted.push(c);
+                    }
+                };
+
+                completed.forEach(addCourseToCompleted);
+                const storedCompleted = loadCompletedFromStorage();
+                storedCompleted.forEach(addCourseToCompleted);
+
+                saveCompletedToStorage(mergedCompleted);
+
+                // Exclude any courses in inProgress that are already completed
+                const filteredInProgress = inProgress.filter((c) => {
+                    const cid = String(getCourseId(c) || "");
+                    const is100 = (c.progress ?? c.progressPercent ?? 0) >= 100 || c.isCompleted;
+                    return !is100 && !seenCompletedIds.has(cid);
+                });
+
                 // Merge and deduplicate all saved courses across backend and localStorage
                 const mergedSaved = [];
                 const seenSavedIds = new Set();
@@ -122,10 +232,10 @@ const myLearningSlice = createSlice({
 
                 state.myLearning = {
                     all: rawAll,
-                    inProgress,
+                    inProgress: filteredInProgress,
                     savedForLater: mergedSaved,
-                    completed,
-                    totalEnrolled: payload.totalEnrolled ?? inProgress.length,
+                    completed: mergedCompleted,
+                    totalEnrolled: payload.totalEnrolled ?? filteredInProgress.length,
                 };
             })
             .addCase(fetchMyLearning.rejected, (state, action) => {
@@ -174,7 +284,7 @@ const myLearningSlice = createSlice({
                 state.saveError = action.payload ?? "Failed to save course";
             })
 
-            // ── completeLessonInCourse ──────────────────────────────────────
+            // ── completeLessonInCourse (myLearning thunk) ───────────────────
             .addCase(completeLessonInCourse.pending, (state) => {
                 state.completeLessonLoading = true;
                 state.completeLessonError = null;
@@ -182,40 +292,32 @@ const myLearningSlice = createSlice({
             .addCase(completeLessonInCourse.fulfilled, (state, action) => {
                 state.completeLessonLoading = false;
                 const payload = action.payload ?? {};
-                const courseId = action.meta.arg?.courseId;
-
-                // Update inProgress item progress
-                if (courseId) {
-                    const idx = state.myLearning.inProgress.findIndex(
-                        (item) => item.courseId === courseId || item.id === courseId
-                    );
-                    if (idx !== -1) {
-                        const updatedProgress = payload.progressPercentage ?? state.myLearning.inProgress[idx].progress;
-                        state.myLearning.inProgress[idx] = {
-                            ...state.myLearning.inProgress[idx],
-                            ...payload,
-                            progress: updatedProgress,
-                        };
-
-                        // If 100% completed, move to completed list
-                        if (updatedProgress >= 100 || payload.isCompleted) {
-                            const completedItem = state.myLearning.inProgress[idx];
-                            const existsInCompleted = state.myLearning.completed.some(
-                                (c) => (c.id || c._id || c.courseId) === courseId
-                            );
-                            if (!existsInCompleted) {
-                                state.myLearning.completed.push(completedItem);
-                            }
-                        }
-                    }
-                }
+                const courseId = action.meta.arg?.courseId ?? payload.courseId;
+                applyLessonCompletion(state, payload, courseId);
             })
             .addCase(completeLessonInCourse.rejected, (state, action) => {
                 state.completeLessonLoading = false;
                 state.completeLessonError = action.payload ?? "Failed to mark lesson complete";
-            });
+            })
+
+            // ── Listen to courses/completeLesson (from CoursePlayer's thunk) ─
+            // CoursePlayer dispatches completeLessonInCourse from coursesThunks.js
+            // which has action type "courses/completeLesson". We react to that here
+            // so My Learning reflects completions even when navigating from the player.
+            .addMatcher(
+                (action) => action.type === "courses/completeLesson/fulfilled",
+                (state, action) => {
+                    const payload = action.payload ?? {};
+                    // courses thunk payload: { courseId, lessonId, progressPercentage, ... }
+                    const courseId =
+                        action.meta?.arg?.courseId ??
+                        payload.courseId ??
+                        action.payload?.courseId;
+                    applyLessonCompletion(state, payload, courseId);
+                }
+            );
     },
 });
 
-export const { clearMyLearningError } = myLearningSlice.actions;
+export const { clearMyLearningError, markCourseCompleted } = myLearningSlice.actions;
 export default myLearningSlice.reducer;

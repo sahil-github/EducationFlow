@@ -12,6 +12,8 @@ import { updateInterests } from '../../../features/profile/profileThunks';
 import { updateUser } from '../../../features/auth/authSlice';
 import { saveCurrentUser, upsertUser } from '../../../utils/storage';
 
+
+
 function Interest() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -79,11 +81,6 @@ function Interest() {
                     </p>
                 </div>
 
-                <Input
-                    placeholder='Find other topics (e.g., Quantum Computing, Cooking)'
-                    type='text'
-                    className=' rounded-xl w-full bg-[#16161AB2]'
-                />
 
                 <div className='flex gap-4 text-wrap flex-col p-2 text-white'>
                     {InterestData.map((category) => (
@@ -97,7 +94,7 @@ function Interest() {
                                     {category.name}
                                 </h2>
                             </div>
-                            <div className='flex flex-row gap-12 pt-4 justify-center flex-wrap'>
+                            <div className='flex flex-row gap-4 pt-4 justify-start flex-wrap'>
                                 {category.example.map((interest) => {
                                     const Icon = interest.icon;
                                     const isSelected = selectedInterests.some(
@@ -153,7 +150,10 @@ function Interest() {
                     </Button>
                 </div>
             </div>
+            
         </div>
+
+
     );
 }
 
