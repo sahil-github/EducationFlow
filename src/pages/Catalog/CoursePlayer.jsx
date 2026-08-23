@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -11,7 +11,6 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import LightbulbOutlinedIcon from "@mui/icons-material/LightbulbOutlined";
 import TaskAltIcon from "@mui/icons-material/TaskAlt";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import PauseIcon from "@mui/icons-material/Pause";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import ThumbUpOutlinedIcon from "@mui/icons-material/ThumbUpOutlined";
 import ThumbUpIcon from "@mui/icons-material/ThumbUp";
@@ -21,6 +20,7 @@ import SendIcon from "@mui/icons-material/Send";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
 import { clearCoursePlayer } from "../../features/courses/coursesSlice";
+import { markCourseCompleted } from "../../features/myLearning/myLearningSlice";
 import {
     fetchCourseById,
     fetchCoursePlayer,
@@ -38,7 +38,23 @@ import {
     saveLessonProgress,
 } from "../../features/courses/coursesThunks";
 
+// ── Persistence Helpers for Completed Lessons ────────────────────────────────
+const getStoredCompletedLessons = (courseId) => {
+    if (!courseId) return [];
+    try {
+        const stored = localStorage.getItem(`eduflow_course_completed_lessons_${courseId}`);
+        return stored ? JSON.parse(stored) : [];
+    } catch {
+        return [];
+    }
+};
 
+const saveStoredCompletedLessons = (courseId, lessonIdsList) => {
+    if (!courseId) return;
+    try {
+        localStorage.setItem(`eduflow_course_completed_lessons_${courseId}`, JSON.stringify(lessonIdsList));
+    } catch {}
+};
 
 export default function CoursePlayer() {
     const { id } = useParams();
@@ -68,7 +84,7 @@ export default function CoursePlayer() {
     const [activeTab, setActiveTab] = useState("about");
     const [isPlaying, setIsPlaying] = useState(false);
     const [selectedLessonId, setSelectedLessonId] = useState(null);
-    const [completedLessonIds, setCompletedLessonIds] = useState(new Set());
+    const [completedLessonIds, setCompletedLessonIds] = useState(() => new Set(getStoredCompletedLessons(id)));
     const [noteContent, setNoteContent] = useState("");
     const [videoTime, setVideoTime] = useState(0);
 
@@ -89,6 +105,12 @@ export default function CoursePlayer() {
             dispatch(getCourseNotes(id));
             dispatch(getCourseQnA(id));
             dispatch(getCourseResources(id));
+
+            // Load stored completed lessons for this course on mount/id change
+            const stored = getStoredCompletedLessons(id);
+            if (stored.length > 0) {
+                setCompletedLessonIds((prev) => new Set([...prev, ...stored]));
+            }
         }
         return () => {
             dispatch(clearCoursePlayer());
@@ -98,103 +120,179 @@ export default function CoursePlayer() {
     // Normalize potential backend response nesting shapes
     const playerData = coursePlayerData?.data ?? coursePlayerData?.course ?? coursePlayerData;
 
-    // Derive lessons list from API response (playlist, lessons, modules, curriculum, or activeLesson)
-    const lessonsList = (() => {
-        const rawPlaylist = playerData?.playlist || playerData?.lessons || playerData?.curriculum || playerData?.syllabus || currentCourse?.playlist || currentCourse?.lessons || currentCourse?.curriculum;
-        if (rawPlaylist && Array.isArray(rawPlaylist) && rawPlaylist.length > 0) {
-            return rawPlaylist.map((les, index) => {
-                const lid = les.id || les._id || les.lessonId || `l_${index + 1}`;
+    // ── 1. Structured Modules Normalization Layer ─────────────────────────────
+    // Guarantees hierarchical modules -> lessons mapping regardless of backend format.
+    // Prioritizes structured modules over flat/sample playlists.
+    const normalizedModules = useMemo(() => {
+        const rawModules = playerData?.modules || currentCourse?.modules;
+        if (Array.isArray(rawModules) && rawModules.length > 0) {
+            return rawModules.map((mod, modIdx) => {
+                const modId = mod.id || mod._id || `m_${modIdx + 1}`;
+                const modTitle = mod.title || mod.name || `Module ${modIdx + 1}`;
+                const modLessons = mod.lessons || mod.items || mod.topics || mod.lectures || mod.content || [];
+
+                const lessons = Array.isArray(modLessons) ? modLessons.map((les, lesIdx) => {
+                    const lid = (typeof les === "object") ? (les.id || les._id || les.lessonId || `l_${modIdx + 1}_${lesIdx + 1}`) : `l_${modIdx + 1}_${lesIdx + 1}`;
+                    const title = (typeof les === "object") ? (les.title || les.name || les.topic || `Lesson ${lesIdx + 1}`) : String(les);
+                    return {
+                        id: String(lid),
+                        moduleId: String(modId),
+                        title,
+                        duration: (typeof les === "object" ? (les.duration || les.time) : null) || "10:00",
+                        videoUrl: (typeof les === "object" ? (les.videoUrl || les.url || les.streamUrl) : "") || "",
+                        description: (typeof les === "object" ? les.description : "") || "",
+                        keyObjectives: (typeof les === "object" ? (les.keyObjectives || les.objectives) : []) || [],
+                        proTips: (typeof les === "object" ? (les.proTips || les.tips) : "") || "",
+                        isCompleted: typeof les === "object" ? Boolean(les.isCompleted || les.completed) : false,
+                        isLocked: typeof les === "object" ? Boolean(les.isLocked || les.locked) : false,
+                    };
+                }) : [];
+
                 return {
-                    id: lid,
-                    title: les.title || les.name || les.topic || `Lesson ${index + 1}`,
+                    id: String(modId),
+                    title: modTitle,
+                    order: modIdx + 1,
+                    lessons,
+                };
+            });
+        }
+
+        // Fallback: If only a flat playlist/lessons array exists without modules
+        const rawPlaylist = playerData?.playlist || playerData?.lessons || playerData?.curriculum || currentCourse?.playlist || currentCourse?.lessons;
+        if (Array.isArray(rawPlaylist) && rawPlaylist.length > 0) {
+            const modMap = new Map();
+            rawPlaylist.forEach((les, index) => {
+                const modId = les.moduleId || les.module_id || "m_1";
+                const modTitle = les.moduleTitle || les.moduleName || "Module 1";
+                if (!modMap.has(modId)) {
+                    modMap.set(modId, {
+                        id: String(modId),
+                        title: modTitle,
+                        order: modMap.size + 1,
+                        lessons: [],
+                    });
+                }
+                const lid = les.id || les._id || les.lessonId || `l_${index + 1}`;
+                modMap.get(modId).lessons.push({
+                    id: String(lid),
+                    moduleId: String(modId),
+                    title: les.title || les.name || `Lesson ${index + 1}`,
                     duration: les.duration || les.time || "10:00",
                     videoUrl: les.videoUrl || les.url || les.streamUrl || "",
                     description: les.description || "",
                     keyObjectives: les.keyObjectives || les.objectives || [],
                     proTips: les.proTips || les.tips || "",
-                    status: completedLessonIds.has(lid)
-                        ? "completed"
-                        : les.status || (les.isCompleted ? "completed" : index === 0 ? "active" : "upcoming"),
-                };
+                    isCompleted: Boolean(les.isCompleted || les.completed),
+                    isLocked: Boolean(les.isLocked || les.locked),
+                });
             });
-        }
-
-        const rawModules = playerData?.modules || currentCourse?.modules;
-        if (rawModules && Array.isArray(rawModules) && rawModules.length > 0) {
-            const allLessons = [];
-            rawModules.forEach((mod, modIdx) => {
-                const modLessons = mod.lessons || mod.items || mod.topics || mod.lectures || mod.content;
-                if (Array.isArray(modLessons) && modLessons.length > 0) {
-                    modLessons.forEach((les, lesIdx) => {
-                        const lid = (typeof les === "object") ? (les.id || les._id || les.lessonId || `l_${modIdx + 1}_${lesIdx + 1}`) : `l_${modIdx + 1}_${lesIdx + 1}`;
-                        const title = (typeof les === "object") ? (les.title || les.name || les.topic || `Lesson ${lesIdx + 1}`) : String(les);
-                        allLessons.push({
-                            id: lid,
-                            title: title,
-                            duration: (typeof les === "object" ? (les.duration || les.time) : null) || "10:00",
-                            videoUrl: (typeof les === "object" ? (les.videoUrl || les.url || les.streamUrl) : "") || "",
-                            description: (typeof les === "object" ? les.description : "") || "",
-                            keyObjectives: (typeof les === "object" ? (les.keyObjectives || les.objectives) : []) || [],
-                            proTips: (typeof les === "object" ? (les.proTips || les.tips) : "") || "",
-                            status: completedLessonIds.has(lid)
-                                ? "completed"
-                                : (typeof les === "object" ? (les.status || (les.isCompleted ? "completed" : null)) : null) || (allLessons.length === 0 ? "active" : "upcoming"),
-                        });
-                    });
-                } else if (typeof mod === "object" && (mod.title || mod.name)) {
-                    const lid = mod.id || mod._id || `l_${modIdx + 1}`;
-                    allLessons.push({
-                        id: lid,
-                        title: mod.title || mod.name,
-                        duration: mod.duration || "10:00",
-                        videoUrl: mod.videoUrl || mod.url || "",
-                        description: mod.description || "",
-                        keyObjectives: mod.keyObjectives || [],
-                        proTips: mod.proTips || "",
-                        status: completedLessonIds.has(lid)
-                            ? "completed"
-                            : mod.status || (mod.isCompleted ? "completed" : allLessons.length === 0 ? "active" : "upcoming"),
-                    });
-                }
-            });
-            if (allLessons.length > 0) return allLessons;
-        }
-
-        // If backend returned single activeLesson
-        if (playerData?.activeLesson && typeof playerData.activeLesson === "object") {
-            const al = playerData.activeLesson;
-            const alId = al.id || al._id || al.lessonId || "l_active";
-            return [{
-                id: alId,
-                title: al.title || al.name || "Active Lesson",
-                duration: al.duration || "10:00",
-                videoUrl: al.videoUrl || al.url || al.streamUrl || "",
-                description: al.description || "",
-                keyObjectives: al.keyObjectives || [],
-                proTips: al.proTips || "",
-                status: completedLessonIds.has(alId) ? "completed" : "active",
-            }];
+            return Array.from(modMap.values());
         }
 
         return [];
-    })();
+    }, [playerData, currentCourse]);
 
-    // Active lesson resolution
-    const activeLessonObj = playerData?.activeLesson || (lessonsList.length > 0 ? lessonsList[0] : null);
-    const activeLessonId = selectedLessonId || activeLessonObj?.id || activeLessonObj?._id || activeLessonObj?.lessonId || lessonsList[0]?.id || "l_1";
-    
-    // Combine base lesson info with activeLessonData from fetchLessonById
-    const currentLesson = {
-        ...(lessonsList.find((l) => l.id === activeLessonId) || {}),
-        ...(activeLessonObj || {}),
-        ...(activeLessonData?.data ?? activeLessonData ?? {}),
-    };
+    // ── 2. All Lessons Sequence Across All Modules ─────────────────────────────
+    const allLessons = useMemo(() => {
+        return normalizedModules.flatMap((mod) => mod.lessons);
+    }, [normalizedModules]);
 
-    const courseTitle = playerData?.title || playerData?.courseTitle || currentCourse?.title || "Design Thinking";
-    const moduleName = playerData?.moduleName || playerData?.activeModule || currentCourse?.moduleName || "Module 1 of 12";
-    const progressPercent = playerData?.progressPercentage ?? playerData?.progress ?? currentCourse?.progress ?? 25;
+    const totalModules = normalizedModules.length || 1;
+    const totalLessons = allLessons.length;
 
-    // Active lesson details
+    // ── 3. Active Lesson & Active Module Resolution ────────────────────────────
+    // Resolves current lesson and dynamically determines its exact parent module
+    const { currentLessonBase, currentModule, currentModuleIndex } = useMemo(() => {
+        if (allLessons.length === 0) {
+            return { currentLessonBase: null, currentModule: null, currentModuleIndex: 0 };
+        }
+
+        let activeLes = null;
+        let parentMod = null;
+        let modIdx = 0;
+
+        // If user explicitly selected a lesson
+        if (selectedLessonId) {
+            for (let i = 0; i < normalizedModules.length; i++) {
+                const found = normalizedModules[i].lessons.find((l) => l.id === selectedLessonId);
+                if (found) {
+                    activeLes = found;
+                    parentMod = normalizedModules[i];
+                    modIdx = i;
+                    break;
+                }
+            }
+        }
+
+        // Default: First incomplete lesson or first lesson of first module
+        if (!activeLes) {
+            for (let i = 0; i < normalizedModules.length; i++) {
+                const found = normalizedModules[i].lessons.find(
+                    (l) => !completedLessonIds.has(l.id) && !l.isCompleted
+                );
+                if (found) {
+                    activeLes = found;
+                    parentMod = normalizedModules[i];
+                    modIdx = i;
+                    break;
+                }
+            }
+        }
+
+        // Fallback to absolute first lesson
+        if (!activeLes && normalizedModules[0]?.lessons[0]) {
+            activeLes = normalizedModules[0].lessons[0];
+            parentMod = normalizedModules[0];
+            modIdx = 0;
+        }
+
+        return {
+            currentLessonBase: activeLes,
+            currentModule: parentMod,
+            currentModuleIndex: modIdx,
+        };
+    }, [normalizedModules, allLessons, selectedLessonId, completedLessonIds]);
+
+    const activeLessonId = currentLessonBase?.id || null;
+
+    // Combine base lesson info with detailed data from fetchLessonById
+    const currentLesson = useMemo(() => {
+        if (!currentLessonBase) return null;
+        return {
+            ...currentLessonBase,
+            ...(activeLessonData?.data ?? activeLessonData ?? {}),
+        };
+    }, [currentLessonBase, activeLessonData]);
+
+    // ── 4. Current Module's Lessons (Only show lessons for current module) ─────
+    const currentModuleLessons = useMemo(() => {
+        return currentModule?.lessons || [];
+    }, [currentModule]);
+
+    // ── 5. Progress Calculations ───────────────────────────────────────────────
+    // Current Module Progress: (completed lessons in active module / total lessons in active module) * 100
+    const moduleProgressPercent = useMemo(() => {
+        if (!currentModuleLessons || currentModuleLessons.length === 0) return 0;
+        const completedCount = currentModuleLessons.filter(
+            (l) => completedLessonIds.has(l.id) || l.isCompleted
+        ).length;
+        return Math.round((completedCount / currentModuleLessons.length) * 100);
+    }, [currentModuleLessons, completedLessonIds]);
+
+    // Overall Course Progress: (completed lessons in whole course / total lessons in course) * 100
+    const overallCourseProgressPercent = useMemo(() => {
+        if (totalLessons === 0) return 0;
+        const completedCount = allLessons.filter(
+            (l) => completedLessonIds.has(l.id) || l.isCompleted
+        ).length;
+        return Math.round((completedCount / totalLessons) * 100);
+    }, [allLessons, totalLessons, completedLessonIds]);
+
+    // Dynamic Title & Module Header
+    const courseTitle = playerData?.title || playerData?.courseTitle || currentCourse?.title || "Course Player";
+    const moduleHeader = `Module ${currentModuleIndex + 1} of ${totalModules}`;
+
+    // Lesson Details & Objectives
     const lessonDescription = currentLesson?.description || "Welcome to this module. In this lesson, we explore foundational principles and practical applications.";
     const keyObjectives = (Array.isArray(currentLesson?.keyObjectives) && currentLesson.keyObjectives.length > 0)
         ? currentLesson.keyObjectives
@@ -229,11 +327,24 @@ export default function CoursePlayer() {
         })
         : (notesList?.[activeLessonId] || []);
 
+    // Sync and persist any lessons returned as isCompleted from API
+    useEffect(() => {
+        if (allLessons.length > 0 && id) {
+            const apiCompleted = allLessons.filter((l) => l.isCompleted).map((l) => l.id);
+            const stored = getStoredCompletedLessons(id);
+            if (apiCompleted.length > 0 || stored.length > 0) {
+                const merged = new Set([...stored, ...apiCompleted]);
+                setCompletedLessonIds((prev) => new Set([...prev, ...merged]));
+                saveStoredCompletedLessons(id, Array.from(merged));
+            }
+        }
+    }, [allLessons, id]);
+
     // ── Handlers ─────────────────────────────────────────────────────────────
 
     // Select lesson
     const handleSelectLesson = (lesson) => {
-        if (lesson.status === "locked") {
+        if (lesson.isLocked) {
             toast.info("This lesson is locked. Complete previous lessons to unlock.");
             return;
         }
@@ -244,7 +355,7 @@ export default function CoursePlayer() {
         }
     };
 
-    // Complete lesson
+    // Complete lesson & sequentially advance
     const handleCompleteLesson = async (targetLessonId) => {
         const lid = targetLessonId || activeLessonId;
         if (!id || !lid) return;
@@ -254,17 +365,40 @@ export default function CoursePlayer() {
         }
         setCompletingLesson(true);
         try {
-            const res = await dispatch(completeLessonInCourse({ courseId: id, lessonId: lid })).unwrap();
-            setCompletedLessonIds((prev) => new Set([...prev, lid]));
-            const pct = res?.progressPercentage !== undefined ? `${res.progressPercentage}%` : "Progress saved";
-            toast.success(`Lesson marked as completed (${pct})! 🎉`);
+            await dispatch(completeLessonInCourse({ courseId: id, lessonId: lid })).unwrap();
+            const updatedCompleted = new Set([...completedLessonIds, lid]);
+            setCompletedLessonIds(updatedCompleted);
+            saveStoredCompletedLessons(id, Array.from(updatedCompleted));
 
-            // Advance to next lesson if available
-            const currentIndex = lessonsList.findIndex((l) => l.id === lid);
-            if (currentIndex !== -1 && currentIndex + 1 < lessonsList.length) {
-                const nextLesson = lessonsList[currentIndex + 1];
-                if (nextLesson && nextLesson.status !== "locked") {
-                    handleSelectLesson(nextLesson);
+            // Compute new course progress percentage
+            const completedCount = allLessons.filter((l) => updatedCompleted.has(l.id) || l.isCompleted).length;
+            const newPct = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 100;
+
+            // If all lessons completed, sync to My Learning state & localStorage
+            if (newPct >= 100 || (totalLessons > 0 && completedCount >= totalLessons)) {
+                dispatch(
+                    markCourseCompleted({
+                        courseId: id,
+                        courseTitle,
+                        category: playerData?.category || currentCourse?.category || "Course",
+                        duration: playerData?.duration || currentCourse?.duration || "Self-paced",
+                        completedAt: new Date().toISOString(),
+                    })
+                );
+            }
+
+            toast.success(`Lesson marked as completed (${newPct}%)! 🎉`);
+
+            // Advance to next lesson in global sequence (crosses into next module smoothly)
+            const currentIndex = allLessons.findIndex((l) => l.id === lid);
+            if (currentIndex !== -1 && currentIndex + 1 < allLessons.length) {
+                const nextLesson = allLessons[currentIndex + 1];
+                if (nextLesson && !nextLesson.isLocked) {
+                    setSelectedLessonId(nextLesson.id);
+                    setIsPlaying(true);
+                    if (id && nextLesson.id) {
+                        dispatch(fetchLessonById({ courseId: id, lessonId: nextLesson.id }));
+                    }
                 }
             }
         } catch (err) {
@@ -475,7 +609,7 @@ export default function CoursePlayer() {
     };
 
     // ── Render States ────────────────────────────────────────────────────────
-    if (loading && !coursePlayerData && lessonsList.length === 0) {
+    if (loading && !coursePlayerData && allLessons.length === 0) {
         return (
             <div className="w-full min-h-screen flex items-center justify-center text-white">
                 <div className="flex flex-col items-center gap-3">
@@ -486,7 +620,7 @@ export default function CoursePlayer() {
         );
     }
 
-    if ((error && !coursePlayerData) || (!loading && lessonsList.length === 0)) {
+    if ((error && !coursePlayerData) || (!loading && allLessons.length === 0)) {
         return (
             <div className="w-full max-w-xl mx-auto p-6 text-center text-white mt-20">
                 <Card className="p-8 border border-red-500/20 bg-red-950/10">
@@ -531,7 +665,7 @@ export default function CoursePlayer() {
 
             {/* Main 2-Column Container */}
             <div className="flex flex-col lg:flex-row gap-8 items-start">
-                {/* Left Sidebar - Modules & Lessons */}
+                {/* Left Sidebar - Current Module & Current Module's Lessons ONLY */}
                 <div className="w-full lg:w-80 shrink-0 bg-[#16181F] border border-white/5 rounded-2xl p-5 flex flex-col justify-between">
                     <div>
                         {/* Course Badge & Info Header */}
@@ -539,12 +673,12 @@ export default function CoursePlayer() {
                             <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shrink-0 font-bold">
                                 💡
                             </div>
-                            <div>
-                                <h3 className="text-white font-bold text-base leading-tight">
+                            <div className="min-w-0">
+                                <h3 className="text-white font-bold text-base leading-tight truncate">
                                     {courseTitle}
                                 </h3>
                                 <p className="text-gray-400 text-xs font-medium mt-0.5">
-                                    {moduleName}
+                                    {moduleHeader}
                                 </p>
                             </div>
                         </div>
@@ -553,16 +687,16 @@ export default function CoursePlayer() {
                         <div className="w-full bg-gray-800 rounded-full h-1.5 mb-6 overflow-hidden">
                             <div
                                 className="bg-blue-600 h-full rounded-full transition-all duration-300"
-                                style={{ width: `${Math.min(100, Math.max(0, progressPercent))}%` }}
+                                style={{ width: `${Math.min(100, Math.max(0, moduleProgressPercent))}%` }}
                             />
                         </div>
 
-                        {/* Lessons List */}
+                        {/* Lessons List - STRICTLY CURRENT MODULE'S LESSONS */}
                         <div className="space-y-2">
-                            {lessonsList.map((lesson) => {
+                            {currentModuleLessons.map((lesson) => {
                                 const isActive = lesson.id === activeLessonId;
-                                const isCompleted = lesson.status === "completed" || completedLessonIds.has(lesson.id);
-                                const isLocked = lesson.status === "locked";
+                                const isCompleted = lesson.isCompleted || completedLessonIds.has(lesson.id);
+                                const isLocked = lesson.isLocked;
 
                                 return (
                                     <div
@@ -582,7 +716,7 @@ export default function CoursePlayer() {
                                                     e.stopPropagation();
                                                     if (!isLocked) handleCompleteLesson(lesson.id);
                                                 }}
-                                                className="cursor-pointer hover:opacity-80 transition-opacity"
+                                                className="cursor-pointer hover:opacity-80 transition-opacity shrink-0"
                                                 title={isCompleted ? "Completed" : "Click to mark complete"}
                                             >
                                                 {isCompleted ? (
@@ -639,9 +773,9 @@ export default function CoursePlayer() {
                                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-black/80 pointer-events-none" />
                                 <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
 
-                                {/* Top Right Counter Badge */}
+                                {/* Top Right Overall Course Progress Counter Badge */}
                                 <div className="absolute top-4 right-4 text-xs font-bold text-gray-400 bg-black/60 backdrop-blur-md px-3 py-1 rounded-md border border-white/10 tracking-widest">
-                                    {Math.round(progressPercent)}%
+                                    {Math.round(overallCourseProgressPercent)}%
                                 </div>
 
                                 {/* Centered Circular Play Button Overlay */}
@@ -663,7 +797,7 @@ export default function CoursePlayer() {
                             <span className="text-sm font-semibold text-white">
                                 {currentLesson?.title || "Lesson"}
                             </span>
-                            {(completedLessonIds.has(currentLesson?.id) || currentLesson?.status === "completed") && (
+                            {(completedLessonIds.has(currentLesson?.id) || currentLesson?.isCompleted) && (
                                 <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
                                     <CheckCircleIcon sx={{ fontSize: 14 }} /> Completed
                                 </span>
@@ -673,24 +807,24 @@ export default function CoursePlayer() {
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => handleCompleteLesson(currentLesson?.id)}
-                                disabled={completingLesson || completedLessonIds.has(currentLesson?.id) || currentLesson?.status === "completed"}
-                                className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${completedLessonIds.has(currentLesson?.id) || currentLesson?.status === "completed"
+                                disabled={completingLesson || completedLessonIds.has(currentLesson?.id) || currentLesson?.isCompleted}
+                                className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${completedLessonIds.has(currentLesson?.id) || currentLesson?.isCompleted
                                     ? "bg-white/5 text-gray-400 border border-white/10 cursor-default"
                                     : "bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-900/30"
                                     }`}
                             >
                                 <CheckCircleIcon sx={{ fontSize: 16 }} />
-                                {completingLesson ? "Saving..." : (completedLessonIds.has(currentLesson?.id) || currentLesson?.status === "completed") ? "Lesson Completed" : "Mark as Complete"}
+                                {completingLesson ? "Saving..." : (completedLessonIds.has(currentLesson?.id) || currentLesson?.isCompleted) ? "Lesson Completed" : "Mark as Complete"}
                             </button>
 
                             {(() => {
-                                const currentIndex = lessonsList.findIndex((l) => l.id === activeLessonId);
-                                const nextLesson = currentIndex !== -1 && currentIndex + 1 < lessonsList.length ? lessonsList[currentIndex + 1] : null;
+                                const currentIndex = allLessons.findIndex((l) => l.id === activeLessonId);
+                                const nextLesson = currentIndex !== -1 && currentIndex + 1 < allLessons.length ? allLessons[currentIndex + 1] : null;
                                 if (!nextLesson) return null;
                                 return (
                                     <button
                                         onClick={() => handleSelectLesson(nextLesson)}
-                                        disabled={nextLesson.status === "locked"}
+                                        disabled={nextLesson.isLocked}
                                         className="px-4 py-2 rounded-lg text-xs font-semibold bg-white/5 hover:bg-white/10 text-gray-200 border border-white/10 flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                                     >
                                         Next Lesson <ChevronRightIcon sx={{ fontSize: 16 }} />

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import SettingsSidebar, { SETTINGS_SECTIONS } from './SettingsSidebar';
 import MobileSettingsNavigator from './MobileSettingsNavigator';
@@ -89,6 +90,7 @@ const normalizeSkills = (rawSkills) => {
 
 function Setting() {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     const { settingsData, loading: settingsLoading, saving: settingsSaving, notificationsSaving } = useSelector((state) => state.settings);
     const { profile, loading: profileLoading } = useSelector((state) => state.profile);
@@ -577,7 +579,7 @@ function Setting() {
             <ProfileHeaderCard
                 user={headerUser}
                 onAvatarChange={handleAvatarChange}
-                onViewPublicProfile={() => toast.info('Navigating to public profile')}
+                onViewPublicProfile={() => navigate('/profile')}
             />
 
             {/* Identity Details & Contact Region */}

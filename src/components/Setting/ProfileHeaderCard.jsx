@@ -12,33 +12,29 @@ import { useNavigate } from 'react-router-dom';
  *   showViewProfileButton — boolean (default true)
  *   className        — extra class names
  */
-export default function ProfileHeaderCard({ user, onAvatarChange, showViewProfileButton = true, className }) {
-    const displayName = user?.fullName
+export default function ProfileHeaderCard({ user, onAvatarChange, onViewPublicProfile, showViewProfileButton = true, className }) {
+    const displayName = user?.fullName || user?.name || 'Member';
     const avatarUrl =
         user?.avatarUrl ||
         user?.avatar ||
         `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(displayName)}`;
-    const roleTitle = user?.headline || user?.bio || user?.roless
-    const memberStatus = user?.memberStatus
-    const rawJoinedDate = user?.joinedDate
-    // const joinedDate = rawJoinedDate.startsWith('Joined') ? rawJoinedDate : `Joined ${rawJoinedDate}`;
-
-    // const displayName = user?.fullName ?? 'User';
-
-    // const avatarUrl =
-    //     user?.avatarUrl ||
-    //     user?.avatar ||
-    //     `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(displayName)}`;
-
-    // const roleTitle = user?.headline || user?.bio || user?.roless || '';
-    // const memberStatus = user?.memberStatus ?? '';
-    // const rawJoinedDate = user?.joinedDate ?? '';
+    const roleTitle = user?.headline || user?.bio || user?.role || '';
+    const memberStatus = user?.memberStatus || 'Pro Member';
+    const rawJoinedDate = user?.joinedDate || 'June 2023';
     const joinedDate = rawJoinedDate
         ? rawJoinedDate.startsWith('Joined')
             ? rawJoinedDate
             : `Joined ${rawJoinedDate}`
         : '';
     const navigate = useNavigate();
+
+    const handleViewProfile = () => {
+        if (onViewPublicProfile) {
+            onViewPublicProfile();
+        } else {
+            navigate('/profile');
+        }
+    };
 
     // Hidden file input ref — triggered programmatically by the edit button
     const fileInputRef = useRef(null);
@@ -115,7 +111,7 @@ export default function ProfileHeaderCard({ user, onAvatarChange, showViewProfil
             {showViewProfileButton && (
                 <button
                     type="button"
-                    onClick={() => navigate('/profile')}
+                    onClick={handleViewProfile}
                     className="w-full sm:w-auto px-4 py-2 border border-white/15 hover:bg-white/10 text-white text-xs font-semibold rounded-xl transition-all shadow-sm font-[Poppins] whitespace-nowrap cursor-pointer text-center"
                 >
                     View Public Profile
