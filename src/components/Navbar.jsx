@@ -254,13 +254,13 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                         </IconButton>
                     )}
                     {showAppNav && (
-                        <div className="hidden md:flex gap-6 ml-10 text-sm text-gray-400 font-medium">
+                        <div className="hidden md:flex items-center gap-6 ml-10 text-sm font-medium">
                             <NavLink to='/dashboard' end className={({ isActive }) =>
-                                isActive ? 'text-white border-b-2 border-blue-500 pb-1' : 'text-gray-600'}>Dashboard</NavLink>
+                                isActive ? 'text-white font-semibold border-b-2 border-blue-500 pb-1' : 'text-gray-300 hover:text-white transition-colors pb-1'}>Dashboard</NavLink>
                             <NavLink to='/catalog' end className={({ isActive }) =>
-                                isActive ? 'text-white border-b-2 border-blue-500 pb-1' : 'text-gray-600'}>Catalog</NavLink>
+                                isActive ? 'text-white font-semibold border-b-2 border-blue-500 pb-1' : 'text-gray-300 hover:text-white transition-colors pb-1'}>Catalog</NavLink>
                             <NavLink to='/my-learning' end className={({ isActive }) =>
-                                isActive ? 'text-white border-b-2 border-blue-500 pb-1' : 'text-gray-600'}>My Learning</NavLink>
+                                isActive ? 'text-white font-semibold border-b-2 border-blue-500 pb-1' : 'text-gray-300 hover:text-white transition-colors pb-1'}>My Learning</NavLink>
                         </div>
                     )}
                 </div>
