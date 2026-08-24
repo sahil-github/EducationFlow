@@ -16,7 +16,7 @@ export default function SettingsSidebar({ activeTab, setActiveTab, onScrollTo })
         <div className="w-full lg:w-64 flex flex-col gap-6 shrink-0">
             {/* Header Title & Tag */}
             <div className="flex flex-col gap-1.5">
-                <h1 className="text-white font-bold text-2xl font-[Poppins]">Settings</h1>
+                <h1 className="text-white text-2xl md:text-3xl font-bold mb-4">Settings</h1>
                 <div className="self-start px-2 py-0.5 bg-[#1E1F2A] border border-white/10 rounded text-[10px] font-bold text-[#94A3B8] tracking-wider uppercase font-[Manrope]">
                     Profile & Settings
                 </div>
@@ -38,11 +38,10 @@ export default function SettingsSidebar({ activeTab, setActiveTab, onScrollTo })
                                     setActiveTab(item.id);
                                 }
                             }}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold font-[Poppins] transition-all duration-200 cursor-pointer whitespace-nowrap ${
-                                isActive
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold font-[Poppins] transition-all duration-200 cursor-pointer whitespace-nowrap ${isActive
                                     ? 'bg-[#1D61E7] text-white shadow-lg shadow-blue-500/20'
                                     : 'text-[#94A3B8] hover:text-white hover:bg-white/5'
-                            }`}
+                                }`}
                         >
                             <Icon sx={{ fontSize: 18, color: isActive ? '#FFFFFF' : '#94A3B8' }} />
                             <span>{item.label}</span>
