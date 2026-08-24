@@ -118,12 +118,15 @@ const OnboardingGuard = () => {
         return <Navigate to="/interests" replace />;
     }
 
-    if (
-        path === "/skill-assessment" &&
-        (!currentUser.learningGoal ||
-            (Array.isArray(currentUser.learningGoal) &&
-                currentUser.learningGoal.length === 0))
-    ) {
+    const hasGoals = (() => {
+        const lg = currentUser.learningGoal;
+        const g  = currentUser.goals;
+        const hasLg = Array.isArray(lg) ? lg.length > 0 : Boolean(lg);
+        const hasG  = Array.isArray(g)  ? g.length  > 0 : Boolean(g);
+        return hasLg || hasG;
+    })();
+
+    if (path === "/skill-assessment" && !hasGoals) {
         return <Navigate to="/learning-goals" replace />;
     }
 
