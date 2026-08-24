@@ -60,7 +60,18 @@ const profileSlice = createSlice({
             .addCase(getProfile.pending, pending)
             .addCase(getProfile.fulfilled, (state, action) => {
                 state.loading = false;
-                state.profile = action.payload;
+                if (!action.payload) return;
+                const p = action.payload;
+                // Normalize goals: expose under both keys regardless of which one backend returns
+                const rawGoals = p.learningGoal ?? p.goals ?? p.learningGoals;
+                // Normalize skills: always an array
+                const rawSkills = Array.isArray(p.skills) ? p.skills : [];
+                state.profile = {
+                    ...p,
+                    learningGoal: rawGoals ?? [],
+                    goals: rawGoals ?? [],
+                    skills: rawSkills,
+                };
             })
             .addCase(getProfile.rejected, rejected)
 
@@ -76,7 +87,18 @@ const profileSlice = createSlice({
 
             // ── updateGoals ─────────────────────────────────────────────────
             .addCase(updateGoals.pending, pending)
-            .addCase(updateGoals.fulfilled, fulfilled)
+            .addCase(updateGoals.fulfilled, (state, action) => {
+                state.loading = false;
+                // Merge server response; also keep the submitted goals
+                // in case the server returns a minimal / empty payload.
+                const p = action.payload ?? {};
+                const rawGoals = p.learningGoal ?? p.goals ?? p.learningGoals ?? action.meta?.arg;
+                state.profile = {
+                    ...state.profile,
+                    ...p,
+                    ...(rawGoals ? { learningGoal: rawGoals, goals: rawGoals } : {}),
+                };
+            })
             .addCase(updateGoals.rejected, rejected)
 
             // ── getInterestOptions ──────────────────────────────────────────
@@ -94,7 +116,17 @@ const profileSlice = createSlice({
 
             // ── updateSkills ────────────────────────────────────────────────
             .addCase(updateSkills.pending, pending)
-            .addCase(updateSkills.fulfilled, fulfilled)
+            .addCase(updateSkills.fulfilled, (state, action) => {
+                state.loading = false;
+                const p = action.payload ?? {};
+                // Prefer server-echoed skills; fall back to the submitted payload
+                const rawSkills = p.skills ?? action.meta?.arg;
+                state.profile = {
+                    ...state.profile,
+                    ...p,
+                    ...(rawSkills ? { skills: rawSkills } : {}),
+                };
+            })
             .addCase(updateSkills.rejected, rejected)
 
             // ── getLocations ─────────────────────────────────────────────────────────

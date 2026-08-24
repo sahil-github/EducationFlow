@@ -45,8 +45,14 @@ const profileApi = {
     },
 
     /** PUT /api/profile/goals */
-    updateGoals: (data) =>
-        api.put("/api/profile/goals", Array.isArray(data) ? { goals: data } : data),
+    updateGoals: (data) => {
+        // Send both keys so the backend receives it regardless of which field it reads.
+        const goalsArray = Array.isArray(data) ? data : (data?.goals ?? data?.learningGoal ?? []);
+        return api.put("/api/profile/goals", {
+            goals: goalsArray,
+            learningGoal: goalsArray,
+        });
+    },
 
     /** GET /api/profile/interests-options */
     getInterestOptions: () => api.get("/api/profile/interests-options"),
