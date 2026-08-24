@@ -34,14 +34,30 @@ export default function ItemSelectorModal({
 }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedItems, setSelectedItems] = useState([]);
-
+    const [modalItems, setModalItems] = useState([]);
     // Reset local selection when modal opens with fresh initialItems
     useEffect(() => {
-        if (isOpen) {
-            setSelectedItems(Array.isArray(initialItems) ? [...initialItems] : []);
-            setSearchQuery('');
-        }
-    }, [isOpen, initialItems]);
+        if (!isOpen) return;
+
+        const available = Array.isArray(availableItems)
+            ? availableItems
+            : [];
+
+        const selected = Array.isArray(initialItems)
+            ? initialItems
+            : [];
+
+        // Take a snapshot when modal opens.
+        // Parent changes to availableItems while modal is open
+        // will NOT remove items from this modal.
+        const uniqueItems = Array.from(
+            new Set([...available, ...selected])
+        );
+
+        setModalItems(uniqueItems);
+        setSelectedItems([...selected]);
+        setSearchQuery("");
+    }, [isOpen]);
 
     // Close on Escape key
     useEffect(() => {
@@ -56,9 +72,10 @@ export default function ItemSelectorModal({
 
     // Union of all available presets + any already-selected custom items
     const allKnownItems = useMemo(() => {
-        const set = new Set([...availableItems, ...selectedItems]);
-        return Array.from(set);
-    }, [availableItems, selectedItems]);
+        return Array.from(
+            new Set([...modalItems, ...selectedItems])
+        );
+    }, [modalItems, selectedItems]);
 
     // Filter items based on search query
     const filteredItems = useMemo(() => {
@@ -166,11 +183,10 @@ export default function ItemSelectorModal({
                                 key={item}
                                 type="button"
                                 onClick={() => toggleItem(item)}
-                                className={`px-4 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-2 cursor-pointer select-none ${
-                                    isSelected
-                                        ? 'bg-[#D89A86] text-[#121318] shadow-md hover:bg-[#c98b77]'
-                                        : 'bg-[#181B22] hover:bg-[#20232C] text-white border border-white/10 hover:border-white/20'
-                                }`}
+                                className={`px-4 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-2 cursor-pointer select-none ${isSelected
+                                    ? 'bg-[#fff] text-[#121318] shadow-md hover:bg-[#fff]'
+                                    : 'bg-[#181B22] hover:bg-[#181B22] text-white border border-white/10 hover:border-white/20'
+                                    }`}
                             >
                                 <span>{item}</span>
                                 {isSelected ? (
