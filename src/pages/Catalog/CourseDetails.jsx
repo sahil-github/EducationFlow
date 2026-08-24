@@ -348,6 +348,12 @@ import { saveCourseThunk } from "../../features/myLearning/myLearningThunks";
 | automatically instead of this dummy data.
 |--------------------------------------------------------------------------
 */
+const dummyCoursePricing = {
+    price: 399,
+    originalPrice: 3289,
+    discount: 88,
+    currency: "INR",
+};
 
 const dummyCourseContent = {
     whatYouWillLearn: [
@@ -715,6 +721,9 @@ export default function CourseDetails() {
     const faqs =
         course?.faqs ||
         dummyCourseContent.faqs;
+    const pricing =
+        course?.pricing ||
+        dummyCoursePricing;
 
 
     /*
@@ -1790,6 +1799,44 @@ export default function CourseDetails() {
                                 <span className="text-white font-semibold">
                                     {course.duration}
                                 </span>
+
+                            </div>
+
+                            {/* =================================================
+    COURSE PRICING
+================================================= */}
+
+                            <div className="border-t border-white/5 pt-5">
+
+                                <div className="flex items-end gap-3">
+
+                                    {/* Current Price */}
+                                    <span className="text-3xl font-extrabold text-white">
+                                        ₹{pricing.price}
+                                    </span>
+
+                                    {/* Original Price */}
+                                    {pricing.originalPrice && (
+                                        <span className="text-sm text-gray-500 line-through mb-1">
+                                            ₹{pricing.originalPrice}
+                                        </span>
+                                    )}
+
+                                    {/* Discount */}
+                                    {pricing.discount && (
+                                        <span className="text-sm text-green-400 font-semibold mb-1">
+                                            {pricing.discount}% off
+                                        </span>
+                                    )}
+
+                                </div>
+
+
+                                {/* Pricing Message */}
+
+                                <p className="text-xs text-gray-500 mt-2">
+                                    Get full access to this course and start learning today.
+                                </p>
 
                             </div>
 
