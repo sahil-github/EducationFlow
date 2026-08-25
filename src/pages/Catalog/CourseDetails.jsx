@@ -157,7 +157,10 @@ export default function CourseDetails() {
     };
     const handleAddToCart = () => {
         dispatch(addToCart(course));
-        toast.success("Course added to cart!");
+        
+        // console.log("COURSE:", course);
+
+        toast.success("Course added to cart");
     }
     /*
     |--------------------------------------------------------------------------
@@ -1243,8 +1246,8 @@ export default function CourseDetails() {
 
 
                         <button
-                            onClick={() => dispatch(addToCart(course))}
-                            disabled={saveLoading}
+                            onClick={handleAddToCart}
+
                             className="w-full py-2.5 bg-transparent hover:bg-white/5 text-gray-300 hover:text-white rounded-xl text-sm font-medium transition-colors border border-gray-700 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                         >
 
