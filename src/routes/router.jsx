@@ -18,6 +18,8 @@ import Mainlayout from '../layout/Mainlayout';
 import Authlayout from '../layout/Authlayout';
 import { getCurrentUser } from '../utils/storage';
 import Profile from '../pages/Profile/Profile'
+import Cart from '../components/Cart'
+import PaymentAddress from '../components/PaymentProcessing'
 
 export const ROUTES = {
     LOGIN: '/login',
@@ -120,9 +122,9 @@ const OnboardingGuard = () => {
 
     const hasGoals = (() => {
         const lg = currentUser.learningGoal;
-        const g  = currentUser.goals;
+        const g = currentUser.goals;
         const hasLg = Array.isArray(lg) ? lg.length > 0 : Boolean(lg);
-        const hasG  = Array.isArray(g)  ? g.length  > 0 : Boolean(g);
+        const hasG = Array.isArray(g) ? g.length > 0 : Boolean(g);
         return hasLg || hasG;
     })();
 
@@ -164,6 +166,8 @@ function AppRoutes() {
                                 <Route path='/my-learning' element={<MyLearning />}></Route>
                                 <Route path='/setting' element={<Setting />}></Route>
                                 <Route path='/profile' element={<Profile />}></Route>
+                                <Route path='/cart' element={<Cart />}></Route>
+                                <Route path='/payment-processing' element={<PaymentAddress />}></Route>
                             </Route>
 
                             <Route element={<OnboardingGuard />}>

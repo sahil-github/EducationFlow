@@ -5,6 +5,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import MenuIcon from '@mui/icons-material/Menu';
 import LogoutIcon from '@mui/icons-material/Logout';
 import CloseIcon from '@mui/icons-material/Close';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { IconButton, Box, Avatar, Menu, MenuItem, ListItemIcon, Divider, Typography, Drawer, List, ListItem, ListItemButton, ListItemText, CircularProgress } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../features/auth/authSlice';
@@ -306,10 +307,17 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                                     <Search sx={{ fontSize: 20 }} />
                                 </IconButton>
                             </Box>
-
+                            {/* notifications */}
                             <IconButton sx={{ color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#fff' }, p: { xs: 0.5, md: 1 } }}>
                                 <NotificationsOutlined sx={{ fontSize: { xs: 20, md: 24 } }} />
                             </IconButton>
+                            <IconButton
+                                onClick={() => navigate("/cart")}
+                                sx={{ color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#fff' }, p: { xs: 0.5, md: 1 } }}>
+                                <ShoppingCartIcon sx={{ fontSize: { xs: 20, md: 24 } }} />
+                            </IconButton>
+
+                            {/* settings */}
                             <IconButton
                                 sx={{ color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#fff' }, p: { xs: 0.5, md: 1 } }}
                                 onClick={() => navigate('/setting')}
