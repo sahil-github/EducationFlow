@@ -325,4 +325,202 @@ export const DEFAULT_GOALS = [
     "Become a Full Stack Developer",
     "Start a Business",
     "Improve Productivity",
-];
+];
+
+
+
+export const dummyCoursePricing = {
+    price: 399,
+    originalPrice: 3289,
+    discount: 88,
+    currency: "INR",
+};
+
+export const dummyCourseContent = {
+    whatYouWillLearn: [
+        "Build and train machine learning models using Python",
+        "Perform data preprocessing and feature engineering",
+        "Build regression and classification models",
+        "Understand decision trees and random forest algorithms",
+        "Work with clustering and unsupervised learning",
+        "Build neural networks and understand deep learning fundamentals",
+        "Evaluate and improve machine learning model performance",
+        "Handle overfitting and underfitting",
+        "Perform hyperparameter tuning",
+        "Deploy machine learning models into production",
+    ],
+
+    modules: [
+        {
+            id: 1,
+            title: "Python for Machine Learning",
+            duration: "2h 30m",
+            lessons: [
+                "Introduction to Machine Learning",
+                "Python Environment Setup",
+                "NumPy Fundamentals",
+                "Pandas for Data Analysis",
+            ],
+        },
+        {
+            id: 2,
+            title: "Data Preparation & Exploration",
+            duration: "2h 15m",
+            lessons: [
+                "Understanding Real-World Datasets",
+                "Data Cleaning",
+                "Handling Missing Values",
+                "Feature Engineering",
+                "Data Visualization",
+            ],
+        },
+        {
+            id: 3,
+            title: "Supervised Learning",
+            duration: "3h 20m",
+            lessons: [
+                "Linear Regression",
+                "Logistic Regression",
+                "Classification Algorithms",
+                "Model Evaluation",
+                "Confusion Matrix",
+            ],
+        },
+        {
+            id: 4,
+            title: "Decision Trees & Ensemble Learning",
+            duration: "2h 45m",
+            lessons: [
+                "Decision Trees",
+                "Random Forest",
+                "Gradient Boosting",
+                "XGBoost",
+            ],
+        },
+        {
+            id: 5,
+            title: "Unsupervised Learning",
+            duration: "2h 10m",
+            lessons: [
+                "Introduction to Clustering",
+                "K-Means Clustering",
+                "Hierarchical Clustering",
+                "Dimensionality Reduction",
+            ],
+        },
+        {
+            id: 6,
+            title: "Deep Learning Fundamentals",
+            duration: "4h 00m",
+            lessons: [
+                "Introduction to Neural Networks",
+                "Neurons and Activation Functions",
+                "Building Neural Networks",
+                "Training Deep Learning Models",
+            ],
+        },
+    ],
+
+    projects: [
+        {
+            title: "Customer Churn Prediction",
+            description:
+                "Build a machine learning model that predicts whether a customer is likely to leave a service.",
+            technology: "Python • Pandas • Scikit-learn",
+        },
+        {
+            title: "House Price Prediction",
+            description:
+                "Build a regression model to predict house prices using real-world housing data.",
+            technology: "Python • Regression • ML",
+        },
+        {
+            title: "Customer Segmentation",
+            description:
+                "Use clustering algorithms to divide customers into meaningful groups.",
+            technology: "Python • K-Means • Pandas",
+        },
+    ],
+
+    technologies: [
+        "Python",
+        "NumPy",
+        "Pandas",
+        "Matplotlib",
+        "Scikit-learn",
+        "TensorFlow",
+        "PyTorch",
+        "Jupyter Notebook",
+        "Git",
+    ],
+
+    requirements: [
+        "Basic Python programming knowledge",
+        "Understanding of programming fundamentals",
+        "Basic mathematics and statistics",
+        "A laptop or desktop computer",
+        "No previous machine learning experience is required",
+    ],
+
+    targetAudience: [
+        "Students who want to learn Machine Learning",
+        "Software developers interested in AI/ML",
+        "Data analysts moving toward Machine Learning",
+        "Python developers",
+        "AI and Machine Learning enthusiasts",
+    ],
+
+    includes: [
+        "24 hours of on-demand video",
+        "48 lessons",
+        "Downloadable resources",
+        "Coding exercises",
+        "Real-world projects",
+        "Certificate of completion",
+        "Lifetime course access",
+        "Mobile and desktop access",
+    ],
+
+    about: [
+        "This course takes you from advanced machine learning concepts to building practical and production-ready machine learning applications using Python.",
+        "You will work with real-world datasets and learn how to prepare data, select appropriate algorithms, train models, evaluate their performance, and improve them using different optimization techniques.",
+        "Throughout the course, you will also build practical projects that help you understand how machine learning is applied to real-world problems.",
+    ],
+
+    instructor: {
+        name: "Dr. Sarah Jenkins",
+        role: "Senior Machine Learning Engineer",
+        experience: "10+ years of industry experience",
+        students: "45K+",
+        courses: 12,
+        rating: 4.9,
+    },
+
+    faqs: [
+        {
+            question: "Do I need prior Python knowledge?",
+            answer:
+                "Yes. Basic Python programming knowledge is recommended before starting this course.",
+        },
+        {
+            question: "Is this course suitable for beginners?",
+            answer:
+                "This course is designed for learners who already understand basic programming concepts.",
+        },
+        {
+            question: "Will I build real projects?",
+            answer:
+                "Yes. You will build multiple practical machine learning projects using real-world datasets.",
+        },
+        {
+            question: "Will I receive a certificate?",
+            answer:
+                "Yes. You will receive a certificate after successfully completing the course.",
+        },
+        {
+            question: "Can I access the course from mobile?",
+            answer:
+                "Yes. The course can be accessed from both desktop and mobile devices.",
+        },
+    ],
+};

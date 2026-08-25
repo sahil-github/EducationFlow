@@ -336,213 +336,9 @@ import {
 } from "../../features/courses/coursesThunks";
 import { clearCurrentCourse } from "../../features/courses/coursesSlice";
 import { saveCourseThunk } from "../../features/myLearning/myLearningThunks";
+import { dummyCoursePricing, dummyCourseContent } from "../../constants/constants";
 
 
-/*
-|--------------------------------------------------------------------------
-| DUMMY COURSE CONTENT
-|--------------------------------------------------------------------------
-| This is temporary data.
-|
-| Later, when your API provides these fields, the API data will be used
-| automatically instead of this dummy data.
-|--------------------------------------------------------------------------
-*/
-const dummyCoursePricing = {
-    price: 399,
-    originalPrice: 3289,
-    discount: 88,
-    currency: "INR",
-};
-
-const dummyCourseContent = {
-    whatYouWillLearn: [
-        "Build and train machine learning models using Python",
-        "Perform data preprocessing and feature engineering",
-        "Build regression and classification models",
-        "Understand decision trees and random forest algorithms",
-        "Work with clustering and unsupervised learning",
-        "Build neural networks and understand deep learning fundamentals",
-        "Evaluate and improve machine learning model performance",
-        "Handle overfitting and underfitting",
-        "Perform hyperparameter tuning",
-        "Deploy machine learning models into production",
-    ],
-
-    modules: [
-        {
-            id: 1,
-            title: "Python for Machine Learning",
-            duration: "2h 30m",
-            lessons: [
-                "Introduction to Machine Learning",
-                "Python Environment Setup",
-                "NumPy Fundamentals",
-                "Pandas for Data Analysis",
-            ],
-        },
-        {
-            id: 2,
-            title: "Data Preparation & Exploration",
-            duration: "2h 15m",
-            lessons: [
-                "Understanding Real-World Datasets",
-                "Data Cleaning",
-                "Handling Missing Values",
-                "Feature Engineering",
-                "Data Visualization",
-            ],
-        },
-        {
-            id: 3,
-            title: "Supervised Learning",
-            duration: "3h 20m",
-            lessons: [
-                "Linear Regression",
-                "Logistic Regression",
-                "Classification Algorithms",
-                "Model Evaluation",
-                "Confusion Matrix",
-            ],
-        },
-        {
-            id: 4,
-            title: "Decision Trees & Ensemble Learning",
-            duration: "2h 45m",
-            lessons: [
-                "Decision Trees",
-                "Random Forest",
-                "Gradient Boosting",
-                "XGBoost",
-            ],
-        },
-        {
-            id: 5,
-            title: "Unsupervised Learning",
-            duration: "2h 10m",
-            lessons: [
-                "Introduction to Clustering",
-                "K-Means Clustering",
-                "Hierarchical Clustering",
-                "Dimensionality Reduction",
-            ],
-        },
-        {
-            id: 6,
-            title: "Deep Learning Fundamentals",
-            duration: "4h 00m",
-            lessons: [
-                "Introduction to Neural Networks",
-                "Neurons and Activation Functions",
-                "Building Neural Networks",
-                "Training Deep Learning Models",
-            ],
-        },
-    ],
-
-    projects: [
-        {
-            title: "Customer Churn Prediction",
-            description:
-                "Build a machine learning model that predicts whether a customer is likely to leave a service.",
-            technology: "Python • Pandas • Scikit-learn",
-        },
-        {
-            title: "House Price Prediction",
-            description:
-                "Build a regression model to predict house prices using real-world housing data.",
-            technology: "Python • Regression • ML",
-        },
-        {
-            title: "Customer Segmentation",
-            description:
-                "Use clustering algorithms to divide customers into meaningful groups.",
-            technology: "Python • K-Means • Pandas",
-        },
-    ],
-
-    technologies: [
-        "Python",
-        "NumPy",
-        "Pandas",
-        "Matplotlib",
-        "Scikit-learn",
-        "TensorFlow",
-        "PyTorch",
-        "Jupyter Notebook",
-        "Git",
-    ],
-
-    requirements: [
-        "Basic Python programming knowledge",
-        "Understanding of programming fundamentals",
-        "Basic mathematics and statistics",
-        "A laptop or desktop computer",
-        "No previous machine learning experience is required",
-    ],
-
-    targetAudience: [
-        "Students who want to learn Machine Learning",
-        "Software developers interested in AI/ML",
-        "Data analysts moving toward Machine Learning",
-        "Python developers",
-        "AI and Machine Learning enthusiasts",
-    ],
-
-    includes: [
-        "24 hours of on-demand video",
-        "48 lessons",
-        "Downloadable resources",
-        "Coding exercises",
-        "Real-world projects",
-        "Certificate of completion",
-        "Lifetime course access",
-        "Mobile and desktop access",
-    ],
-
-    about: [
-        "This course takes you from advanced machine learning concepts to building practical and production-ready machine learning applications using Python.",
-        "You will work with real-world datasets and learn how to prepare data, select appropriate algorithms, train models, evaluate their performance, and improve them using different optimization techniques.",
-        "Throughout the course, you will also build practical projects that help you understand how machine learning is applied to real-world problems.",
-    ],
-
-    instructor: {
-        name: "Dr. Sarah Jenkins",
-        role: "Senior Machine Learning Engineer",
-        experience: "10+ years of industry experience",
-        students: "45K+",
-        courses: 12,
-        rating: 4.9,
-    },
-
-    faqs: [
-        {
-            question: "Do I need prior Python knowledge?",
-            answer:
-                "Yes. Basic Python programming knowledge is recommended before starting this course.",
-        },
-        {
-            question: "Is this course suitable for beginners?",
-            answer:
-                "This course is designed for learners who already understand basic programming concepts.",
-        },
-        {
-            question: "Will I build real projects?",
-            answer:
-                "Yes. You will build multiple practical machine learning projects using real-world datasets.",
-        },
-        {
-            question: "Will I receive a certificate?",
-            answer:
-                "Yes. You will receive a certificate after successfully completing the course.",
-        },
-        {
-            question: "Can I access the course from mobile?",
-            answer:
-                "Yes. The course can be accessed from both desktop and mobile devices.",
-        },
-    ],
-};
 
 
 export default function CourseDetails() {
@@ -735,17 +531,12 @@ export default function CourseDetails() {
     if (loading) {
         return (
             <div className="w-full min-h-screen flex items-center justify-center text-white">
-
                 <div className="flex flex-col items-center gap-3">
-
                     <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-
                     <p className="text-gray-400 text-sm font-medium">
                         Loading course details...
                     </p>
-
                 </div>
-
             </div>
         );
     }
@@ -760,26 +551,20 @@ export default function CourseDetails() {
     if (error) {
         return (
             <div className="w-full max-w-xl mx-auto p-6 text-center text-white mt-20">
-
                 <Card className="p-8 border border-red-500/20 bg-red-950/10">
-
                     <h2 className="text-xl font-bold text-red-400 mb-2">
                         Error Loading Course
                     </h2>
-
                     <p className="text-gray-400 mb-6">
                         {error}
                     </p>
-
                     <Button
                         variant="primary"
                         onClick={() => navigate("/catalog")}
                     >
                         Back to Catalog
                     </Button>
-
                 </Card>
-
             </div>
         );
     }
@@ -794,26 +579,20 @@ export default function CourseDetails() {
     if (!course) {
         return (
             <div className="w-full max-w-xl mx-auto p-6 text-center text-white mt-20">
-
                 <Card className="p-8 border border-gray-800 bg-[#1A1D24]">
-
                     <h2 className="text-xl font-bold text-gray-300 mb-2">
                         Course Not Found
                     </h2>
-
                     <p className="text-gray-400 mb-6">
                         The requested course could not be found.
                     </p>
-
                     <Button
                         variant="primary"
                         onClick={() => navigate("/catalog")}
                     >
                         Back to Catalog
                     </Button>
-
                 </Card>
-
             </div>
         );
     }
@@ -827,11 +606,9 @@ export default function CourseDetails() {
 
     return (
         <div className="w-full max-w-7xl mx-auto p-2 md:p-5 pb-20 text-start text-white">
-
             {/* =========================================================
                 BACK BUTTON
             ========================================================= */}
-
             <button
                 onClick={() => navigate("/catalog")}
                 className="flex items-center gap-2 text-gray-400 hover:text-white mt-2 mb-4 text-sm font-semibold transition-colors cursor-pointer"
@@ -839,46 +616,33 @@ export default function CourseDetails() {
                 <ArrowBackIcon fontSize="small" />
                 Catalog
             </button>
-
-
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-
 
                 {/* =====================================================
                     LEFT COLUMN
                 ===================================================== */}
-
                 <div className="lg:col-span-8 space-y-8">
-
 
                     {/* =================================================
                         COURSE HEADER
                     ================================================= */}
 
                     <div>
-
                         <div className="flex flex-wrap gap-2.5 mb-3">
-
                             <span className="text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-md">
                                 {course.category}
                             </span>
-
                             <span className="text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 bg-white/5 border border-white/10 text-gray-300 rounded-md">
                                 {course.level}
                             </span>
-
                         </div>
-
 
                         <h1 className="text-white text-2xl md:text-3xl font-extrabold tracking-tight leading-tight mb-4">
                             {course.title}
                         </h1>
-
-
                         <p className="text-gray-400 text-xs md:text-sm leading-relaxed">
                             {course.description}
                         </p>
-
                     </div>
 
 
@@ -887,9 +651,7 @@ export default function CourseDetails() {
                     ================================================= */}
 
                     <div className="border-t border-b border-white/5 py-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
-
                         <div className="space-y-1">
-
                             <span className="text-xs text-gray-500 font-semibold block uppercase">
                                 Rating
                                 <StarIcon
@@ -900,16 +662,13 @@ export default function CourseDetails() {
                                     }}
                                 />
                             </span>
-
                             <span className="font-bold text-white text-lg">
                                 {course.rating || "N/A"}
                             </span>
-
                         </div>
 
 
                         <div className="space-y-1">
-
                             <span className="text-xs text-gray-500 font-semibold block uppercase">
                                 Students
                                 <PeopleIcon
@@ -926,12 +685,10 @@ export default function CourseDetails() {
                                     course.students ||
                                     0}
                             </span>
-
                         </div>
 
 
                         <div className="space-y-1">
-
                             <span className="text-xs text-gray-500 font-semibold block uppercase">
                                 Duration
                                 <AccessTimeIcon
@@ -942,16 +699,13 @@ export default function CourseDetails() {
                                     }}
                                 />
                             </span>
-
                             <span className="font-bold text-white text-lg">
                                 {course.duration}
                             </span>
-
                         </div>
 
 
                         <div className="space-y-1">
-
                             <span className="text-xs text-gray-500 font-semibold block uppercase">
                                 Modules
                                 <LayersIcon
@@ -968,9 +722,7 @@ export default function CourseDetails() {
                                     course.modules ||
                                     modules.length}
                             </span>
-
                         </div>
-
                     </div>
 
 
@@ -979,69 +731,47 @@ export default function CourseDetails() {
                     ================================================= */}
 
                     <section>
-
                         <h2 className="text-xl font-bold text-white mb-4">
                             Course Overview
                         </h2>
-
-
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-
                             {/* Lessons */}
-
                             <div className="p-5 rounded-xl border border-gray-800 bg-[#1A1D24] flex items-start gap-4">
-
                                 <div className="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
-
                                     <BookIcon className="text-blue-400" />
-
                                 </div>
 
 
                                 <div>
-
                                     <h4 className="text-white font-bold text-sm mb-0.5">
                                         Lessons Count
                                     </h4>
-
                                     <p className="text-gray-400 text-xs">
                                         {course.totalLessons || 48} lessons included
                                     </p>
-
                                 </div>
-
                             </div>
 
 
                             {/* Modules */}
 
                             <div className="p-5 rounded-xl border border-gray-800 bg-[#1A1D24] flex items-start gap-4">
-
                                 <div className="w-10 h-10 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
-
                                     <LayersIcon className="text-indigo-400" />
-
                                 </div>
 
 
                                 <div>
-
                                     <h4 className="text-white font-bold text-sm mb-0.5">
                                         Structured Modules
                                     </h4>
-
                                     <p className="text-gray-400 text-xs">
                                         {course.totalModules ||
                                             modules.length} course modules
                                     </p>
-
                                 </div>
-
                             </div>
-
                         </div>
-
                     </section>
 
 
@@ -1050,32 +780,24 @@ export default function CourseDetails() {
                     ================================================= */}
 
                     <section>
-
                         <div className="mb-5">
-
                             <h2 className="text-xl font-bold text-white">
                                 What You'll Learn
                             </h2>
-
                             <p className="text-gray-400 text-sm mt-1">
                                 Skills and concepts you will gain after completing this course.
                             </p>
-
                         </div>
 
 
                         <Card className="p-5 md:p-6 border border-gray-800 bg-[#1A1D24]">
-
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-
                                 {whatYouWillLearn.map(
                                     (item, index) => (
-
                                         <div
                                             key={index}
                                             className="flex items-start gap-3"
                                         >
-
                                             <CheckCircleIcon
                                                 sx={{
                                                     fontSize: 19,
@@ -1084,18 +806,13 @@ export default function CourseDetails() {
                                                     flexShrink: 0,
                                                 }}
                                             />
-
                                             <p className="text-gray-300 text-sm leading-relaxed">
                                                 {item}
                                             </p>
-
                                         </div>
-
                                     )
                                 )}
-
                             </div>
-
                         </Card>
 
                     </section>
@@ -1106,40 +823,28 @@ export default function CourseDetails() {
                     ================================================= */}
 
                     <section>
-
                         <div className="mb-5">
-
                             <h2 className="text-xl font-bold text-white">
                                 Course Content
                             </h2>
-
                             <p className="text-gray-400 text-sm mt-1">
                                 {course.totalModules || modules.length} modules •{" "}
                                 {course.totalLessons || 48} lessons
                             </p>
-
                         </div>
 
-
                         <div className="space-y-2">
-
                             {modules.map((module, index) => {
-
                                 const moduleId =
                                     module.id || index + 1;
-
                                 const isOpen =
                                     openModule === moduleId;
-
                                 return (
-
                                     <div
                                         key={moduleId}
                                         className="border border-gray-800 rounded-xl overflow-hidden bg-[#1A1D24]"
                                     >
-
                                         {/* MODULE HEADER */}
-
                                         <button
                                             type="button"
                                             onClick={() =>
@@ -1151,37 +856,29 @@ export default function CourseDetails() {
                                             }
                                             className="w-full flex items-center justify-between p-4 text-left hover:bg-white/[0.03] transition-colors cursor-pointer"
                                         >
-
                                             <div className="flex items-center gap-3">
-
                                                 <div className="w-9 h-9 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
-
                                                     <LayersIcon
                                                         sx={{
                                                             fontSize: 19,
                                                             color: "#a78bfa",
                                                         }}
                                                     />
-
                                                 </div>
 
 
                                                 <div>
-
                                                     <h3 className="text-sm font-semibold text-white">
                                                         Module {index + 1}:{" "}
                                                         {module.title}
                                                     </h3>
-
                                                     <p className="text-xs text-gray-500 mt-1">
                                                         {module.lessons?.length || 0} lessons
                                                         {module.duration
                                                             ? ` • ${module.duration}`
                                                             : ""}
                                                     </p>
-
                                                 </div>
-
                                             </div>
 
 
@@ -1198,9 +895,7 @@ export default function CourseDetails() {
                                         {/* LESSONS */}
 
                                         {isOpen && (
-
                                             <div className="border-t border-gray-800">
-
                                                 {module.lessons?.map(
                                                     (
                                                         lesson,
@@ -1213,9 +908,7 @@ export default function CourseDetails() {
                                                             }
                                                             className="flex items-center gap-3 px-5 py-3 border-b last:border-b-0 border-gray-800/70 hover:bg-white/[0.02]"
                                                         >
-
                                                             <div className="w-7 h-7 rounded-md bg-white/5 flex items-center justify-center shrink-0">
-
                                                                 <span className="text-[10px] font-bold text-gray-500">
                                                                     {String(
                                                                         lessonIndex +
@@ -1225,7 +918,6 @@ export default function CourseDetails() {
                                                                         "0"
                                                                     )}
                                                                 </span>
-
                                                             </div>
 
 
@@ -1234,16 +926,13 @@ export default function CourseDetails() {
                                                             </span>
 
                                                         </div>
-
                                                     )
                                                 )}
 
                                             </div>
-
                                         )}
 
                                     </div>
-
                                 );
                             })}
 
@@ -1257,32 +946,24 @@ export default function CourseDetails() {
                     ================================================= */}
 
                     <section>
-
                         <div className="mb-5">
-
                             <h2 className="text-xl font-bold text-white">
                                 Projects You'll Build
                             </h2>
-
                             <p className="text-gray-400 text-sm mt-1">
                                 Apply what you learn through practical projects.
                             </p>
-
                         </div>
 
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
                             {projects.map(
                                 (project, index) => (
-
                                     <Card
                                         key={index}
                                         className="p-5 border border-gray-800 bg-[#1A1D24] hover:border-blue-500/30 transition-colors"
                                     >
-
                                         <div className="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-4">
-
                                             <AssignmentIcon className="text-blue-400" />
 
                                         </div>
