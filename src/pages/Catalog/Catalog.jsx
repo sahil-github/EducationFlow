@@ -5,6 +5,7 @@ import { Button } from "@mui/material";
 import Card from "../../components/Card";
 import { Star, AccessTime, KeyboardArrowLeft, KeyboardArrowRight, Search } from '@mui/icons-material';
 import { fetchCourses, fetchCategories } from "../../features/courses/coursesThunks";
+import { dummyCoursePricing } from "../../constants/constants";
 
 function Catalog() {
     const navigate = useNavigate();
@@ -18,6 +19,8 @@ function Catalog() {
     const [sort, setSort] = useState("Popularity");
     const [page, setPage] = useState(1);
     const limit = 8;
+
+    const pricing = dummyCoursePricing;
 
     // Fetch categories on mount
     useEffect(() => {
@@ -187,6 +190,18 @@ function Catalog() {
                                         <p className="text-gray-400 text-sm mb-2 flex-1 line-clamp-2">
                                             by {course.instructor}
                                         </p>
+                                        <p className="text-white text-lg font-bold"> ₹{pricing.price}  {pricing.originalPrice && (
+                                            <span className="text-sm text-gray-500 line-through   mb-1">
+                                                ₹{pricing.originalPrice}
+                                            </span>
+                                        )}
+
+                                            {/* Discount */}
+                                            {pricing.discount && (
+                                                <span className="text-sm text-green-400 font-semibold ml-2 mb-1">
+                                                    {pricing.discount}% off
+                                                </span>
+                                            )}</p>
 
                                         <div className="flex items-center justify-between mt-auto pt-1 border-t border-white/5">
                                             <div className="flex items-center gap-1.5 text-gray-400 text-xs font-medium">
