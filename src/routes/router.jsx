@@ -19,7 +19,9 @@ import Authlayout from '../layout/Authlayout';
 import { getCurrentUser } from '../utils/storage';
 import Profile from '../pages/Profile/Profile'
 import Cart from '../components/Cart'
-import PaymentAddress from '../components/PaymentProcessing'
+import PaymentFailed from '../components/PaymentFailed'
+import PaymentSuccess from '../components/PaymentSuccess'
+import PaymentProcessing from '../components/PaymentProcessing'
 
 export const ROUTES = {
     LOGIN: '/login',
@@ -167,7 +169,10 @@ function AppRoutes() {
                                 <Route path='/setting' element={<Setting />}></Route>
                                 <Route path='/profile' element={<Profile />}></Route>
                                 <Route path='/cart' element={<Cart />}></Route>
-                                <Route path='/payment-processing' element={<PaymentAddress />}></Route>
+                                <Route path='/payment-processing' element={<PaymentProcessing />}></Route>
+                                <Route path='/payment-success' element={<PaymentSuccess />}></Route>
+                                <Route path='/payment-failed' element={<PaymentFailed />}></Route>
+                                
                             </Route>
 
                             <Route element={<OnboardingGuard />}>
