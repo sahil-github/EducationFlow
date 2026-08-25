@@ -1,202 +1,337 @@
-// import { useSelector, useDispatch } from "react-redux";
-// import { addToCart, removeFromCart, clearCart } from "../features/addtoCart/cartSlice";
+import { useDispatch, useSelector } from "react-redux";
+import {
+    removeFromCart,
+    clearCart,
+} from "../features/addtoCart/cartSlice";
 
-// function Cart() {
-//     const dispatch = useDispatch();
-//     const cartItems = useSelector(
-//         (state) => state.cart.items
-//     );
-
-//     return (
-//         <div >
-
-//            <button onClick={() => dispatch(addToCart())}>Add</button>
-//             <button onClick={() => dispatch(removeFromCart())}>Remove</button>
-//             <button onClick={() => dispatch(clearCart())}>Clear</button>
-//         </div>
-//     );
-// }
-
-// export default Cart;
-import { useSelector, useDispatch } from "react-redux";
-import { removeFromCart, clearCart } from "../features/addtoCart/cartSlice";
-import Card from '../components/Card'
 import StarIcon from "@mui/icons-material/Star";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { useNavigate } from "react-router-dom";
+
+import Card from "../components/Card";
 import { dummyCoursePricing } from "../constants/constants";
+
 function Cart() {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
 
+    // 👇 THIS IS THE DATA ADDED FROM ADD TO CART
     const cartItems = useSelector(
         (state) => state.cart.items
     );
 
-    const pricing =
-        dummyCoursePricing;
+    // Empty cart
+    if (cartItems.length === 0) {
+        return (
+            <div className="min-h-screen text-white flex items-center justify-center p-6">
+                <div className="text-center">
 
-    const { courses } = useSelector((state) => state.courses);
-
-    return (
-        // <div className="p-6">
-
-        //     <h1 className="text-2xl font-bold mb-6">
-        //         My Cart
-        //     </h1>
-
-        //     {cartItems.length === 0 ? (
-        //         <p>Your cart is empty.</p>
-        //     ) : (
-        //         <div className="space-y-4">
-
-        //             {cartItems.map((course) => (
-        //                 <div
-        //                     key={course.id}
-        //                     className="border p-4 rounded-lg"
-        //                 >
-
-        //                     <h2 className="text-xl font-bold">
-        //                         {course.title}
-        //                     </h2>
-
-        //                     <p className="text-gray-500">
-        //                         {course.description}
-        //                     </p>
-
-        //                     <p className="font-bold mt-2">
-        //                         ₹{course.price}
-        //                     </p>
-
-
-
-        //         </div>
-        //     )}
-
-        // </div>
-        <Card className="p-6 border border-gray-800 bg-[#1A1D24] space-y-5 shadow-2xl lg:sticky lg:top-24">
-
-            {/* COURSE IMAGE */}
-
-            <div className="aspect-video w-full rounded-lg bg-gradient-to-br from-indigo-950 via-slate-900 to-blue-950 flex items-center justify-center shadow-inner border border-white/10 relative overflow-hidden">
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/10 to-transparent"></div>
-                <h2 className="text-white/10 text-4xl font-extrabold select-none absolute">
-                    EduFlow
-                </h2>
-
-                {courses?.thumbnail && (
-                    <img
-                        src={courses.thumbnail}
-                        alt={
-                            courses?.title ||
-                            "Course Thumbnail"
-                        }
-                        className="w-full h-full object-cover relative z-10"
-                        onError={(e) => {
-                            e.target.style.display =
-                                "none";
+                    <ShoppingCartOutlinedIcon
+                        sx={{
+                            fontSize: 80,
+                            color: "#6b7280",
                         }}
                     />
-                )}
-                {courses?.rating != null && (
-                    <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md rounded-md px-2 py-1 flex items-center gap-1 border border-white/10 z-20">
-                        <StarIcon
-                            sx={{
-                                fontSize: 14,
-                                color: "#facc15",
-                            }}
-                        />
-                        <span className="text-white text-xs font-bold">
-                            {courses.rating ||
-                                "0.0"}
-                        </span>
-                    </div>
-                )}
-            </div>
 
+                    <h1 className="text-2xl font-bold mt-5">
+                        Your Cart is Empty
+                    </h1>
 
-            {/* COURSE INFO */}
-
-            <div className="space-y-4">
-                {/* <div className="flex justify-between items-center text-sm border-b border-white/5 pb-3">
-                    <span className="text-gray-400">
-                        Instructor
-                    </span>
-                    <span className="text-white font-semibold text-right">
-                        {
-                            instructorData.name
-                        }
-                    </span>
-                </div> */}
-
-
-                <div className="flex justify-between items-center text-sm border-b border-white/5 pb-3">
-                    <span className="text-gray-400">
-                        Difficulty
-                    </span>
-                    <span className="text-white font-semibold">
-                        {courses.level}
-                    </span>
-                </div>
-
-
-                <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-400">
-                        Total Duration
-                    </span>
-                    <span className="text-white font-semibold">
-                        {courses.duration}
-                    </span>
-                </div>
-
-                <div className="border-t border-white/5 pt-5">
-                    <div className="flex items-end gap-3">
-                        {/* Current Price */}
-                        <span className="text-3xl font-extrabold text-white">
-                            ₹{pricing.price}
-                        </span>
-
-                        {/* Original Price */}
-                        {pricing.originalPrice && (
-                            <span className="text-sm text-gray-500 line-through mb-1">
-                                ₹{pricing.originalPrice}
-                            </span>
-                        )}
-
-                        {/* Discount */}
-                        {pricing.discount && (
-                            <span className="text-sm text-green-400 font-semibold mb-1">
-                                {pricing.discount}% off
-                            </span>
-                        )}
-                    </div>
-                    {/* Pricing Message */}
-                    <p className="text-xs text-gray-500 mt-2">
-                        Get full access to this course and start learning today.
+                    <p className="text-gray-400 mt-2">
+                        Add a course to your cart and start learning.
                     </p>
+
+                    <button
+                        onClick={() => navigate("/catalog")}
+                        className="mt-6 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-xl text-sm font-semibold"
+                    >
+                        Browse Courses
+                    </button>
+
                 </div>
             </div>
-            <div>
+        );
+    }
+
+    // Total price
+    const totalPrice = cartItems.reduce(
+        (total, course) =>
+            total + Number(
+                course?.pricing?.price ??
+                dummyCoursePricing.price ??
+                0
+            ),
+        0
+    );
+
+    return (
+        <div className="min-h-screen text-white p-4 md:p-8">
+
+            {/* HEADER */}
+
+            <div className="max-w-7xl mx-auto">
+
                 <button
-                    onClick={() =>
-                        dispatch(
-                            removeFromCart(course.id)
-                        )
-                    }
-                    className="mt-3 px-4 py-2 bg-red-500 text-white rounded"
+                    onClick={() => navigate(-1)}
+                    className="flex items-center gap-2 text-gray-400 hover:text-white mb-6"
                 >
-                    Remove
+                    <ArrowBackIcon fontSize="small" />
+                    Continue Shopping
                 </button>
 
+                <div className="flex items-center justify-between mb-8">
+
+                    <div>
+                        <h1 className="text-3xl font-extrabold">
+                            My Cart
+                        </h1>
+
+                        <p className="text-gray-400 mt-2">
+                            {cartItems.length}{" "}
+                            {cartItems.length === 1
+                                ? "course"
+                                : "courses"}{" "}
+                            in your cart
+                        </p>
+                    </div>
+
+                    <button
+                        onClick={() =>
+                            dispatch(clearCart())
+                        }
+                        className="text-sm text-red-400 hover:text-red-300"
+                    >
+                        Clear Cart
+                    </button>
+
+                </div>
+
+
+                {/* MAIN CONTENT */}
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+                    {/* CART ITEMS */}
+
+                    <div className="lg:col-span-2 space-y-4">
+
+                        {cartItems.map((course) => {
+
+                            const price =
+                                course?.pricing?.price ??
+                                dummyCoursePricing.price;
+
+                            return (
+                                <Card
+                                    key={course.id}
+                                    className="p-4 md:p-5 border border-gray-800 bg-[#1A1D24]"
+                                >
+
+                                    <div className="flex flex-col sm:flex-row gap-5">
+
+                                        {/* IMAGE */}
+
+                                        <div className="w-full sm:w-52 h-32 rounded-lg overflow-hidden bg-gray-900 shrink-0">
+
+                                            {course.thumbnail ? (
+                                                <img
+                                                    src={course.thumbnail}
+                                                    alt={course.title}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-gray-600">
+                                                    EduFlow
+                                                </div>
+                                            )}
+
+                                        </div>
+
+
+                                        {/* COURSE DETAILS */}
+
+                                        <div className="flex-1">
+
+                                            <div className="flex justify-between gap-4">
+
+                                                <div>
+
+                                                    <span className="text-xs text-blue-400 font-semibold">
+                                                        {course.category}
+                                                    </span>
+
+                                                    <h2 className="text-lg font-bold text-white mt-1">
+                                                        {course.title}
+                                                    </h2>
+
+                                                    <p className="text-sm text-gray-400 mt-2 line-clamp-2">
+                                                        {course.description}
+                                                    </p>
+
+                                                </div>
+
+                                                {/* PRICE */}
+
+                                                <div className="text-right shrink-0">
+
+                                                    <p className="text-xl font-bold text-white">
+                                                        ₹{price}
+                                                    </p>
+
+                                                </div>
+
+                                            </div>
+
+
+                                            {/* COURSE META */}
+
+                                            <div className="flex flex-wrap items-center gap-4 mt-4">
+
+                                                {course.rating && (
+                                                    <div className="flex items-center gap-1">
+
+                                                        <StarIcon
+                                                            sx={{
+                                                                fontSize: 16,
+                                                                color: "#facc15",
+                                                            }}
+                                                        />
+
+                                                        <span className="text-sm text-gray-300">
+                                                            {course.rating}
+                                                        </span>
+
+                                                    </div>
+                                                )}
+
+                                                {course.level && (
+                                                    <span className="text-xs text-gray-400">
+                                                        Level:{" "}
+                                                        <span className="text-gray-200">
+                                                            {course.level}
+                                                        </span>
+                                                    </span>
+                                                )}
+
+                                                {course.duration && (
+                                                    <span className="text-xs text-gray-400">
+                                                        {course.duration}
+                                                    </span>
+                                                )}
+
+                                            </div>
+
+
+                                            {/* REMOVE */}
+
+                                            <button
+                                                onClick={() =>
+                                                    dispatch(
+                                                        removeFromCart(
+                                                            course.id
+                                                        )
+                                                    )
+                                                }
+                                                className="flex items-center gap-2 mt-4 text-sm text-red-400 hover:text-red-300"
+                                            >
+
+                                                <DeleteOutlineIcon
+                                                    fontSize="small"
+                                                />
+
+                                                Remove
+
+                                            </button>
+
+                                        </div>
+
+                                    </div>
+
+                                </Card>
+                            );
+                        })}
+
+                    </div>
+
+
+                    {/* ORDER SUMMARY */}
+
+                    <div>
+
+                        <Card className="p-6 border border-gray-800 bg-[#1A1D24] lg:sticky lg:top-24">
+
+                            <h2 className="text-xl font-bold mb-6">
+                                Order Summary
+                            </h2>
+
+                            <div className="space-y-4">
+
+                                <div className="flex justify-between text-sm">
+
+                                    <span className="text-gray-400">
+                                        Courses
+                                    </span>
+
+                                    <span className="text-white">
+                                        {cartItems.length}
+                                    </span>
+
+                                </div>
+
+                                <div className="flex justify-between text-sm">
+
+                                    <span className="text-gray-400">
+                                        Subtotal
+                                    </span>
+
+                                    <span className="text-white">
+                                        ₹{totalPrice}
+                                    </span>
+
+                                </div>
+
+                                <div className="border-t border-gray-800 pt-4 flex justify-between">
+
+                                    <span className="text-lg font-bold">
+                                        Total
+                                    </span>
+
+                                    <span className="text-2xl font-extrabold text-white">
+                                        ₹{totalPrice}
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            {/* CHECKOUT */}
+
+                            <button
+                                onClick={() =>
+                                    navigate("/payment-processing")
+                                }
+                                className="w-full mt-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-xl text-sm font-bold transition"
+                            >
+                                Proceed to Checkout
+                            </button>
+
+
+                            <p className="text-xs text-gray-500 text-center mt-4">
+                                Secure checkout • Instant course access
+                            </p>
+
+                        </Card>
+
+                    </div>
+
+                </div>
+
             </div>
 
-
-            <button
-                onClick={() => dispatch(clearCart())}
-                className="px-4 py-2 bg-gray-800 text-white rounded"
-            >
-                Clear Cart
-            </button>
-        </Card >
-
-
+        </div>
     );
 }
 
