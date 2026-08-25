@@ -50,6 +50,7 @@ export default function CourseDetails() {
     const { saveLoading } = useSelector(
         (state) => state.myLearning
     );
+    const cartItems = useSelector((state) => state.cart?.items || []);
     const [isSavedLocally, setIsSavedLocally] = useState(false);
     const [openModule, setOpenModule] = useState(1);
     const [openFaq, setOpenFaq] = useState(null);
@@ -155,13 +156,32 @@ export default function CourseDetails() {
             );
         }
     };
-    const handleAddToCart = () => {
-        dispatch(addToCart(course));
-        
-        // console.log("COURSE:", course);
+    const currentCourseId = course?.id || course?._id || id;
+    const isInCart = Boolean(
+        course &&
+        cartItems.some((item) => (item.id || item._id) === currentCourseId)
+    );
 
-        toast.success("Course added to cart");
-    }
+    const handleAddToCart = () => {
+        if (!course) return;
+
+        const courseToAdd = {
+            ...course,
+            id: currentCourseId,
+        };
+
+        const alreadyExists = cartItems.some(
+            (item) => (item.id || item._id) === currentCourseId
+        );
+
+        if (alreadyExists) {
+            toast.info("Course is already in your cart.");
+            return;
+        }
+
+        dispatch(addToCart(courseToAdd));
+        toast.success("Course added to cart!");
+    };
     /*
     |--------------------------------------------------------------------------
     | DUMMY DATA → API READY
@@ -1246,31 +1266,17 @@ export default function CourseDetails() {
 
 
                         <button
-                            onClick={handleAddToCart}
-
-                            className="w-full py-2.5 bg-transparent hover:bg-white/5 text-gray-300 hover:text-white rounded-xl text-sm font-medium transition-colors border border-gray-700 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                            onClick={isInCart ? () => navigate("/cart") : handleAddToCart}
+                            className={`w-full py-2.5 rounded-xl text-sm font-medium transition-all border flex items-center justify-center gap-2 cursor-pointer ${isInCart
+                                    ? "bg-indigo-500/15 border-indigo-500/40 text-indigo-300 hover:bg-indigo-500/25"
+                                    : "bg-transparent hover:bg-white/5 text-gray-300 hover:text-white border-gray-700"
+                                }`}
                         >
-
-                            <>
-                                <ShoppingCartIcon
-                                    fontSize="small"
-                                    className="text-blue-400"
-                                />
-                                Add to Cart
-                            </>
-                            {/* {isSavedLocally ? (
-                                <>
-                                    <
-                                        fontSize="small"
-                                        className="text-blue-400"
-                                    />
-                                    Added 
-                                </>
-                            ) : (
-                                <>
-                                    < fontSize="small" /> Add to Cart
-                                </>
-                            )} */}
+                            <ShoppingCartIcon
+                                fontSize="small"
+                                className={isInCart ? "text-indigo-400" : "text-blue-400"}
+                            />
+                            {isInCart ? "Added to Cart • View Cart" : "Add to Cart"}
                         </button>
                     </Card>
 

@@ -6,7 +6,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import LogoutIcon from '@mui/icons-material/Logout';
 import CloseIcon from '@mui/icons-material/Close';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import { IconButton, Box, Avatar, Menu, MenuItem, ListItemIcon, Divider, Typography, Drawer, List, ListItem, ListItemButton, ListItemText, CircularProgress } from '@mui/material';
+import { IconButton, Box, Avatar, Menu, MenuItem, ListItemIcon, Divider, Typography, Drawer, List, ListItem, ListItemButton, ListItemText, CircularProgress, Badge } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../features/auth/authSlice';
 import { clearCurrentUser } from '../utils/storage';
@@ -112,6 +112,8 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
     // Single source of truth: Redux state populated by loginUser + getProfile thunks
     const { token, user } = useSelector((state) => state.auth);
     const { profile } = useSelector((state) => state.profile);
+    const cartItems = useSelector((state) => state.cart?.items || []);
+    const cartCount = cartItems.length;
 
     // Show full app nav only when authenticated AND onboarding is complete
     const isOnboarded = user?.isOnboarded === true || String(user?.isOnboarded) === 'true' ||
@@ -311,10 +313,29 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                             <IconButton sx={{ color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#fff' }, p: { xs: 0.5, md: 1 } }}>
                                 <NotificationsOutlined sx={{ fontSize: { xs: 20, md: 24 } }} />
                             </IconButton>
+                            {/* cart */}
                             <IconButton
                                 onClick={() => navigate("/cart")}
-                                sx={{ color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#fff' }, p: { xs: 0.5, md: 1 } }}>
-                                <ShoppingCartIcon sx={{ fontSize: { xs: 20, md: 24 } }} />
+                                aria-label="View Cart"
+                                sx={{ color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#fff' }, p: { xs: 0.5, md: 1 } }}
+                            >
+                                <Badge
+                                    badgeContent={cartCount}
+                                    color="primary"
+                                    sx={{
+                                        '& .MuiBadge-badge': {
+                                            backgroundColor: '#6366F1',
+                                            color: '#fff',
+                                            fontSize: 10,
+                                            fontWeight: 700,
+                                            height: 16,
+                                            minWidth: 16,
+                                            padding: '0 4px',
+                                        }
+                                    }}
+                                >
+                                    <ShoppingCartIcon sx={{ fontSize: { xs: 20, md: 24 } }} />
+                                </Badge>
                             </IconButton>
 
                             {/* settings */}
@@ -515,9 +536,31 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                             component={NavLink}
                             to="/my-learning"
                             onClick={() => setMobileNavOpen(false)}
-                            sx={{ borderRadius: '8px', '&.active': { backgroundColor: 'rgba(99, 102, 241, 0.1)', color: '#6366F1' } }}
+                            sx={{ borderRadius: '8px', mb: 1, '&.active': { backgroundColor: 'rgba(99, 102, 241, 0.1)', color: '#6366F1' } }}
                         >
                             <ListItemText primary="My Learning" primaryTypographyProps={{ fontFamily: 'Poppins', fontWeight: 500 }} />
+                        </ListItemButton>
+                    </ListItem>
+                    <ListItem disablePadding>
+                        <ListItemButton
+                            component={NavLink}
+                            to="/cart"
+                            onClick={() => setMobileNavOpen(false)}
+                            sx={{ borderRadius: '8px', '&.active': { backgroundColor: 'rgba(99, 102, 241, 0.1)', color: '#6366F1' } }}
+                        >
+                            <ListItemText
+                                primary={
+                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <span>Cart</span>
+                                        {cartCount > 0 && (
+                                            <span className="px-2 py-0.5 text-xs bg-indigo-500 text-white rounded-full font-bold">
+                                                {cartCount}
+                                            </span>
+                                        )}
+                                    </Box>
+                                }
+                                primaryTypographyProps={{ fontFamily: 'Poppins', fontWeight: 500 }}
+                            />
                         </ListItemButton>
                     </ListItem>
                 </List>
