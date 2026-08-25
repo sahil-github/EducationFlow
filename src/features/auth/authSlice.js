@@ -19,9 +19,14 @@ const safeParseJSON = (key) => {
     }
 };
 
+const token = localStorage.getItem("token") || null;
+
 const initialState = {
     user: safeParseJSON("user"),
-    token: localStorage.getItem("token") || null,
+    token: token,
+    // If no token exists, auth is immediately settled/initialized.
+    // If token exists, authInitialized remains false until the profile/session is verified.
+    authInitialized: !token,
     loading: false,
     error: null,
     resetLoading: false,
@@ -32,9 +37,13 @@ const authSlice = createSlice({
     name: "auth",
     initialState,
     reducers: {
+        setAuthInitialized: (state, action) => {
+            state.authInitialized = action.payload ?? true;
+        },
         logout: (state) => {
             state.user = null;
             state.token = null;
+            state.authInitialized = true;
             state.error = null;
             state.resetError = null;
             clearCurrentUser();
@@ -65,11 +74,13 @@ const authSlice = createSlice({
                 state.loading = false;
                 state.token = action.payload.token;
                 state.user = action.payload.user;
+                state.authInitialized = true;
                 saveCurrentUser(action.payload.user);
             })
             .addCase(loginUser.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
+                state.authInitialized = true;
             })
 
             // ── registerUser ───────────────────────────────────────────────
@@ -81,11 +92,13 @@ const authSlice = createSlice({
                 state.loading = false;
                 state.token = action.payload.token;
                 state.user = action.payload.user;
+                state.authInitialized = true;
                 saveCurrentUser(action.payload.user);
             })
             .addCase(registerUser.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
+                state.authInitialized = true;
             })
 
             // ── socialLoginUser ────────────────────────────────────────────
@@ -97,11 +110,13 @@ const authSlice = createSlice({
                 state.loading = false;
                 state.token = action.payload.token;
                 state.user = action.payload.user;
+                state.authInitialized = true;
                 saveCurrentUser(action.payload.user);
             })
             .addCase(socialLoginUser.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
+                state.authInitialized = true;
             })
 
             // ── sendPasswordReset ──────────────────────────────────────────
@@ -130,6 +145,7 @@ const authSlice = createSlice({
                 }
             })
             .addCase("profile/getProfile/fulfilled", (state, action) => {
+                state.authInitialized = true;
                 if (state.user && action.payload) {
                     state.user = {
                         ...state.user,
@@ -137,10 +153,25 @@ const authSlice = createSlice({
                     };
                     saveCurrentUser(state.user);
                 }
+            })
+            .addCase("profile/getProfile/rejected", (state, action) => {
+                state.authInitialized = true;
+                // If unauthorized/expired token, clear session
+                if (action.payload === "Unauthorized" || action.error?.message?.includes("401")) {
+                    state.user = null;
+                    state.token = null;
+                    clearCurrentUser();
+                }
             });
     },
 });
 
-export const { logout, clearError, clearResetError, updateUser } =
-    authSlice.actions;
+export const {
+    setAuthInitialized,
+    logout,
+    clearError,
+    clearResetError,
+    updateUser,
+} = authSlice.actions;
+
 export default authSlice.reducer;

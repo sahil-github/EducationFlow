@@ -150,7 +150,14 @@ const profileSlice = createSlice({
                     isOnboarded: true,
                 };
             })
-            .addCase(completeOnboarding.rejected, rejected);
+            .addCase(completeOnboarding.rejected, rejected)
+
+            // ── auth/logout ─────────────────────────────────────────────────
+            .addCase("auth/logout", (state) => {
+                state.profile = null;
+                state.loading = false;
+                state.error = null;
+            });
     },
 });
 
