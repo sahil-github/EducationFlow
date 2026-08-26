@@ -20,12 +20,16 @@ import PaymentProcessing from '../components/PaymentProcessing';
 import PaymentSuccess from '../components/PaymentSuccess';
 import PaymentFailed from '../components/PaymentFailed';
 import Notification from '../components/Notification';
+import IntroMylearning from '../pages/MyLearning/IntroMylearning';
+import Certificates from '../pages/Certificate/Certificate';
+import CertificateDetails from '../pages/Certificate/CertificateDetails';
 
 // Quiz Pages
 import QuizDashboard from '../pages/quizzes/QuizDashboard';
 import QuizInstructions from '../pages/quizzes/QuizInstructions';
 import QuizAttempt from '../pages/quizzes/QuizAttempt';
 import QuizResult from '../pages/quizzes/QuizResult';
+import QuizeReview from '../pages/quizzes/QuizeReview';
 
 // Onboarding Pages
 import PersonalInfo from '../pages/onboarding/PersonalInfo/PersonalInfo';
@@ -282,6 +286,10 @@ function AppRoutes() {
                             <Route path="/quizzes/:quizId" element={<QuizInstructions />} />
                             <Route path="/quizzes/:quizId/attempt" element={<QuizAttempt />} />
                             <Route path="/quizzes/:quizId/result" element={<QuizResult />} />
+                            <Route path="/quizzes/:quizId/result/review" element={<QuizeReview />} />
+                            <Route path="/intro-mylearning" element={<IntroMylearning />} />
+                            <Route path="/certificates" element={<Certificates />} />
+                            <Route path="/certificate/:id" element={<CertificateDetails />} />
                         </Route>
 
                         {/* Onboarding Wizard Routes */}
