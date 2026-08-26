@@ -264,6 +264,8 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                                 isActive ? 'text-white font-semibold border-b-2 border-blue-500 pb-1' : 'text-gray-300 hover:text-white transition-colors pb-1'}>Catalog</NavLink>
                             <NavLink to='/my-learning' end className={({ isActive }) =>
                                 isActive ? 'text-white font-semibold border-b-2 border-blue-500 pb-1' : 'text-gray-300 hover:text-white transition-colors pb-1'}>My Learning</NavLink>
+                            <NavLink to='/quizzes' end className={({ isActive }) =>
+                                isActive ? 'text-white font-semibold border-b-2 border-blue-500 pb-1' : 'text-gray-300 hover:text-white transition-colors pb-1'}>Quizzes</NavLink>
                         </div>
                     )}
                 </div>
@@ -310,7 +312,9 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                                 </IconButton>
                             </Box>
                             {/* notifications */}
-                            <IconButton sx={{ color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#fff' }, p: { xs: 0.5, md: 1 } }}>
+                            <IconButton
+                                onClick={() => navigate("/notification")}
+                                sx={{ color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#fff' }, p: { xs: 0.5, md: 1 } }}>
                                 <NotificationsOutlined sx={{ fontSize: { xs: 20, md: 24 } }} />
                             </IconButton>
                             {/* cart */}
@@ -455,7 +459,7 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                     <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 600, fontSize: 14, color: '#fff' }}>
                         {profile?.fullName || user?.fullName || user?.name || 'User'}
                     </Typography>
-                    <Typography sx={{ fontFamily: 'Manrope, sans-serif', fontSize: 12, color: '#64748B' }}>
+                    <Typography sx={{ fontFamily: 'Manrope, sans-serif', fontSize: 12, color: '#bcc4cfff' }}>
                         {profile?.email || user?.email || ''}
                     </Typography>
                 </Box>
