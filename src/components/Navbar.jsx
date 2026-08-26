@@ -262,10 +262,12 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                                 isActive ? 'text-white font-semibold border-b-2 border-blue-500 pb-1' : 'text-gray-300 hover:text-white transition-colors pb-1'}>Dashboard</NavLink>
                             <NavLink to='/catalog' end className={({ isActive }) =>
                                 isActive ? 'text-white font-semibold border-b-2 border-blue-500 pb-1' : 'text-gray-300 hover:text-white transition-colors pb-1'}>Catalog</NavLink>
-                            <NavLink to='/my-learning' end className={({ isActive }) =>
+                            <NavLink to='/intro-mylearning' end className={({ isActive }) =>
                                 isActive ? 'text-white font-semibold border-b-2 border-blue-500 pb-1' : 'text-gray-300 hover:text-white transition-colors pb-1'}>My Learning</NavLink>
                             <NavLink to='/quizzes' end className={({ isActive }) =>
                                 isActive ? 'text-white font-semibold border-b-2 border-blue-500 pb-1' : 'text-gray-300 hover:text-white transition-colors pb-1'}>Quizzes</NavLink>
+                            <NavLink to='/certificates' end className={({ isActive }) =>
+                                isActive ? 'text-white font-semibold border-b-2 border-blue-500 pb-1' : 'text-gray-300 hover:text-white transition-colors pb-1'}>Certificates</NavLink>
                         </div>
                     )}
                 </div>
@@ -548,14 +550,24 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                     <ListItem disablePadding>
                         <ListItemButton
                             component={NavLink}
-                            to="/cart"
+                            to="/certificates"
+                            onClick={() => setMobileNavOpen(false)}
+                            sx={{ borderRadius: '8px', mb: 1, '&.active': { backgroundColor: 'rgba(99, 102, 241, 0.1)', color: '#6366F1' } }}
+                        >
+                            <ListItemText primary="Certificates" primaryTypographyProps={{ fontFamily: 'Poppins', fontWeight: 500 }} />
+                        </ListItemButton>
+                    </ListItem>
+                    <ListItem disablePadding>
+                        <ListItemButton
+                            component={NavLink}
+                            to="/quizzes"
                             onClick={() => setMobileNavOpen(false)}
                             sx={{ borderRadius: '8px', '&.active': { backgroundColor: 'rgba(99, 102, 241, 0.1)', color: '#6366F1' } }}
                         >
                             <ListItemText
                                 primary={
                                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <span>Cart</span>
+                                        <span>Quizzes</span>
                                         {cartCount > 0 && (
                                             <span className="px-2 py-0.5 text-xs bg-indigo-500 text-white rounded-full font-bold">
                                                 {cartCount}
