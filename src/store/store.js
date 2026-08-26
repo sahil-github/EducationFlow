@@ -6,6 +6,7 @@ import coursesReducer from '../features/courses/coursesSlice';
 import myLearningReducer from '../features/myLearning/myLearningSlice';
 import settingsReducer from '../features/settings/settingsSlice';
 import cartReducer from '../features/addtoCart/cartSlice';
+import quizReducer from '../features/quiz/quizSlice';
 
 export const store = configureStore({
     reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
         myLearning: myLearningReducer,
         settings: settingsReducer,
         cart: cartReducer,
+        quiz: quizReducer,
     }
 });
 
