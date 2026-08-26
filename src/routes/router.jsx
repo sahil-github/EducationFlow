@@ -19,6 +19,13 @@ import Cart from '../components/Cart';
 import PaymentProcessing from '../components/PaymentProcessing';
 import PaymentSuccess from '../components/PaymentSuccess';
 import PaymentFailed from '../components/PaymentFailed';
+import Notification from '../components/Notification';
+
+// Quiz Pages
+import QuizDashboard from '../pages/quizzes/QuizDashboard';
+import QuizInstructions from '../pages/quizzes/QuizInstructions';
+import QuizAttempt from '../pages/quizzes/QuizAttempt';
+import QuizResult from '../pages/quizzes/QuizResult';
 
 // Onboarding Pages
 import PersonalInfo from '../pages/onboarding/PersonalInfo/PersonalInfo';
@@ -270,6 +277,11 @@ function AppRoutes() {
                             <Route path="/payment-processing" element={<PaymentProcessing />} />
                             <Route path="/payment-success" element={<PaymentSuccess />} />
                             <Route path="/payment-failed" element={<PaymentFailed />} />
+                            <Route path="/notification" element={<Notification />} />
+                            <Route path="/quizzes" element={<QuizDashboard />} />
+                            <Route path="/quizzes/:quizId" element={<QuizInstructions />} />
+                            <Route path="/quizzes/:quizId/attempt" element={<QuizAttempt />} />
+                            <Route path="/quizzes/:quizId/result" element={<QuizResult />} />
                         </Route>
 
                         {/* Onboarding Wizard Routes */}
