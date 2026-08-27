@@ -29,6 +29,7 @@ import CertificateDetails from '../pages/Certificate/CertificateDetails';
 import EmptyStateAssignment from '../pages/Assignment/EmptyStateAssignment';
 import AssignmentSubmitted from '../pages/Assignment/AssignmentSubmitted';
 import Assignment from '../pages/Assignment/Assignment';
+import AssignmentDetails from '../pages/Assignment/AssignmentDetails';
 
 // Quiz Pages
 import QuizDashboard from '../pages/quizzes/QuizDashboard';
@@ -300,6 +301,8 @@ function AppRoutes() {
                             <Route path="/empty-state-assignment" element={<EmptyStateAssignment />} />
                             <Route path="/assignment-submitted" element={<AssignmentSubmitted />} />
                             <Route path="/assignment" element={<Assignment />} />
+                            <Route path="/assignment-detail" element={<AssignmentDetails />} />
+                            <Route path="/assignment/:id" element={<AssignmentDetails />} />
                         </Route>
 
                         {/* Onboarding Wizard Routes */}

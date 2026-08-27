@@ -53,7 +53,7 @@ const saveStoredCompletedLessons = (courseId, lessonIdsList) => {
     if (!courseId) return;
     try {
         localStorage.setItem(`eduflow_course_completed_lessons_${courseId}`, JSON.stringify(lessonIdsList));
-    } catch {}
+    } catch { }
 };
 
 export default function CoursePlayer() {
@@ -805,7 +805,7 @@ export default function CoursePlayer() {
                         </div>
 
                         <div className="flex items-center gap-3">
-                            <button
+                            {/* <button
                                 onClick={() => handleCompleteLesson(currentLesson?.id)}
                                 disabled={completingLesson || completedLessonIds.has(currentLesson?.id) || currentLesson?.isCompleted}
                                 className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${completedLessonIds.has(currentLesson?.id) || currentLesson?.isCompleted
@@ -815,6 +815,15 @@ export default function CoursePlayer() {
                             >
                                 <CheckCircleIcon sx={{ fontSize: 16 }} />
                                 {completingLesson ? "Saving..." : (completedLessonIds.has(currentLesson?.id) || currentLesson?.isCompleted) ? "Lesson Completed" : "Mark as Complete"}
+                            </button> */}
+
+                            <button onClick={() => navigate("/assignment-detail")}
+                                className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${completedLessonIds.has(currentLesson?.id) || currentLesson?.isCompleted
+                                    ? "bg-white/5 text-gray-400 border border-white/10 cursor-default"
+                                    : "bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-900/30"
+                                    }`}
+                            >
+                                Assignment
                             </button>
 
                             {(() => {
