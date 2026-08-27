@@ -126,22 +126,22 @@ export default function Certificates() {
     };
 
     return (
-        <div className="min-h-screen w-full bg-[#0b1428] text-white">
+        <div className="min-h-screen w-full text-white">
             {/* =====================================================
                 PAGE CONTAINER
             ====================================================== */}
 
-            <main className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 lg:py-12">
+            <main className="w-full max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
                 {/* =====================================================
                     HEADER
                 ====================================================== */}
 
-                <div className="mb-7 sm:mb-8">
+                <div className="mb-6 sm:mb-8">
                     <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
                         Certificates
                     </h1>
 
-                    <p className="mt-2 text-sm sm:text-base text-gray-400">
+                    <p className="mt-2 text-xs sm:text-base text-gray-400">
                         Celebrate your achievements and showcase the skills
                         you've mastered.
                     </p>
@@ -151,7 +151,7 @@ export default function Certificates() {
                     STATISTICS
                 ====================================================== */}
 
-                <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
+                <section className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-6 sm:mb-8">
                     {/* Certificates */}
                     <StatCard
                         title="Certificates Earned"
@@ -202,7 +202,7 @@ export default function Certificates() {
                 ====================================================== */}
 
                 <div className="flex items-center justify-between gap-4 border-b border-gray-800 pb-4 mb-5">
-                    <h1 className="text-white text-2xl md:text-3xl font-bold mb-2">My Certificates</h1>
+                    <h1 className="text-white text-xl sm:text-2xl md:text-3xl font-bold mb-1">My Certificates</h1>
 
                     {/* Filter */}
                     <div className="relative">
@@ -269,11 +269,11 @@ export default function Certificates() {
 function StatCard({ title, value, icon }) {
     return (
         <div
-            className="min-h-[105px] sm:min-h-[120px] rounded-xl border border-gray-700/80 bg-[#1b263b] px-4 sm:px-5 py-4 sm:py-5
+            className="min-h-[95px] sm:min-h-[120px] rounded-xl border border-gray-700/80 bg-[#1b263b] px-3 sm:px-5 py-3 sm:py-5
                 transition-all hover:border-indigo-500/40"
         >
-            <div className="flex items-start justify-between gap-3">
-                <p className="text-[11px] sm:text-xs text-gray-400 font-medium">
+            <div className="flex items-start justify-between gap-2">
+                <p className="text-[10px] sm:text-xs text-gray-400 font-medium truncate">
                     {title}
                 </p>
 
@@ -282,7 +282,7 @@ function StatCard({ title, value, icon }) {
                 </span>
             </div>
 
-            <p className="mt-3 text-xl sm:text-2xl font-bold text-white">
+            <p className="mt-2 sm:mt-3 text-lg sm:text-2xl font-bold text-white">
                 {value}
             </p>
         </div>
@@ -373,7 +373,7 @@ function CertificateCard({
                 CARD BODY
             ================================================== */}
 
-            <div className="p-4 sm:p-5">
+            <div className="p-3.5 sm:p-5">
                 {/* Title + Status */}
 
                 <div className="flex items-start justify-between gap-3">
@@ -446,7 +446,7 @@ function CertificateCard({
 
                 {/* Buttons */}
 
-                <div className="grid grid-cols-[1fr_auto] gap-2">
+                <div className="grid grid-cols-2 gap-2.5">
                     <button
                         type="button"
                         onClick={() => onDownload(certificate)}
@@ -478,8 +478,6 @@ function CertificateCard({
                         onClick={() => onShare(certificate)}
                         className="
                             min-h-[42px]
-                            min-w-[78px]
-                            sm:min-w-[90px]
                             flex
                             items-center
                             justify-center

@@ -56,9 +56,9 @@ function MyLearning() {
         error: myLearningError,
     } = useSelector((state) => state.myLearning);
 
-    const inProgressList  = Array.isArray(myLearning?.inProgress)   ? myLearning.inProgress   : [];
+    const inProgressList = Array.isArray(myLearning?.inProgress) ? myLearning.inProgress : [];
     const savedForLaterList = Array.isArray(myLearning?.savedForLater) ? myLearning.savedForLater : [];
-    const completedList   = Array.isArray(myLearning?.completed)     ? myLearning.completed     : [];
+    const completedList = Array.isArray(myLearning?.completed) ? myLearning.completed : [];
 
     useEffect(() => {
         dispatch(fetchMyLearning());
@@ -84,11 +84,11 @@ function MyLearning() {
             : null;
         const timeLeftText =
             course.currentLessonTitle ? `Lesson: ${course.currentLessonTitle}` :
-            course.timeLeft ? course.timeLeft :
-            lessonsLeft != null ? `${lessonsLeft} lessons left` :
-            course.lastAccessed
-                ? `Last: ${new Date(course.lastAccessed).toLocaleDateString()}`
-                : "";
+                course.timeLeft ? course.timeLeft :
+                    lessonsLeft != null ? `${lessonsLeft} lessons left` :
+                        course.lastAccessed
+                            ? `Last: ${new Date(course.lastAccessed).toLocaleDateString()}`
+                            : "";
         return {
             id,
             category: getRealCategory(course),

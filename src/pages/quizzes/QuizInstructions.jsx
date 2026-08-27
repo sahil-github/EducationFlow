@@ -52,19 +52,6 @@ export default function QuizInstructions() {
 
     return (
         <div className="min-h-screen bg-[#0B0F19] text-white flex flex-col justify-between">
-            {/* Top Minimalist Header */}
-            <header className="px-6 py-5 border-b border-white/5 flex items-center">
-                <div className="flex items-center gap-2">
-                    <span className="font-bold text-lg font-[Poppins] tracking-wide text-white">
-                        EduFlow
-                    </span>
-                    <span className="text-gray-500 font-normal">|</span>
-                    <span className="text-xs font-semibold text-gray-400 font-[Manrope] uppercase tracking-wider">
-                        LMS
-                    </span>
-                </div>
-            </header>
-
             {/* Centered Instructions Card matching Screenshot 2 */}
             <main className="flex-1 flex items-center justify-center p-4 sm:p-8">
                 <div className="w-full max-w-3xl">

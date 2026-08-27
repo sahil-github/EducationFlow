@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import SettingsSidebar, { SETTINGS_SECTIONS } from './SettingsSidebar';
 import MobileSettingsNavigator from './MobileSettingsNavigator';
@@ -98,6 +98,7 @@ function Setting() {
 
     const currentUser = { ...authUser, ...profile };
 
+    const location = useLocation();
     const [activeTab, setActiveTab] = useState('personal');
 
     // ── Section refs — one per sidebar menu item (used for desktop smooth scroll) ──
@@ -129,13 +130,23 @@ function Setting() {
     }, []);
 
     /**
-     * Mobile navigation handler:
-     * Updates active tab and resets scroll position to the top of the page.
+     * Listen to location.search changes (e.g. ?section=security) to update active tab and scroll to section.
      */
-    const handleMobileSectionChange = useCallback((sectionId) => {
-        setActiveTab(sectionId);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, []);
+    useEffect(() => {
+        const searchParams = new URLSearchParams(location.search);
+        const sec = searchParams.get('section');
+        if (sec && ['personal', 'security', 'notifications', 'subscription'].includes(sec)) {
+            setActiveTab(sec);
+            if (sectionRefs.current[sec]) {
+                const top =
+                    sectionRefs.current[sec].getBoundingClientRect().top +
+                    window.scrollY -
+                    NAVBAR_HEIGHT -
+                    SCROLL_OFFSET;
+                window.scrollTo({ top, behavior: 'smooth' });
+            }
+        }
+    }, [location.search]);
 
     const [formData, setFormData] = useState({
         fullName: '',
@@ -643,22 +654,13 @@ function Setting() {
     );
 
     return (
-        <div className="w-full min-h-screen bg-[#0F1015] text-white flex flex-col justify-between p-3.5 sm:p-6 lg:p-10 font-[Manrope]">
-            <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row gap-6 lg:gap-12">
-                {/* ── Desktop Left Sidebar (Sticky on desktop, hidden on mobile) ── */}
-                <div className="hidden lg:block lg:sticky lg:top-20 lg:self-start">
-                    <SettingsSidebar
-                        activeTab={activeTab}
-                        setActiveTab={setActiveTab}
-                        onScrollTo={scrollToSection}
-                    />
+        <div className="w-full min-h-screen text-white flex flex-col justify-between py-2 sm:py-4 font-[Manrope]">
+            <div className="w-full max-w-7xl mx-auto flex flex-col gap-6">
+                {/* Header Title */}
+                <div className="mb-2">
+                    <h1 className="text-white text-2xl md:text-3xl font-bold mb-1">Settings</h1>
+                    <p className="text-[#94A3B8] text-sm">Manage your profile information, security, notifications, and subscription preferences.</p>
                 </div>
-
-                {/* ── Mobile Compact Navigator (< Previous Current Next >) ── */}
-                <MobileSettingsNavigator
-                    activeTab={activeTab}
-                    onSelectSection={handleMobileSectionChange}
-                />
 
                 {/* ── Main Settings Content Column ── */}
                 <div className="flex-1 min-w-0">
@@ -704,7 +706,7 @@ function Setting() {
                         />
                     </div>
 
-                    {/* ── Mobile Section View (Only the active section is rendered, switching scrolls to top) ── */}
+                    {/* ── Mobile Section View (Only the active section is rendered) ── */}
                     <div className="flex lg:hidden flex-col gap-6">
                         {activeTab === 'personal' && renderPersonalInformation()}
                         {activeTab === 'security' && renderAccountSecurity()}

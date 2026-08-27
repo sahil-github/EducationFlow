@@ -291,7 +291,7 @@ export const Dashboard = () => {
     };
 
     return (
-        <div className="w-full max-w-7xl mx-auto p-4 md:p-10 pb-20 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="w-full max-w-7xl mx-auto py-2 sm:py-4 pb-20 grid grid-cols-1 lg:grid-cols-12 gap-8">
 
             {/* Left Column - Main Content */}
             <div className="col-span-1 lg:col-span-8 flex flex-col gap-12">
