@@ -56,22 +56,20 @@ export default function QuizStats({ stats }) {
                 return (
                     <Card
                         key={item.id}
-                        className="p-5 bg-[#161B26] border border-white/5 rounded-2xl flex flex-col justify-between"
+                        className="p-5 bg-[#161B26] border border-white/5 rounded-2xl flex flex-col items-center justify-between"
                     >
-                        <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center justify-center mb-3">
                             <div className={`w-9 h-9 rounded-xl ${item.bgColor} flex items-center justify-center`}>
                                 <Icon sx={{ fontSize: 20, color: item.iconColor }} />
                             </div>
                         </div>
-
-                        <div>
-                            <div className="text-2xl sm:text-3xl font-extrabold text-white font-[Poppins] tracking-tight">
-                                {item.value}
-                            </div>
-                            <div className="text-[11px] font-bold text-gray-400 font-[Manrope] tracking-wider uppercase mt-1">
-                                {item.label}
-                            </div>
+                        <div className="text-2xl sm:text-3xl font-extrabold text-white font-[Poppins] tracking-tight">
+                            {item.value}
                         </div>
+                        <div className="text-[11px] font-bold text-gray-400 font-[Manrope] tracking-wider uppercase mt-1">
+                            {item.label}
+                        </div>
+
                     </Card>
                 );
             })}

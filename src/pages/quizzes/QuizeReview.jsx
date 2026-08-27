@@ -623,31 +623,21 @@ export default function QuizReview() {
                                 {/* Legend */}
 
                                 <div className="flex flex-wrap items-center gap-4 text-xs text-gray-300 mb-5">
-
                                     <div className="flex items-center gap-2">
-
                                         <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-
                                         Correct ({correctCount})
-
                                     </div>
 
                                     <div className="flex items-center gap-2">
-
                                         <span className="w-2.5 h-2.5 rounded-full border border-red-400" />
-
                                         Incorrect ({incorrectCount})
-
                                     </div>
-
                                 </div>
 
                                 {/* Question Numbers */}
 
                                 <div className="grid grid-cols-5 gap-2">
-
                                     {questions.map((item) => {
-
                                         const itemCorrect =
                                             item.correctAnswer ===
                                             item.userAnswer;
