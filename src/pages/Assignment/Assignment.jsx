@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   Box,
-  Typography,
   Paper,
   Chip,
   InputBase,
@@ -11,14 +10,13 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  IconButton,
   Pagination,
+  Typography,
 } from "@mui/material";
 import AssignmentOutlinedIcon from "@mui/icons-material/AssignmentOutlined";
 import AccessTimeFilledIcon from "@mui/icons-material/AccessTimeFilled";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
-import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 
@@ -251,15 +249,15 @@ export default function Assignment() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {ASSIGNMENTS.map((a, idx) => {
+                {ASSIGNMENTS.map((a) => {
                   const style = STATUS_STYLES[a.status];
                   return (
                     <TableRow
-                      key={idx}
+                      key={a.name}
                       sx={{
                         "& td": {
                           borderBottom:
-                            idx === ASSIGNMENTS.length - 1
+                            a === ASSIGNMENTS[ASSIGNMENTS.length - 1]
                               ? "none"
                               : "1px solid #1e2740",
                         },

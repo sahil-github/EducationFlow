@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logout } from "../../features/auth/authSlice";
 import { clearCurrentUser } from "../../utils/storage";
-import Logo from "../../assets/logo/Logo.png";
 
 // Icons
 import GridViewIcon from "@mui/icons-material/GridView";
@@ -91,9 +90,7 @@ export default function StudentPortalSidebar({ onClose }) {
     };
 
     const handleNavClick = () => {
-        if (onClose) {
-            onClose();
-        }
+        if (onClose) onClose();
     };
 
     const handleSettingsClick = (e) => {
@@ -107,19 +104,6 @@ export default function StudentPortalSidebar({ onClose }) {
     return (
         <aside className="w-60 bg-[#0B0F19] border-r border-white/5 flex flex-col justify-between py-5 px-3.5 shrink-0 sticky top-[64px] h-[calc(100vh-64px)] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden z-40">
             <div>
-                {/* Brand Logo Header */}
-                {/* <div className="flex items-center gap-3 px-2 mb-8">
-                    <img src={Logo} alt="EduFlow Logo" className="w-9 h-9 object-contain shrink-0" />
-                    <div className="flex flex-col">
-                        <span className="text-indigo-400 font-bold font-[Poppins] text-base tracking-wide leading-tight">
-                            EduFlow
-                        </span>
-                        <span className="text-[10px] text-gray-400 font-semibold tracking-wider uppercase font-[Manrope]">
-                            STUDENT PORTAL
-                        </span>
-                    </div>
-                </div> */}
-
                 {/* Main Navigation Links */}
                 <nav className="space-y-1 font-[Manrope]">
                     {navItems.map((item) => {

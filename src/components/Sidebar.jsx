@@ -83,42 +83,20 @@ export default function Sidebar({ children, open, setOpen }) {
                         },
                     }}
                 >
-                    {/* Header: close button */}
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '16px 12px 12px',
-                    }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <img src={Logo} alt="Logo" style={{ width: 36, height: 36 }} />
-                            <span style={{
-                                fontFamily: 'Poppins, sans-serif',
-                                fontWeight: 700,
-                                fontSize: 17,
-                                color: '#6366F1',
-                                letterSpacing: '0.03em',
-                            }}>
+                    {/* Header: logo + close button */}
+                    <div className="flex items-center justify-between px-3 pt-4 pb-3">
+                        <div className="flex items-center gap-2">
+                            <img src={Logo} alt="Logo" className="w-9 h-9" />
+                            <span className="font-[Poppins] font-bold text-[17px] text-[#6366F1] tracking-[0.03em]">
                                 EduFlow
                             </span>
-
-                            {isMobile ? (
-                                <IconButton
-                                    onClick={() => setOpen(false)}
-                                    size="small"
-                                    sx={{ color: '#fff' }}
-                                >
-                                    <ChevronRightIcon />
-                                </IconButton>
-                            ) : (
-                                <IconButton
-                                    onClick={() => setOpen(false)}
-                                    size="small"
-                                    sx={{ color: '#fff' }}
-                                >
-                                    <ChevronLeftIcon />
-                                </IconButton>
-                            )}
+                            <IconButton
+                                onClick={() => setOpen(false)}
+                                size="small"
+                                sx={{ color: '#fff' }}
+                            >
+                                {isMobile ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+                            </IconButton>
                         </div>
                     </div>
 
@@ -132,9 +110,7 @@ export default function Sidebar({ children, open, setOpen }) {
                                     <ListItemButton
                                         onClick={() => {
                                             navigate(route);
-                                            if (isMobile) {
-                                                setOpen(false);
-                                            }
+                                            if (isMobile) setOpen(false);
                                         }}
                                         sx={{
                                             borderRadius: '12px',
@@ -162,12 +138,7 @@ export default function Sidebar({ children, open, setOpen }) {
                                             }}
                                         />
                                         {isActive && (
-                                            <div style={{
-                                                width: 4, height: 24,
-                                                borderRadius: 4,
-                                                backgroundColor: '#6366F1',
-                                                marginLeft: 8,
-                                            }} />
+                                            <div className="w-1 h-6 rounded bg-[#6366F1] ml-2" />
                                         )}
                                     </ListItemButton>
                                 </ListItem>

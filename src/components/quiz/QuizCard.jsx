@@ -46,8 +46,8 @@ export default function QuizCard({ quiz }) {
         }
     };
     const handleReview = () => {
-        navigate(`/quizzes/:quizId/result/review`);
-    }
+        navigate(`/quizzes/${id}/result/review`);
+    };
     return (
         <Card className="p-5 sm:p-6 bg-[#161B26] border border-white/5 rounded-2xl flex flex-col justify-between hover:border-white/15 transition-all duration-300 group">
             <div>
@@ -135,16 +135,6 @@ export default function QuizCard({ quiz }) {
                         Start Quiz
                     </button>
                 )}
-
-                {/* {status === "completed" && (
-                    <button
-                        type="button"
-                        onClick={handleAction}
-                        className="w-full py-2.5 rounded-xl border border-white/15 bg-white/[0.03] hover:bg-white/10 text-white text-xs font-bold font-[Poppins] transition-all cursor-pointer"
-                    >
-                        View Result
-                    </button>
-                )} */}
 
                 {status === "completed" && (
                     <div className="grid grid-cols-2 gap-2 w-full">

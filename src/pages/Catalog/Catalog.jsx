@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Button } from "@mui/material";
 import Card from "../../components/Card";
-import { Star, AccessTime, KeyboardArrowLeft, KeyboardArrowRight, Search } from '@mui/icons-material';
+import { Star, AccessTime, KeyboardArrowLeft, KeyboardArrowRight } from '@mui/icons-material';
 import { fetchCourses, fetchCategories } from "../../features/courses/coursesThunks";
 import { dummyCoursePricing } from "../../constants/constants";
 

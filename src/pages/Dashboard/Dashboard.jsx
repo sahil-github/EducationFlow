@@ -33,6 +33,31 @@ const STAT_ICON_MAP = {
     courses: <WorkspacePremium sx={{ color: '#facc15' }} />,
 };
 
+// Reusable carousel scroll arrow button
+function CarouselArrow({ direction, enabled, onClick }) {
+    return (
+        <button
+            aria-label={`Scroll ${direction}`}
+            onClick={onClick}
+            disabled={!enabled}
+            className={[
+                "shrink-0 w-9 h-9 rounded-full flex items-center justify-center",
+                "border transition-all duration-200",
+                enabled
+                    ? "border-white/20 bg-[#1c1f28] text-white hover:bg-blue-600 hover:border-blue-500 cursor-pointer"
+                    : "border-white/5 bg-[#1c1f28]/40 text-white/20 cursor-not-allowed",
+            ].join(' ')}
+        >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                {direction === 'left'
+                    ? <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                    : <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                }
+            </svg>
+        </button>
+    );
+}
+
 export const Dashboard = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -81,7 +106,7 @@ export const Dashboard = () => {
     // Seed initial arrow state once carousel content renders
     useEffect(() => {
         updateScrollButtons();
-    });
+    }, []);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -328,25 +353,9 @@ export const Dashboard = () => {
                             <h2 className="text-white text-xl font-bold tracking-wide">Continue Learning</h2>
                         </div>
 
-                        {/* Carousel wrapper — arrows sit outside the scroll container */}
+                        {/* Carousel wrapper */}
                         <div className="flex items-center gap-2">
-                            {/* Left arrow */}
-                            <button
-                                aria-label="Scroll left"
-                                onClick={() => scrollCarousel('left')}
-                                disabled={!canScrollLeft}
-                                className={[
-                                    "shrink-0 w-9 h-9 rounded-full flex items-center justify-center",
-                                    "border transition-all duration-200",
-                                    canScrollLeft
-                                        ? "border-white/20 bg-[#1c1f28] text-white hover:bg-blue-600 hover:border-blue-500 cursor-pointer"
-                                        : "border-white/5 bg-[#1c1f28]/40 text-white/20 cursor-not-allowed",
-                                ].join(' ')}
-                            >
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                                    <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                            </button>
+                            <CarouselArrow direction="left" enabled={canScrollLeft} onClick={() => scrollCarousel('left')} />
 
                             {/* Scrollable cards container */}
                             <div
@@ -386,23 +395,7 @@ export const Dashboard = () => {
                                 ))}
                             </div>
 
-                            {/* Right arrow */}
-                            <button
-                                aria-label="Scroll right"
-                                onClick={() => scrollCarousel('right')}
-                                disabled={!canScrollRight}
-                                className={[
-                                    "shrink-0 w-9 h-9 rounded-full flex items-center justify-center",
-                                    "border transition-all duration-200",
-                                    canScrollRight
-                                        ? "border-white/20 bg-[#1c1f28] text-white hover:bg-blue-600 hover:border-blue-500 cursor-pointer"
-                                        : "border-white/5 bg-[#1c1f28]/40 text-white/20 cursor-not-allowed",
-                                ].join(' ')}
-                            >
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                                    <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                            </button>
+                            <CarouselArrow direction="right" enabled={canScrollRight} onClick={() => scrollCarousel('right')} />
                         </div>
                     </div>
                 )}

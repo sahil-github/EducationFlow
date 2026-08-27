@@ -3,15 +3,14 @@ import Logo from '../assets/logo/Logo.png';
 import PersonIcon from '@mui/icons-material/Person';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import MenuIcon from '@mui/icons-material/Menu';
-import LogoutIcon from '@mui/icons-material/Logout';
 import CloseIcon from '@mui/icons-material/Close';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import { IconButton, Box, Avatar, Menu, MenuItem, ListItemIcon, Divider, Typography, Drawer, List, ListItem, ListItemButton, ListItemText, CircularProgress, Badge } from '@mui/material';
+import { IconButton, Box, Avatar, Menu, MenuItem, ListItemIcon, Divider, Typography, CircularProgress, Badge } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../features/auth/authSlice';
 import { clearCurrentUser } from '../utils/storage';
-import { Search, NotificationsOutlined, SettingsOutlined, LogoutOutlined, StarRounded } from '@mui/icons-material';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { Search, NotificationsOutlined, StarRounded } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { courseApi } from '../api/courseApi';
 
 // ---------------------------------------------------------------------------
@@ -98,7 +97,6 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
     const dispatch = useDispatch();
 
     const [anchorEl, setAnchorEl] = useState(null);
-    const [mobileNavOpen, setMobileNavOpen] = useState(false);
     const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
     // Search state — local only, does NOT touch global Redux courses state
     const [searchTerm, setSearchTerm] = useState('');
@@ -161,15 +159,9 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
     // -----------------------------------------------------------------------
     useEffect(() => {
         const handleClickOutside = (e) => {
-            if (
-                desktopSearchRef.current && !desktopSearchRef.current.contains(e.target) &&
-                mobileSearchRef.current && !mobileSearchRef.current.contains(e.target)
-            ) {
-                setSearchFocused(false);
-            } else if (
-                desktopSearchRef.current && !desktopSearchRef.current.contains(e.target) &&
-                !mobileSearchRef.current
-            ) {
+            const outsideDesktop = desktopSearchRef.current && !desktopSearchRef.current.contains(e.target);
+            const outsideMobile = !mobileSearchRef.current || !mobileSearchRef.current.contains(e.target);
+            if (outsideDesktop && outsideMobile) {
                 setSearchFocused(false);
             }
         };
@@ -223,23 +215,11 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
 
     return (
         <nav className="sticky top-0 left-0 right-0 w-full shadow-md z-50 bg-[#18181C]">
-            <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '0 16px',
-                minHeight: '64px'
-            }}>
-                {/* Left Side: Brand Logo, Name, and Collapsed Sidebar Chevron */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <img src={Logo} alt="Logo" style={{ width: 36, height: 36 }} />
-                    <span style={{
-                        fontFamily: 'Poppins, sans-serif',
-                        fontWeight: 700,
-                        fontSize: 17,
-                        color: '#6366F1',
-                        letterSpacing: '0.03em',
-                    }}>
+            <div className="flex items-center justify-between px-4 min-h-[64px]">
+                {/* Left Side: Brand Logo and Name */}
+                <div className="flex items-center gap-2">
+                    <img src={Logo} alt="Logo" className="w-9 h-9" />
+                    <span className="font-[Poppins] font-bold text-[17px] text-[#6366F1] tracking-[0.03em]">
                         EduFlow
                     </span>
                     {!sidebarOpen && !showAppNav && (
@@ -250,13 +230,12 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                             <ChevronRightIcon />
                         </IconButton>
                     )}
-
                 </div>
 
                 {/* Right Side */}
                 <div className='flex items-center gap-1 md:gap-2 py-2'>
 
-                    {/* App Navigation Icons (Search, Notifications, Settings) */}
+                    {/* App Navigation Icons (Search, Notifications, Cart) */}
                     {showAppNav && (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0, md: 2 } }}>
 
@@ -294,13 +273,15 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                                     <Search sx={{ fontSize: 20 }} />
                                 </IconButton>
                             </Box>
-                            {/* notifications */}
+
+                            {/* Notifications */}
                             <IconButton
                                 onClick={() => navigate("/notification")}
                                 sx={{ color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#fff' }, p: { xs: 0.5, md: 1 } }}>
                                 <NotificationsOutlined sx={{ fontSize: { xs: 20, md: 24 } }} />
                             </IconButton>
-                            {/* cart */}
+
+                            {/* Cart */}
                             <IconButton
                                 onClick={() => navigate("/cart")}
                                 aria-label="View Cart"
@@ -324,7 +305,6 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                                     <ShoppingCartIcon sx={{ fontSize: { xs: 20, md: 24 } }} />
                                 </Badge>
                             </IconButton>
-
 
                         </Box>
                     )}
@@ -458,12 +438,10 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                     }}
                 >
                     <ListItemIcon sx={{ color: '#F87171', minWidth: 'auto' }}>
-                        <LogoutIcon fontSize="small" /> Logout
+                        Logout
                     </ListItemIcon>
                 </MenuItem>
             </Menu>
-
-
         </nav>
     );
 }
