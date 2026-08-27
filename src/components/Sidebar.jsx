@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
@@ -20,6 +19,9 @@ import CommentIcon from '@mui/icons-material/Comment';
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Logo from '../assets/logo/Logo.png';
+
+import StudentPortalSidebar from './quiz/StudentPortalSidebar';
+
 const drawerWidth = 240;
 
 const navItems = [
@@ -55,12 +57,13 @@ export default function Sidebar({ children, open, setOpen }) {
     );
 
     const isOnboardingRoute = ONBOARDING_ROUTES.includes(location.pathname);
-    const showSidebar = isOnboardingRoute && !isOnboarded;
+    const showOnboardingSidebar = isOnboardingRoute && !isOnboarded;
+    const showStudentSidebar = !isOnboardingRoute && isOnboarded;
 
     return (
-        <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-                {/* Onboarding Sidebar — only rendered during the onboarding flow */}
-            {showSidebar && (
+        <Box sx={{ display: 'flex', minHeight: 'calc(100vh - 64px)', position: 'relative' }}>
+            {/* Onboarding Sidebar — only rendered during onboarding flow */}
+            {showOnboardingSidebar && (
                 <Drawer
                     variant={isMobile ? "temporary" : "persistent"}
                     anchor={isMobile ? 'right' : 'left'}
@@ -84,7 +87,7 @@ export default function Sidebar({ children, open, setOpen }) {
                     <div style={{
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'between',
+                        justifyContent: 'space-between',
                         padding: '16px 12px 12px',
                     }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -99,15 +102,15 @@ export default function Sidebar({ children, open, setOpen }) {
                                 EduFlow
                             </span>
 
-
-                            {isMobile ? <IconButton
-                                onClick={() => setOpen(false)}
-                                size="small"
-                                sx={{ color: '#fff' }}
-                            >
-                                <ChevronRightIcon />
-                            </IconButton> :
-
+                            {isMobile ? (
+                                <IconButton
+                                    onClick={() => setOpen(false)}
+                                    size="small"
+                                    sx={{ color: '#fff' }}
+                                >
+                                    <ChevronRightIcon />
+                                </IconButton>
+                            ) : (
                                 <IconButton
                                     onClick={() => setOpen(false)}
                                     size="small"
@@ -115,7 +118,7 @@ export default function Sidebar({ children, open, setOpen }) {
                                 >
                                     <ChevronLeftIcon />
                                 </IconButton>
-                            }
+                            )}
                         </div>
                     </div>
 
@@ -174,21 +177,43 @@ export default function Sidebar({ children, open, setOpen }) {
                 </Drawer>
             )}
 
-            {/* Main content — margin adjusts based on sidebar visibility */}
+            {/* Student Portal Primary Navigation Sidebar */}
+            {showStudentSidebar && (
+                <>
+                    {/* Desktop View */}
+                    {!isMobile && (
+                        <StudentPortalSidebar />
+                    )}
+
+                    {/* Mobile / Tablet Drawer View */}
+                    {isMobile && (
+                        <Drawer
+                            anchor="left"
+                            open={open}
+                            onClose={() => setOpen(false)}
+                            PaperProps={{
+                                sx: {
+                                    backgroundColor: '#0B0F19',
+                                    color: '#fff',
+                                    borderRight: '1px solid rgba(255,255,255,0.05)',
+                                }
+                            }}
+                        >
+                            <StudentPortalSidebar onClose={() => setOpen(false)} />
+                        </Drawer>
+                    )}
+                </>
+            )}
+
+            {/* Main Content Container */}
             <Box
                 component="main"
                 sx={{
                     flexGrow: 1,
-                    minHeight: '100vh',
-                    // Do NOT set overflowY here — let the browser window scroll.
-                    // Setting overflowY: 'auto' on this box would:
-                    //   1. Make window.scrollTo() a no-op (wrong scroll container)
-                    //   2. Break lg:sticky on child elements (sticky requires a
-                    //      scrollable window ancestor, not a scrollable Box ancestor)
+                    minWidth: 0,
+                    minHeight: 'calc(100vh - 64px)',
                     padding: '0 24px',
-                    // Only apply the drawer-offset margin during onboarding.
-                    // On dashboard pages the Drawer doesn't exist so margin is always 0.
-                    marginLeft: showSidebar
+                    marginLeft: showOnboardingSidebar
                         ? (isMobile ? 0 : (open ? 0 : `-${drawerWidth}px`))
                         : 0,
                     transition: 'margin 0.25s ease',

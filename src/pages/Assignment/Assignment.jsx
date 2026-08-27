@@ -122,27 +122,31 @@ export default function Assignment() {
     <Box
       className="min-h-screen w-full"
       sx={{
-        bgcolor: "#0b1120",
         color: "#e2e8f0",
         fontFamily:
           '"Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
       }}
     >
-      <Box className="max-w-[1500px] mx-auto px-6 md:px-10 py-10">
+      <Box className="w-full max-w-[1500px] mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         {/* Header */}
         <Typography
           variant="h4"
           className="!font-extrabold"
-          sx={{ color: "#f8fafc", letterSpacing: "-0.02em", mb: 0.75 }}
+          sx={{
+            color: "#f8fafc",
+            letterSpacing: "-0.02em",
+            mb: 0.75,
+            fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
+          }}
         >
           Assignments
         </Typography>
-        <Typography sx={{ color: "#94a3b8", mb: 4 }}>
+        <Typography sx={{ color: "#94a3b8", mb: 4, fontSize: { xs: 13, sm: 15 } }}>
           Stay on top of your coursework and deadlines.
         </Typography>
 
         {/* Stat cards */}
-        <Box className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
+        <Box className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mb-6 sm:mb-8">
           {STAT_CARDS.map((card) => (
             <Paper
               key={card.key}
@@ -151,23 +155,23 @@ export default function Assignment() {
               sx={{
                 bgcolor: "#141b2d",
                 border: "1px solid #22293d",
-                px: 3,
-                py: 2.75,
+                px: { xs: 2, sm: 3 },
+                py: { xs: 2, sm: 2.75 },
               }}
             >
               <Box className="flex items-center justify-between">
-                <Box>
-                  <Typography sx={{ color: "#94a3b8", fontSize: 14, mb: 1 }}>
+                <Box className="min-w-0 flex-1">
+                  <Typography sx={{ color: "#94a3b8", fontSize: { xs: 12, sm: 14 }, mb: 0.5, truncate: true }}>
                     {card.label}
                   </Typography>
                   <Typography
-                    sx={{ color: "#f8fafc", fontSize: 32, fontWeight: 700 }}
+                    sx={{ color: "#f8fafc", fontSize: { xs: 22, sm: 32 }, fontWeight: 700 }}
                   >
                     {card.value}
                   </Typography>
                 </Box>
                 <Box
-                  className={`flex items-center justify-center w-10 h-10 rounded-xl ${card.iconBg} ${card.iconColor}`}
+                  className={`flex items-center justify-center w-8 sm:w-10 h-8 sm:h-10 rounded-xl shrink-0 ${card.iconBg} ${card.iconColor}`}
                 >
                   {card.icon}
                 </Box>
@@ -183,7 +187,7 @@ export default function Assignment() {
           sx={{ bgcolor: "#141b2d", border: "1px solid #22293d" }}
         >
           {/* Toolbar */}
-          <Box className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 pt-6 pb-5">
+          <Box className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 sm:px-6 pt-4 sm:pt-6 pb-4 sm:pb-5">
             <Box className="flex items-center gap-2 flex-wrap">
               {FILTERS.map((f) => {
                 const active = f === activeFilter;
@@ -194,9 +198,9 @@ export default function Assignment() {
                     onClick={() => setActiveFilter(f)}
                     sx={{
                       fontWeight: 600,
-                      fontSize: 14,
-                      px: 1,
-                      height: 36,
+                      fontSize: { xs: 12, sm: 14 },
+                      px: 0.5,
+                      height: 32,
                       bgcolor: active ? "#6366f1" : "#1c2438",
                       color: active ? "#ffffff" : "#cbd5e1",
                       "&:hover": {
@@ -231,8 +235,8 @@ export default function Assignment() {
           </Box>
 
           {/* Table */}
-          <TableContainer>
-            <Table sx={{ minWidth: 720 }}>
+          <TableContainer sx={{ overflowX: "auto", width: "100%" }}>
+            <Table sx={{ minWidth: 650 }}>
               <TableHead>
                 <TableRow sx={{ "& th": { borderBottom: "1px solid #22293d" } }}>
                   {["Name", "Course", "Due Date", "Status", "Grade"].map(
@@ -279,6 +283,7 @@ export default function Assignment() {
                         sx={{
                           color: a.status === "OVERDUE" ? "#f87171" : "#94a3b8",
                           fontSize: 14.5,
+                          whiteSpace: "nowrap",
                         }}
                       >
                         {a.due}
@@ -314,7 +319,7 @@ export default function Assignment() {
           </TableContainer>
 
           {/* Footer / pagination */}
-          <Box className="flex items-center justify-between px-6 py-4 flex-wrap gap-3">
+          <Box className="flex flex-col sm:flex-row items-center justify-between px-4 sm:px-6 py-4 gap-3">
             <Typography sx={{ color: "#94a3b8", fontSize: 14 }}>
               Showing 1 to 5 of 16 entries
             </Typography>

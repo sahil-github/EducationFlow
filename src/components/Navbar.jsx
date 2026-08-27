@@ -207,14 +207,8 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
         navigate('/login');
     };
 
-    // Depending on user state, the hamburger menu should open either the
-    // Onboarding Sidebar (via props) OR the Authenticated Mobile Nav (local state)
     const handleHamburgerClick = () => {
-        if (showAppNav) {
-            setMobileNavOpen(true);
-        } else {
-            setSidebarOpen(true);
-        }
+        setSidebarOpen((prev) => !prev);
     };
 
     const avatarLetter = profile?.fullName
@@ -256,20 +250,7 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                             <ChevronRightIcon />
                         </IconButton>
                     )}
-                    {showAppNav && (
-                        <div className="hidden md:flex items-center gap-6 ml-10 text-sm font-medium">
-                            <NavLink to='/dashboard' end className={({ isActive }) =>
-                                isActive ? 'text-white font-semibold border-b-2 border-blue-500 pb-1' : 'text-gray-300 hover:text-white transition-colors pb-1'}>Dashboard</NavLink>
-                            <NavLink to='/catalog' end className={({ isActive }) =>
-                                isActive ? 'text-white font-semibold border-b-2 border-blue-500 pb-1' : 'text-gray-300 hover:text-white transition-colors pb-1'}>Catalog</NavLink>
-                            <NavLink to='/intro-mylearning' end className={({ isActive }) =>
-                                isActive ? 'text-white font-semibold border-b-2 border-blue-500 pb-1' : 'text-gray-300 hover:text-white transition-colors pb-1'}>My Learning</NavLink>
-                            <NavLink to='/quizzes' end className={({ isActive }) =>
-                                isActive ? 'text-white font-semibold border-b-2 border-blue-500 pb-1' : 'text-gray-300 hover:text-white transition-colors pb-1'}>Quizzes</NavLink>
-                            <NavLink to='/certificates' end className={({ isActive }) =>
-                                isActive ? 'text-white font-semibold border-b-2 border-blue-500 pb-1' : 'text-gray-300 hover:text-white transition-colors pb-1'}>Certificates</NavLink>
-                        </div>
-                    )}
+
                 </div>
 
                 {/* Right Side */}
@@ -344,13 +325,7 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                                 </Badge>
                             </IconButton>
 
-                            {/* settings */}
-                            <IconButton
-                                sx={{ color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#fff' }, p: { xs: 0.5, md: 1 } }}
-                                onClick={() => navigate('/setting')}
-                            >
-                                <SettingsOutlined sx={{ fontSize: { xs: 20, md: 24 } }} />
-                            </IconButton>
+
                         </Box>
                     )}
 
@@ -488,99 +463,7 @@ function Navbar({ sidebarOpen, setSidebarOpen }) {
                 </MenuItem>
             </Menu>
 
-            {/* Mobile Authenticated Navigation Drawer */}
-            <Drawer
-                anchor="top"
-                open={mobileNavOpen}
-                onClose={() => setMobileNavOpen(false)}
-                PaperProps={{
-                    sx: {
-                        backgroundColor: '#18181C',
-                        color: '#fff',
-                        borderBottom: '1px solid rgba(255,255,255,0.1)'
-                    }
-                }}
-            >
-                <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{
-                        fontFamily: 'Poppins, sans-serif',
-                        fontWeight: 700,
-                        fontSize: 17,
-                        color: '#6366F1',
-                        letterSpacing: '0.03em',
-                    }}>
-                        EduFlow Menu
-                    </span>
-                    <IconButton onClick={() => setMobileNavOpen(false)} sx={{ color: '#fff' }}>
-                        <CloseIcon />
-                    </IconButton>
-                </Box>
-                <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
-                <List sx={{ px: 2, py: 2 }}>
-                    <ListItem disablePadding>
-                        <ListItemButton
-                            component={NavLink}
-                            to="/dashboard"
-                            onClick={() => setMobileNavOpen(false)}
-                            sx={{ borderRadius: '8px', mb: 1, '&.active': { backgroundColor: 'rgba(99, 102, 241, 0.1)', color: '#6366F1' } }}
-                        >
-                            <ListItemText primary="Dashboard" primaryTypographyProps={{ fontFamily: 'Poppins', fontWeight: 500 }} />
-                        </ListItemButton>
-                    </ListItem>
-                    <ListItem disablePadding>
-                        <ListItemButton
-                            component={NavLink}
-                            to="/catalog"
-                            onClick={() => setMobileNavOpen(false)}
-                            sx={{ borderRadius: '8px', mb: 1, '&.active': { backgroundColor: 'rgba(99, 102, 241, 0.1)', color: '#6366F1' } }}
-                        >
-                            <ListItemText primary="Catalog" primaryTypographyProps={{ fontFamily: 'Poppins', fontWeight: 500 }} />
-                        </ListItemButton>
-                    </ListItem>
-                    <ListItem disablePadding>
-                        <ListItemButton
-                            component={NavLink}
-                            to="/my-learning"
-                            onClick={() => setMobileNavOpen(false)}
-                            sx={{ borderRadius: '8px', mb: 1, '&.active': { backgroundColor: 'rgba(99, 102, 241, 0.1)', color: '#6366F1' } }}
-                        >
-                            <ListItemText primary="My Learning" primaryTypographyProps={{ fontFamily: 'Poppins', fontWeight: 500 }} />
-                        </ListItemButton>
-                    </ListItem>
-                    <ListItem disablePadding>
-                        <ListItemButton
-                            component={NavLink}
-                            to="/certificates"
-                            onClick={() => setMobileNavOpen(false)}
-                            sx={{ borderRadius: '8px', mb: 1, '&.active': { backgroundColor: 'rgba(99, 102, 241, 0.1)', color: '#6366F1' } }}
-                        >
-                            <ListItemText primary="Certificates" primaryTypographyProps={{ fontFamily: 'Poppins', fontWeight: 500 }} />
-                        </ListItemButton>
-                    </ListItem>
-                    <ListItem disablePadding>
-                        <ListItemButton
-                            component={NavLink}
-                            to="/quizzes"
-                            onClick={() => setMobileNavOpen(false)}
-                            sx={{ borderRadius: '8px', '&.active': { backgroundColor: 'rgba(99, 102, 241, 0.1)', color: '#6366F1' } }}
-                        >
-                            <ListItemText
-                                primary={
-                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <span>Quizzes</span>
-                                        {cartCount > 0 && (
-                                            <span className="px-2 py-0.5 text-xs bg-indigo-500 text-white rounded-full font-bold">
-                                                {cartCount}
-                                            </span>
-                                        )}
-                                    </Box>
-                                }
-                                primaryTypographyProps={{ fontFamily: 'Poppins', fontWeight: 500 }}
-                            />
-                        </ListItemButton>
-                    </ListItem>
-                </List>
-            </Drawer>
+
         </nav>
     );
 }

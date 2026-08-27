@@ -21,11 +21,15 @@ import PaymentSuccess from '../components/PaymentSuccess';
 import PaymentFailed from '../components/PaymentFailed';
 import Notification from '../components/Notification';
 import IntroMylearning from '../pages/MyLearning/IntroMylearning';
+
 import Certificates from '../pages/Certificate/Certificate';
 import CertificateDetails from '../pages/Certificate/CertificateDetails';
+
+//Assignment Pages
 import EmptyStateAssignment from '../pages/Assignment/EmptyStateAssignment';
 import AssignmentSubmitted from '../pages/Assignment/AssignmentSubmitted';
 import Assignment from '../pages/Assignment/Assignment';
+
 // Quiz Pages
 import QuizDashboard from '../pages/quizzes/QuizDashboard';
 import QuizInstructions from '../pages/quizzes/QuizInstructions';
@@ -278,6 +282,7 @@ function AppRoutes() {
                             <Route path="/courses/:id/learn" element={<CoursePlayer />} />
                             <Route path="/my-learning" element={<MyLearning />} />
                             <Route path="/setting" element={<Setting />} />
+                            <Route path="/settings" element={<Navigate to="/setting" replace />} />
                             <Route path="/profile" element={<Profile />} />
                             <Route path="/cart" element={<Cart />} />
                             <Route path="/payment-processing" element={<PaymentProcessing />} />

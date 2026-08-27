@@ -52,7 +52,7 @@ function Catalog() {
     };
 
     return (
-        <div className="w-full max-w-7xl mx-auto p-4 md:p-10 pb-20 text-start">
+        <div className="w-full max-w-7xl mx-auto py-2 sm:py-4 pb-20 text-start">
             {/* Header Section */}
             <div className="mb-8">
                 <h1 className="text-white text-xl sm:text-2xl md:text-3xl font-bold mb-3">
@@ -64,41 +64,39 @@ function Catalog() {
             </div>
 
             {/* Filter Bar */}
-            <Card className="p-6 mb-8 bg-[#13151a]/80 border-white/5 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-                <div className="flex flex-col md:flex-row md:items-center gap-3 w-full lg:w-auto">
-                    <span className="text-gray-400 text-sm font-medium">Categories:</span>
-                    <div className="flex flex-wrap gap-2">
+            <Card className="p-4 sm:p-5 mb-8 bg-[#13151a]/80 border-white/5 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 flex-1 min-w-0">
+                    <span className="text-gray-400 text-sm font-medium shrink-0 mr-1">Categories:</span>
+                    <button
+                        onClick={() => handleCategoryChange("All")}
+                        className={`px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${category === "All"
+                            ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+                            : "bg-white/5 hover:bg-white/10 text-gray-300"
+                            }`}
+                    >
+                        All
+                    </button>
+                    {categories.filter(cat => cat.toLowerCase() !== 'all').map((cat) => (
                         <button
-                            onClick={() => handleCategoryChange("All")}
-                            className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${category === "All"
+                            key={cat}
+                            onClick={() => handleCategoryChange(cat)}
+                            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${category === cat
                                 ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
                                 : "bg-white/5 hover:bg-white/10 text-gray-300"
                                 }`}
                         >
-                            All
+                            {cat}
                         </button>
-                        {categories.filter(cat => cat.toLowerCase() !== 'all').map((cat) => (
-                            <button
-                                key={cat}
-                                onClick={() => handleCategoryChange(cat)}
-                                className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${category === cat
-                                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                                    : "bg-white/5 hover:bg-white/10 text-gray-300"
-                                    }`}
-                            >
-                                {cat}
-                            </button>
-                        ))}
-                    </div>
+                    ))}
                 </div>
 
-                <div className="flex flex-row flex-wrap items-center gap-3 sm:gap-6 w-full lg:w-auto">
-                    <div className="flex items-center  gap-2 w-full sm:w-auto">
-                        <span className="text-gray-400 text-sm">Difficulty:</span>
+                <div className="flex flex-wrap items-center gap-4 sm:gap-6 shrink-0 pt-2 xl:pt-0 border-t xl:border-t-0 border-white/5 xl:border-none">
+                    <div className="flex items-center gap-2">
+                        <span className="text-gray-400 text-sm shrink-0">Difficulty:</span>
                         <select
                             value={level}
                             onChange={(e) => handleLevelChange(e.target.value)}
-                            className="bg-[#1c1f28] border border-white/10 text-white text-xs rounded-lg px-2 py-1 focus:outline-none focus:border-blue-500 cursor-pointer"
+                            className="bg-[#1c1f28] border border-white/10 text-white text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500 cursor-pointer"
                         >
                             <option value="All Levels">All Levels</option>
                             <option value="Beginner">Beginner</option>
@@ -106,12 +104,12 @@ function Catalog() {
                             <option value="Advanced">Advanced</option>
                         </select>
                     </div>
-                    <div className="flex items-center gap-2  w-full sm:w-auto">
-                        <span className="text-gray-400 text-sm">Sort:</span>
+                    <div className="flex items-center gap-2">
+                        <span className="text-gray-400 text-sm shrink-0">Sort:</span>
                         <select
                             value={sort}
                             onChange={(e) => handleSortChange(e.target.value)}
-                            className="bg-[#1c1f28] border border-white/10 text-white text-xs rounded-lg px-2 py-1 focus:outline-none focus:border-blue-500 cursor-pointer"
+                            className="bg-[#1c1f28] border border-white/10 text-white text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500 cursor-pointer"
                         >
                             <option value="Popularity">Popularity</option>
                             <option value="Newest">Newest</option>
@@ -146,7 +144,7 @@ function Catalog() {
                             <p className="text-sm text-gray-500">Try adjusting your filters or search terms.</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-6 mb-10">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
                             {courses.map((course) => (
                                 <Card
                                     key={course.id}
