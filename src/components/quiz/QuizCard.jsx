@@ -45,7 +45,9 @@ export default function QuizCard({ quiz }) {
             navigate(`/quizzes/${id}`);
         }
     };
-
+    const handleReview = () => {
+        navigate(`/quizzes/:quizId/result/review`);
+    }
     return (
         <Card className="p-5 sm:p-6 bg-[#161B26] border border-white/5 rounded-2xl flex flex-col justify-between hover:border-white/15 transition-all duration-300 group">
             <div>
@@ -96,11 +98,10 @@ export default function QuizCard({ quiz }) {
                             <div
                                 className="h-full bg-indigo-500 rounded-full transition-all duration-300"
                                 style={{
-                                    width: `${
-                                        ((progress?.answeredCount || 4) /
-                                            (progress?.totalCount || questionsCount)) *
+                                    width: `${((progress?.answeredCount || 4) /
+                                        (progress?.totalCount || questionsCount)) *
                                         100
-                                    }%`,
+                                        }%`,
                                 }}
                             />
                         </div>
@@ -135,7 +136,7 @@ export default function QuizCard({ quiz }) {
                     </button>
                 )}
 
-                {status === "completed" && (
+                {/* {status === "completed" && (
                     <button
                         type="button"
                         onClick={handleAction}
@@ -143,6 +144,26 @@ export default function QuizCard({ quiz }) {
                     >
                         View Result
                     </button>
+                )} */}
+
+                {status === "completed" && (
+                    <div className="grid grid-cols-2 gap-2 w-full">
+                        <button
+                            type="button"
+                            onClick={handleAction}
+                            className="w-full py-2.5 rounded-xl border border-white/15 bg-white/[0.03] hover:bg-white/10 text-white text-xs font-bold font-[Poppins] transition-all cursor-pointer"
+                        >
+                            View Result
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={handleReview}
+                            className="w-full py-2.5 rounded-xl border border-indigo-500/40 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 text-xs font-bold font-[Poppins] transition-all cursor-pointer"
+                        >
+                            Review
+                        </button>
+                    </div>
                 )}
 
                 {status === "in-progress" && (
