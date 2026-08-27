@@ -136,14 +136,12 @@ export default function Certificates() {
                     HEADER
                 ====================================================== */}
 
-                <div className="mb-6 sm:mb-8">
-                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
+                <div className="mb-8">
+                    <h1 className="text-white text-2xl md:text-3xl font-bold mb-2">
                         Certificates
                     </h1>
-
-                    <p className="mt-2 text-xs sm:text-base text-gray-400">
-                        Celebrate your achievements and showcase the skills
-                        you've mastered.
+                    <p className="text-gray-400 text-sm sm:text-base max-w-2xl leading-relaxed">
+                        Celebrate your achievements and showcase the skills you've mastered.
                     </p>
                 </div>
 

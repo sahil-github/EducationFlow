@@ -105,7 +105,7 @@ export default function StudentPortalSidebar({ onClose }) {
     };
 
     return (
-        <aside className="w-60 bg-[#0B0F19] border-r border-white/5 flex flex-col justify-between py-6 px-4 shrink-0 sticky top-[64px] h-[calc(100vh-64px)] overflow-y-auto z-40">
+        <aside className="w-60 bg-[#0B0F19] border-r border-white/5 flex flex-col justify-between py-5 px-3.5 shrink-0 sticky top-[64px] h-[calc(100vh-64px)] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden z-40">
             <div>
                 {/* Brand Logo Header */}
                 {/* <div className="flex items-center gap-3 px-2 mb-8">
@@ -121,7 +121,7 @@ export default function StudentPortalSidebar({ onClose }) {
                 </div> */}
 
                 {/* Main Navigation Links */}
-                <nav className="space-y-1.5 font-[Manrope]">
+                <nav className="space-y-1 font-[Manrope]">
                     {navItems.map((item) => {
                         const Icon = item.icon;
                         const active = isItemActive(item);
@@ -133,13 +133,13 @@ export default function StudentPortalSidebar({ onClose }) {
                                     <button
                                         type="button"
                                         onClick={handleSettingsClick}
-                                        className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer border-none bg-transparent ${
+                                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer border-none bg-transparent ${
                                             active
                                                 ? "bg-[#161B26] text-white border border-white/10 font-semibold shadow-sm"
                                                 : "text-gray-400 hover:text-white hover:bg-white/[0.04]"
                                         }`}
                                     >
-                                        <div className="flex items-center gap-3.5">
+                                        <div className="flex items-center gap-3">
                                             <Icon
                                                 sx={{
                                                     fontSize: 18,
@@ -157,7 +157,7 @@ export default function StudentPortalSidebar({ onClose }) {
 
                                     {/* Settings Sub-menu */}
                                     {settingsOpen && (
-                                        <div className="ml-4 pl-2.5 border-l border-white/10 space-y-1 mt-1">
+                                        <div className="ml-3.5 pl-2 border-l border-white/10 space-y-0.5 mt-0.5">
                                             {settingsSubItems.map((subItem) => {
                                                 const SubIcon = subItem.icon;
                                                 const searchParams = new URLSearchParams(location.search);
@@ -170,7 +170,7 @@ export default function StudentPortalSidebar({ onClose }) {
                                                         key={subItem.id}
                                                         to={subItem.path}
                                                         onClick={handleNavClick}
-                                                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-medium transition-all ${
+                                                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
                                                             isSubActive
                                                                 ? "bg-indigo-600/20 text-indigo-400 font-semibold"
                                                                 : "text-gray-400 hover:text-white hover:bg-white/[0.04]"
@@ -192,7 +192,7 @@ export default function StudentPortalSidebar({ onClose }) {
                                 key={item.id}
                                 to={item.path}
                                 onClick={handleNavClick}
-                                className={`w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all ${
+                                className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
                                     active
                                         ? "bg-[#161B26] text-white border border-white/10 font-semibold shadow-sm"
                                         : "text-gray-400 hover:text-white hover:bg-white/[0.04]"

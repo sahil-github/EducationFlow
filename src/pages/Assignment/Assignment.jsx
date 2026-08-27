@@ -120,30 +120,23 @@ export default function Assignment() {
 
   return (
     <Box
-      className="min-h-screen w-full"
+      className="min-h-screen w-full font-[Manrope]"
       sx={{
         color: "#e2e8f0",
         fontFamily:
-          '"Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+          '"Manrope", "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
       }}
     >
       <Box className="w-full max-w-[1500px] mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         {/* Header */}
-        <Typography
-          variant="h4"
-          className="!font-extrabold"
-          sx={{
-            color: "#f8fafc",
-            letterSpacing: "-0.02em",
-            mb: 0.75,
-            fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
-          }}
-        >
-          Assignments
-        </Typography>
-        <Typography sx={{ color: "#94a3b8", mb: 4, fontSize: { xs: 13, sm: 15 } }}>
-          Stay on top of your coursework and deadlines.
-        </Typography>
+        <div className="mb-8">
+          <h1 className="text-white text-2xl md:text-3xl font-bold mb-2">
+            Assignments
+          </h1>
+          <p className="text-gray-400 text-sm sm:text-base max-w-2xl leading-relaxed">
+            Stay on top of your coursework and deadlines.
+          </p>
+        </div>
 
         {/* Stat cards */}
         <Box className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mb-6 sm:mb-8">
